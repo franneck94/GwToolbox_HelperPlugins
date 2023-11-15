@@ -21,10 +21,10 @@ target_compile_definitions(plugin_base INTERFACE BUILD_DLL)
 macro(add_tb_plugin PLUGIN)
     add_library(${PLUGIN} SHARED)
     file(GLOB SOURCES
-        "${PROJECT_SOURCE_DIR}/src/${PLUGIN}/*.h"
-        "${PROJECT_SOURCE_DIR}/src/${PLUGIN}/*.cpp")
+        "${PROJECT_SOURCE_DIR}/src/*.h"
+        "${PROJECT_SOURCE_DIR}/src/*.cpp")
     target_sources(${PLUGIN} PRIVATE ${SOURCES})
-    target_include_directories(${PLUGIN} PRIVATE "${PROJECT_SOURCE_DIR}/src/${PLUGIN}")
+    target_include_directories(${PLUGIN} PRIVATE "${PROJECT_SOURCE_DIR}/src/")
     target_link_libraries(${PLUGIN} PRIVATE plugin_base)
     target_compile_options(${PLUGIN} PRIVATE /wd4201 /wd4505)
     target_compile_options(${PLUGIN} PRIVATE /W4 /WX /Gy)
