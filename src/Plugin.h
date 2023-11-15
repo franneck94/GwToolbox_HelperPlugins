@@ -2,9 +2,9 @@
 
 #include <ToolboxUIPlugin.h>
 
-class Clock : public ToolboxUIPlugin {
+class Plugin : public ToolboxUIPlugin {
 public:
-    Clock()
+    Plugin()
     {
         show_closebutton = false;
         show_title = false;
@@ -16,7 +16,7 @@ public:
         lock_move = true;
     }
 
-    const char* Name() const override { return "Clock"; }
+    const char* Name() const override { return "Plugin"; }
 
     void Draw(IDirect3DDevice9*) override;
     void Initialize(ImGuiContext*, ImGuiAllocFns, HMODULE) override;

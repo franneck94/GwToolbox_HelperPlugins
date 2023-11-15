@@ -1,4 +1,4 @@
-#include "Clock.h"
+#include "Plugin.h"
 
 #include <GWCA/Utilities/Scanner.h>
 #include <GWCA/Utilities/Hooker.h>
@@ -30,7 +30,7 @@ namespace {
     void __cdecl OnSendChat(wchar_t* message, uint32_t agent_id)
     {
         GW::Hook::EnterHook();
-        if (message && wcsncmp(L"/clock", message, 6) == 0) {
+        if (message && wcsncmp(L"/Plugin", message, 6) == 0) {
             wchar_t sendchat_buf[100];
             GetTime(time_buf, _countof(time_buf));
             swprintf(sendchat_buf, _countof(sendchat_buf), L"#%S", time_buf);
@@ -44,11 +44,11 @@ namespace {
 
 DLLAPI ToolboxPlugin* ToolboxPluginInstance()
 {
-    static Clock instance;
+    static Plugin instance;
     return &instance;
 }
 
-void Clock::Draw(IDirect3DDevice9*)
+void Plugin::Draw(IDirect3DDevice9*)
 {
     constexpr auto flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar;
     if (ImGui::Begin(Name(), can_close && show_closebutton ? GetVisiblePtr() : nullptr, GetWinFlags(flags))) {
@@ -58,7 +58,7 @@ void Clock::Draw(IDirect3DDevice9*)
     ImGui::End();
 }
 
-void Clock::Initialize(ImGuiContext* ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
+void Plugin::Initialize(ImGuiContext* ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
 
@@ -73,7 +73,7 @@ void Clock::Initialize(ImGuiContext* ctx, const ImGuiAllocFns fns, const HMODULE
     }
 }
 
-void Clock::SignalTerminate()
+void Plugin::SignalTerminate()
 {
     ToolboxUIPlugin::SignalTerminate();
     if (SendChat_Func) {
