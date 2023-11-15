@@ -10,4 +10,5 @@ public:
     void SignalTerminate();
     bool CanTerminate();
     void Terminate() override;
+    void Draw(IDirect3DDevice9 *) override;
 };
