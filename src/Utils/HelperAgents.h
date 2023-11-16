@@ -12,9 +12,9 @@
 #include <GWCA/Managers/MapMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
 
-#include <ActionsBase.h>
-#include <DataLivings.h>
-#include <DataPlayer.h>
+#include "ActionsBase.h"
+#include "DataLivings.h"
+#include "DataPlayer.h"
 #include <DataSkill.h>
 
 bool CanMove();

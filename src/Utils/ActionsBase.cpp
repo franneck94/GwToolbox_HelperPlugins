@@ -1,11 +1,10 @@
 #include <cstdint>
 #include <map>
 
-#include <HelperMaps.h>
-#include <Utils.h>
-#include <UtilsGui.h>
-
 #include "ActionsBase.h"
+#include "HelperMaps.h"
+#include "Utils.h"
+#include "UtilsGui.h"
 
 namespace
 {

@@ -7,8 +7,8 @@
 #include <GWCA/Packets/StoC.h>
 #include <GWCA/Utilities/Hook.h>
 
-#include <ActionsBase.h>
-#include <DataPlayer.h>
+#include "ActionsBase.h"
+#include "DataPlayer.h"
 
 #include "UwMetadata.h"
 

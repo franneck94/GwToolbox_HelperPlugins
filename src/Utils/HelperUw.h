@@ -8,12 +8,12 @@
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/Managers/PartyMgr.h>
 
-#include <ActionsBase.h>
+#include "ActionsBase.h"
 #include <ActionsMove.h>
 #include <ActionsUw.h>
-#include <DataPlayer.h>
-#include <Logger.h>
-#include <UtilsMath.h>
+#include "DataPlayer.h"
+#include "Logger.h"
+#include "UtilsMath.h"
 
 bool UwHelperActivationConditions(const bool need_party_loaded = true);
 

@@ -12,14 +12,14 @@
 #include <GWCA/GameContainers/GamePos.h>
 #include <GWCA/Managers/PartyMgr.h>
 
-#include <ActionsBase.h>
-#include <DataLivings.h>
-#include <DataPlayer.h>
-#include <DataSkillbar.h>
-#include <Helper.h>
-#include <Logger.h>
-#include <Utils.h>
-#include <UtilsMath.h>
+#include "ActionsBase.h"
+#include "DataLivings.h"
+#include "DataPlayer.h"
+#include "DataSkillbar.h"
+#include "Helper.h"
+#include "Logger.h"
+#include "Utils.h"
+#include "UtilsMath.h"
 
 class TriggerABC
 {

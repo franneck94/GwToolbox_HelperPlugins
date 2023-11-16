@@ -19,8 +19,8 @@
 #include <Base/HelperBoxSettings.h>
 #include <Base/HelperBoxTheme.h>
 #include <Base/MainWindow.h>
-#include <Logger.h>
-#include <Utils.h>
+#include "Logger.h"
+#include "Utils.h"
 
 #include <SimpleIni.h>
 #include <d3d9.h>

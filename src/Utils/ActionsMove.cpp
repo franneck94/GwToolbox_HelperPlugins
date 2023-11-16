@@ -6,18 +6,18 @@
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/ChatMgr.h>
 
-#include <DataLivings.h>
-#include <DataPlayer.h>
-#include <Helper.h>
-#include <HelperAgents.h>
-#include <HelperUw.h>
-#include <HelperUwPos.h>
-#include <Logger.h>
-#include <Utils.h>
+#include "ActionsMove.h"
+#include "DataLivings.h"
+#include "DataPlayer.h"
+#include "Helper.h"
+#include "HelperAgents.h"
+#include "HelperUw.h"
+#include "HelperUwPos.h"
+#include "Logger.h"
+#include "Utils.h"
 
 #include <fmt/format.h>
 
-#include "ActionsMove.h"
 
 void MoveABC::Execute() const
 {

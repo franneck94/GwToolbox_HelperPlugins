@@ -11,7 +11,7 @@
 
 #include "HotkeysWindow.h"
 #include "Keys.h"
-#include <Logger.h>
+#include "Logger.h"
 
 
 bool HotkeysWindow::CheckSetValidHotkeys()

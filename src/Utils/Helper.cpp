@@ -24,12 +24,12 @@ bool HelperActivationConditions(const bool need_party_loaded)
     return true;
 }
 
-DWORD QuestAcceptDialog(const uint32_t quest)
+unsigned long QuestAcceptDialog(const uint32_t quest)
 {
     return (static_cast<int>(quest) << 8) | 0x800001;
 }
 
-DWORD QuestRewardDialog(const uint32_t quest)
+unsigned long QuestRewardDialog(const uint32_t quest)
 {
     return (static_cast<int>(quest) << 8) | 0x800007;
 }

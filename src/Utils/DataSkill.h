@@ -6,7 +6,7 @@
 #include <GWCA/GameEntities/Skill.h>
 #include <GWCA/Managers/SkillbarMgr.h>
 
-#include <ActionTypes.h>
+#include "ActionTypes.h"
 
 struct DataSkill
 {

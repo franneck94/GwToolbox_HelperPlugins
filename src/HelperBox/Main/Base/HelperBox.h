@@ -7,8 +7,8 @@
 
 #include <Base/HelperBoxModule.h>
 #include <Base/HelperBoxUIElement.h>
-#include <DataLivings.h>
-#include <DataPlayer.h>
+#include "DataLivings.h"
+#include "DataPlayer.h"
 
 #include <SimpleIni.h>
 #include <d3d9.h>

@@ -6,9 +6,9 @@
 
 bool HelperActivationConditions(const bool need_party_loaded = true);
 
-DWORD QuestAcceptDialog(const uint32_t quest);
+unsigned long QuestAcceptDialog(const uint32_t quest);
 
-DWORD QuestRewardDialog(const uint32_t quest);
+unsigned long QuestRewardDialog(const uint32_t quest);
 
 void CancelMovement();
 

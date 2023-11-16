@@ -12,9 +12,9 @@
 #include <GWCA/Packets/StoC.h>
 #include <GWCA/Utilities/Hook.h>
 
-#include <ActionsBase.h>
-#include <HelperUw.h>
-#include <Logger.h>
+#include "ActionsBase.h"
+#include "HelperUw.h"
+#include "Logger.h"
 
 #include "HelperCallbacks.h"
 

@@ -14,18 +14,18 @@
 #include <GWCA/Managers/PartyMgr.h>
 #include <GWCA/Managers/SkillbarMgr.h>
 
-#include <ActionsBase.h>
+#include "ActionsBase.h"
 #include <ActionsUw.h>
 #include <Base/HelperBox.h>
-#include <DataPlayer.h>
-#include <Helper.h>
-#include <HelperAgents.h>
+#include "DataPlayer.h"
+#include "Helper.h"
+#include "HelperAgents.h"
 #include <HelperItems.h>
-#include <HelperUw.h>
-#include <HelperUwPos.h>
-#include <Logger.h>
-#include <UtilsGui.h>
-#include <UtilsMath.h>
+#include "HelperUw.h"
+#include "HelperUwPos.h"
+#include "Logger.h"
+#include "UtilsGui.h"
+#include "UtilsMath.h"
 
 #include <fmt/format.h>
 

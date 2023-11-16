@@ -7,8 +7,8 @@
 
 #include <Base/HelperBoxModule.h>
 #include <Base/HelperBoxUIElement.h>
-#include <DataLivings.h>
-#include <Utils.h>
+#include "DataLivings.h"
+#include "Utils.h"
 
 class ChatCommands : public HelperBoxModule
 {

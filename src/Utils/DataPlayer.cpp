@@ -11,10 +11,10 @@
 #include <GWCA/Managers/MemoryMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
 
-#include <ActionsBase.h>
-#include <DataSkillbar.h>
-#include <Helper.h>
-#include <HelperAgents.h>
+#include "ActionsBase.h"
+#include "DataSkillbar.h"
+#include "Helper.h"
+#include "HelperAgents.h"
 
 #include "DataPlayer.h"
 

@@ -10,7 +10,7 @@
 #include <GWCA/Managers/StoCMgr.h>
 #include <GWCA/Packets/StoC.h>
 
-#include <DataSkillbar.h>
+#include "DataSkillbar.h"
 
 class DataPlayer
 {

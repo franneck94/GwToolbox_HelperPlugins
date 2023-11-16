@@ -52,7 +52,7 @@ GW::WeapondSet *GetActiveWeaponSet();
 
 GW::WeapondSet *GetWeaponSets();
 
-std::pair<GW::WeapondSet *, uint32_t> GetFirstRangeWeaponSet();
+std::pair<GW::WeaponSet *, uint32_t> GetFirstRangeWeaponSet();
 
 std::pair<GW::WeapondSet *, uint32_t> GetFirstMeleeWeaponSet();
 

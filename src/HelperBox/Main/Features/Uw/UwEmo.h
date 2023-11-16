@@ -7,18 +7,18 @@
 #include <GWCA/Packets/StoC.h>
 #include <GWCA/Utilities/Hook.h>
 
-#include <ActionsBase.h>
+#include "ActionsBase.h"
 #include <ActionsMove.h>
 #include <ActionsUw.h>
 #include <Base/HelperBoxWindow.h>
-#include <DataLivings.h>
-#include <DataPlayer.h>
+#include "DataLivings.h"
+#include "DataPlayer.h"
 #include <Features/Uw/UwMetadata.h>
-#include <Helper.h>
-#include <HelperAgents.h>
+#include "Helper.h"
+#include "HelperAgents.h"
 #include <HelperItems.h>
-#include <HelperUw.h>
-#include <UtilsGui.h>
+#include "HelperUw.h"
+#include "UtilsGui.h"
 
 #include <SimpleIni.h>
 #include <imgui.h>

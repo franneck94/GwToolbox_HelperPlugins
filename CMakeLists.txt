@@ -39,6 +39,18 @@ add_compile_definitions(
     "WIN32_LEAN_AND_MEAN"
     "SETTINGS_FOLDER=\"${CMAKE_CURRENT_LIST_DIR}\"")
 
+add_library(helper_utils SHARED)
+file(GLOB SOURCES
+    "src/Utils/*.cpp"
+    "src/Utils/*.h")
+target_sources(helper_utils PRIVATE
+    ${SOURCES})
+target_include_directories(helper_utils PUBLIC
+    "src/Utils")
+target_link_libraries(helper_utils PUBLIC
+    imgui
+    gwca)
+
 add_tb_plugin(AllowAllDialogs)
 add_tb_plugin(LongFinger)
 add_tb_plugin(RawDialogs)

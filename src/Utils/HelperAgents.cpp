@@ -18,10 +18,10 @@
 #include <GWCA/Managers/PartyMgr.h>
 #include <GWCA/Managers/PlayerMgr.h>
 
-#include <ActionsBase.h>
-#include <DataPlayer.h>
+#include "ActionsBase.h"
+#include "DataPlayer.h"
 #include <DataSkill.h>
-#include <Helper.h>
+#include "Helper.h"
 #include <HelperMaps.h>
 
 #include "HelperAgents.h"

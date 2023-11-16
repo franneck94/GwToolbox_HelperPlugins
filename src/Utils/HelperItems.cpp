@@ -13,7 +13,7 @@
 #include <GWCA/Managers/UIMgr.h>
 #include <GWCA/Packets/Opcodes.h>
 
-#include <Helper.h>
+#include "Helper.h"
 
 #include "HelperItems.h"
 

@@ -10,7 +10,7 @@
 DataSkill::DataSkill(const GW::Constants::SkillID id_, const uint32_t idx_)
     : id(id_), idx(idx_), energy_cost(0U), recharge(UINT32_MAX)
 {
-    const auto *const skill_data = GW::SkillbarMgr::GetSkillConstantData((uint32_t)id);
+    const auto *const skill_data = GW::SkillbarMgr::GetSkillConstantData(id);
     if (!skill_data)
         energy_cost = 0U;
     else

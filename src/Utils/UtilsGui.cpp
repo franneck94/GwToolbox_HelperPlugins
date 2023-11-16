@@ -5,7 +5,7 @@
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/GameEntities/Camera.h>
 
-#include <ActionsBase.h>
+#include "ActionsBase.h"
 #include <HelperMaps.h>
 
 #include <fmt/format.h>
