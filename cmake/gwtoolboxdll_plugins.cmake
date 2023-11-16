@@ -15,7 +15,8 @@ target_link_libraries(plugin_base INTERFACE
     gwca
     simpleini
     IconFontCppHeaders
-    nlohmann_json::nlohmann_json)
+    nlohmann_json::nlohmann_json
+    imgui::fonts)
 target_compile_definitions(plugin_base INTERFACE BUILD_DLL)
 
 macro(add_tb_plugin PLUGIN)
