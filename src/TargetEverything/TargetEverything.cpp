@@ -26,9 +26,9 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void TargetEverything::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxPlugin::Initialize(ctx, fns, toolbox_dll);
-
     GW::Initialize();
     GW::Scanner::Initialize(toolbox_dll);
+
     GetIsAgentTargettable_Func = reinterpret_cast<GetIsAgentTargettableFn>(
         GW::Scanner::Find("\x55\x8B\xEC\x8B\x45\x08\x85\xC0\x74\x0\xF6\x80\x9C\x00\x00\x00\x0\x74",
                           "xxxxxxxxx?xxxxxx?x"));
@@ -48,6 +48,7 @@ void TargetEverything::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, co
                              GetIsAgentTargettableOverride,
                              reinterpret_cast<void **>(&RetGetIsAgentTargettable));
     GW::HookBase::EnableHooks(GetIsAgentTargettable_Func);
+
     GW::Scanner::Initialize();
     GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"TargetEverything");
 }
