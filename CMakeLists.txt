@@ -18,6 +18,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif()
 
 # Settings
+add_definitions(-DGWCA_CTOS_ENABLED=1)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(GWTOOLBOXPP_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../GWToolboxpp")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/bin/")
@@ -39,5 +40,6 @@ add_compile_definitions(
     "SETTINGS_FOLDER=\"${CMAKE_CURRENT_LIST_DIR}\"")
 
 add_tb_plugin(AllowAllDialogs)
-target_include_directories(AllowAllDialogs PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/)
-target_link_libraries(AllowAllDialogs PRIVATE gwca imgui)
+add_tb_plugin(LongFinger)
+add_tb_plugin(RawDialogs)
+add_tb_plugin(TargetEverything)
