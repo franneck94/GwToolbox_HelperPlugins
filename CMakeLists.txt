@@ -12,6 +12,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(MSVC_CRT_VERSION "VC142")
 
+add_compile_definitions(
+    "NOMINMAX"
+    "_USE_MATH_DEFINES"
+    "WIN32_LEAN_AND_MEAN"
+    "SETTINGS_FOLDER=\"${CMAKE_CURRENT_LIST_DIR}\"")
+
 # Sanity Check
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     message(FATAL_ERROR "You are configuring a 64bit build, this is not supported. Run cmake with `-A Win32`")
@@ -25,19 +31,40 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/bin/")
 
 # CMAKE MODULES
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
+include(FetchContent)
+include(ConfigSafeGuards)
+include(Warnings)
 include(gwca)
 include(minhook)
 include(imgui)
-include(imgui_fonts)
 include(gwtoolboxdll_plugins)
-include(simpleini)
-include(json)
 
-add_compile_definitions(
-    "NOMINMAX"
-    "_USE_MATH_DEFINES"
-    "WIN32_LEAN_AND_MEAN"
-    "SETTINGS_FOLDER=\"${CMAKE_CURRENT_LIST_DIR}\"")
+### EXTERNAL LIBS
+FetchContent_Declare(
+    fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+    GIT_TAG 8.1.1
+    GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(fmt)
+
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.2
+    GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(nlohmann_json)
+
+FetchContent_Declare(
+    simpleini
+    GIT_REPOSITORY https://github.com/brofield/simpleini.git
+    GIT_TAG v4.19)
+FetchContent_GetProperties(simpleini)
+
+FetchContent_Declare(
+    imgui_fonts
+    GIT_REPOSITORY https://github.com/HasKha/imgui-fonts.git
+    GIT_TAG 51e143ae864d141d919194af74ff916d5e6d383a)
+FetchContent_MakeAvailable(imgui_fonts)
 
 add_library(helper_utils SHARED)
 file(GLOB SOURCES
