@@ -20,9 +20,9 @@
 
 #include "ActionsBase.h"
 #include "DataPlayer.h"
-#include <DataSkill.h>
+#include "DataSkill.h"
 #include "Helper.h"
-#include <HelperMaps.h>
+#include "HelperMaps.h"
 
 #include "HelperAgents.h"
 
@@ -159,7 +159,7 @@ bool AgentHasBuff(const GW::Constants::SkillID buff_skill_id, const uint32_t tar
 
         if (agent_id == target_agent_id)
         {
-            if (skill_id == (uint32_t)buff_skill_id)
+            if (skill_id == buff_skill_id)
                 return true;
         }
     }
@@ -573,7 +573,7 @@ bool FoundSpirit(const DataPlayer &player_data,
 bool DoNeedEnchNow(const DataPlayer *player_data, const GW::Constants::SkillID ench_id, const float time_offset_s)
 {
     const auto found = player_data->HasEffect(ench_id);
-    const auto data = GW::SkillbarMgr::GetSkillConstantData((uint32_t)ench_id);
+    const auto data = GW::SkillbarMgr::GetSkillConstantData(ench_id);
 
     const auto remain_duration_s = player_data->GetRemainingEffectDuration(ench_id) / 1000.0F;
     const auto trigger_time_s = data ? data->activation + data->aftercast : 1.0F;

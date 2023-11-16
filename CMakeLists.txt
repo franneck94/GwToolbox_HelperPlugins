@@ -60,16 +60,20 @@ add_subdirectory(external)
 
 include(gwtoolboxdll_plugins)
 
-add_library(helper_utils SHARED)
+add_library(Stdafx STATIC "src/stdafx.h" "src/stdafx.cpp")
+target_precompile_headers(Stdafx PUBLIC "src/stdafx.h")
+target_link_libraries(Stdafx PUBLIC impl gwca)
+
 file(GLOB UTIL_SOURCES
     "src/Utils/*.cpp"
     "src/Utils/*.h")
-target_sources(helper_utils PRIVATE ${UTIL_SOURCES})
+add_library(helper_utils STATIC ${UTIL_SOURCES})
 target_include_directories(helper_utils PUBLIC "src/Utils")
 target_link_libraries(helper_utils PUBLIC gwca)
-target_link_libraries(helper_utils PUBLIC imgui)
-target_link_libraries(helper_utils PUBLIC implot)
 target_link_libraries(helper_utils PUBLIC impl)
+target_link_libraries(helper_utils PUBLIC fmt::fmt)
+target_link_libraries(helper_utils PUBLIC simpleini)
+target_link_libraries(helper_utils PUBLIC Stdafx)
 
 add_tb_plugin(AllowAllDialogs)
 add_tb_plugin(LongFinger)

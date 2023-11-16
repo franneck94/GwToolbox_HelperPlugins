@@ -148,7 +148,7 @@ bool EquipItem(const uint32_t bag_idx, const uint32_t slot_idx)
     if (!item || !item->item_id)
         return false;
 
-    if (item->bag && item->bag->bag_type == 2)
+    if (item->bag && item->bag->bag_type == GW::Constants::BagType::Equipped)
         return false;
 
     const auto p = GW::Agents::GetCharacter();
@@ -236,7 +236,7 @@ bool UseInventoryItem(const uint32_t item_id, const size_t from_bag, const size_
     return false;
 }
 
-GW::WeapondSet *GetWeaponSets()
+GW::WeaponSet *GetWeaponSets()
 {
     const auto *c = GW::ItemContext::instance();
 
@@ -246,7 +246,7 @@ GW::WeapondSet *GetWeaponSets()
     return c->inventory->weapon_sets;
 }
 
-GW::WeapondSet *GetActiveWeaponSet()
+GW::WeaponSet *GetActiveWeaponSet()
 {
     const auto *c = GW::ItemContext::instance();
 
@@ -256,7 +256,7 @@ GW::WeapondSet *GetActiveWeaponSet()
     return &c->inventory->weapon_sets[c->inventory->active_weapon_set];
 }
 
-std::pair<GW::WeapondSet *, uint32_t> GetFirstRangeWeaponSet()
+std::pair<GW::WeaponSet *, uint32_t> GetFirstRangeWeaponSet()
 {
     const auto sets = GetWeaponSets();
 
@@ -269,7 +269,7 @@ std::pair<GW::WeapondSet *, uint32_t> GetFirstRangeWeaponSet()
     return std::make_pair(nullptr, 0);
 }
 
-std::pair<GW::WeapondSet *, uint32_t> GetFirstMeleeWeaponSet()
+std::pair<GW::WeaponSet *, uint32_t> GetFirstMeleeWeaponSet()
 {
     const auto sets = GetWeaponSets();
 
@@ -282,20 +282,20 @@ std::pair<GW::WeapondSet *, uint32_t> GetFirstMeleeWeaponSet()
     return std::make_pair(nullptr, 0);
 }
 
-bool WeaponSetIsMelee(const GW::WeapondSet &weapon_set)
+bool WeaponSetIsMelee(const GW::WeaponSet &weapon_set)
 {
-    if (!weapon_set.weapond)
+    if (!weapon_set.weapon)
         return false;
 
-    return IsMeleeWeapon(weapon_set.weapond);
+    return IsMeleeWeapon(weapon_set.weapon);
 }
 
-bool WeaponSetIsRange(const GW::WeapondSet &weapon_set)
+bool WeaponSetIsRange(const GW::WeaponSet &weapon_set)
 {
-    if (!weapon_set.weapond)
+    if (!weapon_set.weapon)
         return false;
 
-    return IsRangeWeapon(weapon_set.weapond);
+    return IsRangeWeapon(weapon_set.weapon);
 }
 
 bool UseWeaponSlot(const uint32_t slot_idx)

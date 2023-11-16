@@ -9,7 +9,7 @@
 #include <GWCA/Managers/PartyMgr.h>
 
 #include "ActionsBase.h"
-#include <ActionsMove.h>
+#include "ActionsMove.h"
 #include <ActionsUw.h>
 #include "DataPlayer.h"
 #include "Logger.h"

@@ -12,18 +12,18 @@ endif()
 ### GWCA
 add_library(gwca)
 file(GLOB GWCA_SOURCES
-    "gwca/source/stdafx.h"
-    "gwca/source/*.cpp"
-    "gwca/include/gwca/constants/*.h"
-    "gwca/include/gwca/context/*.h"
-    "gwca/include/gwca/gamecontainers/*.h"
-    "gwca/include/gwca/gameentities/*.h"
-    "gwca/include/gwca/managers/*.h"
-    "gwca/include/gwca/packets/*.h"
-    "gwca/include/gwca/utilities/*.h")
+    "GWCA/source/stdafx.h"
+    "GWCA/source/*.cpp"
+    "GWCA/include/GWCA/constants/*.h"
+    "GWCA/include/GWCA/context/*.h"
+    "GWCA/include/GWCA/gamecontainers/*.h"
+    "GWCA/include/GWCA/gameentities/*.h"
+    "GWCA/include/GWCA/managers/*.h"
+    "GWCA/include/GWCA/packets/*.h"
+    "GWCA/include/GWCA/utilities/*.h")
 target_sources(gwca PRIVATE ${GWCA_SOURCES})
-target_precompile_headers(gwca PRIVATE "gwca/source/stdafx.h")
-target_include_directories(gwca PUBLIC "gwca/include/")
+target_precompile_headers(gwca PRIVATE "GWCA/source/stdafx.h")
+target_include_directories(gwca PUBLIC "GWCA/include/")
 target_link_libraries(gwca PUBLIC minhook)
 
 ### MINIHOOK

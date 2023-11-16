@@ -2,7 +2,7 @@
 #include <GWCA/GameContainers/GamePos.h>
 #include <GWCA/Managers/MapMgr.h>
 
-#include <HelperMaps.h>
+#include "HelperMaps.h"
 #include "UtilsMath.h"
 
 #include "HelperUwPos.h"

@@ -162,7 +162,7 @@ bool IsLT(const DataPlayer &player_data)
     {
         for (const auto skill : skillbar->skills)
         {
-            if (skill.skill_id == (uint32_t)GW::Constants::SkillID::Mantra_of_Earth)
+            if (skill.skill_id == GW::Constants::SkillID::Mantra_of_Earth)
                 return false;
         }
     }
@@ -330,49 +330,49 @@ bool TargetClosestKeeper(DataPlayer &player_data, const std::vector<GW::AgentLiv
 
 bool TakeChamber()
 {
-    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW::Chamber);
+    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW_Chamber);
     GW::Agents::SendDialog(dialog);
     return true;
 }
 
 bool AcceptChamber()
 {
-    const auto dialog = QuestRewardDialog(GW::Constants::QuestID::UW::Chamber);
+    const auto dialog = QuestRewardDialog(GW::Constants::QuestID::UW_Chamber);
     GW::Agents::SendDialog(dialog);
     return true;
 }
 
 bool TakeRestore()
 {
-    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW::Restore);
+    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW_Restore);
     GW::Agents::SendDialog(dialog);
     return true;
 }
 
 bool TakeEscort()
 {
-    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW::Escort);
+    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW_Escort);
     GW::Agents::SendDialog(dialog);
     return true;
 }
 
 bool TakeUWG()
 {
-    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW::UWG);
+    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW_UWG);
     GW::Agents::SendDialog(dialog);
     return true;
 }
 
 bool TakePits()
 {
-    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW::Pits);
+    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW_Pits);
     GW::Agents::SendDialog(dialog);
     return true;
 }
 
 bool TakePlanes()
 {
-    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW::Planes);
+    const auto dialog = QuestAcceptDialog(GW::Constants::QuestID::UW_Planes);
     GW::Agents::SendDialog(dialog);
     return true;
 }

@@ -90,7 +90,7 @@ bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id) const
 
         if (agent_id == id)
         {
-            if (skill_id == (uint32_t)buff_skill_id)
+            if (skill_id == buff_skill_id)
                 return true;
         }
     }
@@ -111,7 +111,7 @@ bool DataPlayer::HasEffect(const GW::Constants::SkillID effect_skill_id) const
 
         if (agent_id == id || agent_id == 0)
         {
-            if (skill_id == (uint32_t)effect_skill_id)
+            if (skill_id == effect_skill_id)
                 return true;
         }
     }
@@ -164,7 +164,7 @@ float DataPlayer::GetRemainingEffectDuration(const GW::Constants::SkillID effect
 
         if (agent_id == id || agent_id == 0)
         {
-            if (skill_id == (uint32_t)effect_skill_id)
+            if (skill_id == effect_skill_id)
                 return GetTimeRemaining(effect.duration, effect.timestamp);
         }
     }
@@ -211,7 +211,7 @@ void DataPlayer::ChangeTarget(const uint32_t target_id)
 
 bool DataPlayer::SkillStoppedCallback(const GW::Packet::StoC::GenericValue *const packet) const noexcept
 {
-    const auto value_id = packet->Value_id;
+    const auto value_id = packet->value_id;
     const auto caster_id = packet->agent_id;
 
     if (caster_id != id)

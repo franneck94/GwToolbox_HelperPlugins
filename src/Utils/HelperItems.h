@@ -44,17 +44,17 @@ bool HighArmor(const uint32_t bag_idx, const uint32_t start_slot_idx);
 
 bool UseInventoryItem(const uint32_t item_id, const size_t from_bag = 1U, const size_t to_bag = 5U);
 
-bool WeaponSetIsMelee(const GW::WeapondSet &weapon_set);
+bool WeaponSetIsMelee(const GW::WeaponSet &weapon_set);
 
-bool WeaponSetIsRange(const GW::WeapondSet &weapon_set);
+bool WeaponSetIsRange(const GW::WeaponSet &weapon_set);
 
-GW::WeapondSet *GetActiveWeaponSet();
+GW::WeaponSet *GetActiveWeaponSet();
 
-GW::WeapondSet *GetWeaponSets();
+GW::WeaponSet *GetWeaponSets();
 
 std::pair<GW::WeaponSet *, uint32_t> GetFirstRangeWeaponSet();
 
-std::pair<GW::WeapondSet *, uint32_t> GetFirstMeleeWeaponSet();
+std::pair<GW::WeaponSet *, uint32_t> GetFirstMeleeWeaponSet();
 
 bool UseWeaponSlot(const uint32_t slot_idx);
 

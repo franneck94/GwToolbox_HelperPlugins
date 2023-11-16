@@ -14,8 +14,8 @@
 #include <GWCA/Packets/StoC.h>
 #include <GWCA/Utilities/Hook.h>
 
-#include <DataSkill.h>
-#include <HelperCallbacks.h>
+#include "DataSkill.h"
+#include "HelperCallbacks.h"
 
 template <uint32_t N>
 class SkillbarDataABC
