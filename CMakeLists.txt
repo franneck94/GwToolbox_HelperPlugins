@@ -66,6 +66,8 @@ target_link_libraries(Stdafx PUBLIC impl gwca)
 
 file(GLOB UTIL_SOURCES
     "src/Utils/*.cpp"
+    "src/Utils/*.cc"
+    "src/Utils/*.hpp"
     "src/Utils/*.h")
 add_library(helper_utils STATIC ${UTIL_SOURCES})
 target_include_directories(helper_utils PUBLIC "src/Utils")
