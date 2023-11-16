@@ -1,0 +1,16 @@
+[submodule "Dependencies/imgui"]
+	path = Dependencies/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "Dependencies/implot"]
+	path = Dependencies/implot
+	url = https://github.com/epezent/implot
+[submodule "Dependencies/simpleini"]
+	path = Dependencies/simpleini
+	url = https://github.com/brofield/simpleini
+[submodule "external/GWCA"]
+	path = external/GWCA
+	url = https://github.com/GregLando113/GWCA
+    branch = master
+[submodule "external/simpleini"]
+	path = external/simpleini
+	url = https://github.com/brofield/simpleini

@@ -1,16 +1,4 @@
 include_guard()
-include(FetchContent)
-
-FetchContent_Declare(
-    imgui
-    GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG 9aae45eb4a05a5a1f96be1ef37eb503a12ceb889)
-FetchContent_GetProperties(imgui)
-if (imgui_POPULATED)
-    return()
-endif()
-
-FetchContent_Populate(imgui)
 
 add_library(imgui)
 set(SOURCES

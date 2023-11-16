@@ -34,10 +34,6 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 include(FetchContent)
 include(ConfigSafeGuards)
 include(Warnings)
-include(gwca)
-include(minhook)
-include(imgui)
-include(gwtoolboxdll_plugins)
 
 ### EXTERNAL LIBS
 FetchContent_Declare(
@@ -55,28 +51,25 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(nlohmann_json)
 
 FetchContent_Declare(
-    simpleini
-    GIT_REPOSITORY https://github.com/brofield/simpleini.git
-    GIT_TAG v4.19)
-FetchContent_GetProperties(simpleini)
-
-FetchContent_Declare(
     imgui_fonts
     GIT_REPOSITORY https://github.com/HasKha/imgui-fonts.git
     GIT_TAG 51e143ae864d141d919194af74ff916d5e6d383a)
 FetchContent_MakeAvailable(imgui_fonts)
 
+add_subdirectory(external)
+
+include(gwtoolboxdll_plugins)
+
 add_library(helper_utils SHARED)
-file(GLOB SOURCES
+file(GLOB UTIL_SOURCES
     "src/Utils/*.cpp"
     "src/Utils/*.h")
-target_sources(helper_utils PRIVATE
-    ${SOURCES})
-target_include_directories(helper_utils PUBLIC
-    "src/Utils")
-target_link_libraries(helper_utils PUBLIC
-    imgui
-    gwca)
+target_sources(helper_utils PRIVATE ${UTIL_SOURCES})
+target_include_directories(helper_utils PUBLIC "src/Utils")
+target_link_libraries(helper_utils PUBLIC gwca)
+target_link_libraries(helper_utils PUBLIC imgui)
+target_link_libraries(helper_utils PUBLIC implot)
+target_link_libraries(helper_utils PUBLIC impl)
 
 add_tb_plugin(AllowAllDialogs)
 add_tb_plugin(LongFinger)
