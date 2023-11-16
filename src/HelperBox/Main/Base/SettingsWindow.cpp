@@ -1,9 +1,9 @@
 #include <GWCA/Managers/MapMgr.h>
 
+#include "Utils.h"
 #include <Base/HelperBox.h>
 #include <Base/HelperBoxSettings.h>
 #include <Base/MainWindow.h>
-#include <Utils.h>
 
 #include <imgui.h>
 

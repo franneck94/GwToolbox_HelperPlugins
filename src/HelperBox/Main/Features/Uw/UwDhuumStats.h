@@ -10,10 +10,10 @@
 #include <GWCA/Packets/StoC.h>
 #include <GWCA/Utilities/Hook.h>
 
-#include <ActionsBase.h>
+#include "ActionsBase.h"
+#include "DataPlayer.h"
 #include <ActionsUw.h>
 #include <Base/HelperBoxWindow.h>
-#include <DataPlayer.h>
 #include <Features/Uw/UwMetadata.h>
 #include <HelperCallbacks.h>
 

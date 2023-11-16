@@ -14,10 +14,10 @@
 
 #include "Hotkeys.h"
 
+#include "Logger.h"
+#include "Utils.h"
 #include <HelperMaps.h>
 #include <Keys.h>
-#include <Logger.h>
-#include <Utils.h>
 
 bool TBHotkey::show_active_in_header = true;
 bool TBHotkey::hotkeys_changed = false;

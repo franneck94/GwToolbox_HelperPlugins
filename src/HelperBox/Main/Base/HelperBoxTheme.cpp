@@ -1,7 +1,7 @@
 #include <filesystem>
 
-#include <Logger.h>
-#include <Utils.h>
+#include "Logger.h"
+#include "Utils.h"
 
 #include <SimpleIni.h>
 #include <imgui.h>

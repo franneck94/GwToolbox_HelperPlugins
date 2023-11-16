@@ -1,5 +1,5 @@
 # GWToolbox_AllowAllDialogs
-GWToolbox plugin. Removes blocker in GWToolbox to allow any dialog to be immediately sent. 
+GWToolbox plugin. Removes blocker in GWToolbox to allow any dialog to be immediately sent.
 
 Change `GWTOOLBOXPP_SOURCE_DIR` in `CMakeLists.txt`, `cmake/gwca.cmake` and `cmake/minhook.cmake`
 

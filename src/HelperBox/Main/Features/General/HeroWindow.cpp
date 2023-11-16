@@ -15,12 +15,12 @@
 #include <GWCA/Managers/PartyMgr.h>
 #include <GWCA/Managers/UIMgr.h>
 
-#include <ActionTypes.h>
-#include <ActionsBase.h>
+#include "ActionTypes.h"
+#include "ActionsBase.h"
+#include "DataPlayer.h"
+#include "Helper.h"
+#include "HelperAgents.h"
 #include <Base/HelperBox.h>
-#include <DataPlayer.h>
-#include <Helper.h>
-#include <HelperAgents.h>
 #include <HelperMaps.h>
 #include <HelperPackets.h>
 

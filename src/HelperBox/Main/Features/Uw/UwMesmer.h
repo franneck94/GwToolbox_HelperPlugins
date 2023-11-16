@@ -6,11 +6,11 @@
 
 #include <GWCA/GameEntities/Agent.h>
 
-#include <ActionsBase.h>
+#include "ActionsBase.h"
+#include "DataLivings.h"
+#include "DataPlayer.h"
 #include <ActionsUw.h>
 #include <Base/HelperBoxWindow.h>
-#include <DataLivings.h>
-#include <DataPlayer.h>
 #include <Features/Uw/UwMetadata.h>
 
 #include <SimpleIni.h>

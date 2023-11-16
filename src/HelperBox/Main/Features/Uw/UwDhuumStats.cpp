@@ -17,14 +17,14 @@
 
 #include <Base/HelperBox.h>
 
-#include <ActionsBase.h>
+#include "ActionsBase.h"
+#include "DataPlayer.h"
+#include "Helper.h"
+#include "HelperUw.h"
+#include "HelperUwPos.h"
+#include "UtilsGui.h"
+#include "UtilsMath.h"
 #include <ActionsUw.h>
-#include <DataPlayer.h>
-#include <Helper.h>
-#include <HelperUw.h>
-#include <HelperUwPos.h>
-#include <UtilsGui.h>
-#include <UtilsMath.h>
 
 #include "UwDhuumStats.h"
 

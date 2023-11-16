@@ -6,8 +6,8 @@
 #include <utility>
 #include <vector>
 
-#include <DataLivings.h>
-#include <DataPlayer.h>
+#include "DataLivings.h"
+#include "DataPlayer.h"
 
 #include <SimpleIni.h>
 
