@@ -39,5 +39,6 @@ add_compile_definitions(
     "SETTINGS_FOLDER=\"${CMAKE_CURRENT_LIST_DIR}\"")
 
 add_tb_plugin(AllowAllDialogs)
-target_include_directories(AllowAllDialogs PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/)
-target_link_libraries(AllowAllDialogs PRIVATE gwca imgui)
+add_tb_plugin(LongFinger)
+add_tb_plugin(RawDialogs)
+add_tb_plugin(TargetEverything)

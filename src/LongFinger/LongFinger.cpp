@@ -12,30 +12,37 @@
 #include <GWCA/Managers/GameThreadMgr.h>
 
 
-DLLAPI ToolboxPlugin* ToolboxPluginInstance()
+DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 {
     static LongFinger instance;
     return &instance;
 }
 
-void LongFinger::Initialize(ImGuiContext* ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
+void LongFinger::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxPlugin::Initialize(ctx, fns, toolbox_dll);
 
     GW::Initialize();
 
-    GW::Chat::CreateCommand(L"longfinger", [this](const wchar_t*, int, LPWSTR*) {
+    GW::Chat::CreateCommand(L"longfinger", [this](const wchar_t *, int, LPWSTR *) {
         GW::GameThread::Enqueue([this] {
             const auto target = GW::Agents::GetTarget();
-            if (target && target->GetIsGadgetType()) {
+            if (target && target->GetIsGadgetType())
+            {
                 bool res = true;
-                res = res && GW::CtoS::SendPacket(0xC, GAME_CMSG_INTERACT_GADGET, target->agent_id, 0); // GW::Agents::GoSignpost(target);
-                res = res && GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_SIGNPOST_DIALOG, 0x2);            // GW::Items::OpenLockedChest();
-                if (!res) {
+
+#define GAME_CMSG_INTERACT_GADGET (0x004F) // 79
+#define GAME_CMSG_OPEN_CHEST (0x0051)      // 81
+
+                res = res && GW::CtoS::SendPacket(0xC, GAME_CMSG_INTERACT_GADGET, target->agent_id, 0);
+                res = res && GW::CtoS::SendPacket(0x8, GAME_CMSG_OPEN_CHEST, 0x2);
+                if (!res)
+                {
                     WriteChat(GW::Chat::CHANNEL_GWCA1, L"Failed to open target locked chest", L"LongFinger");
                 }
             }
-            else {
+            else
+            {
                 WriteChat(GW::Chat::CHANNEL_GWCA1, L"Target is not a locked chest", L"LongFinger");
             }
         });
