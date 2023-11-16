@@ -60,9 +60,9 @@ typedef enum _D3D10_SHADER_DEBUG_VARTYPE
 
 typedef struct _D3D10_SHADER_DEBUG_TOKEN_INFO
 {
-    UINT File;    // offset into file list
-    UINT Line;    // line #
-    UINT Column;  // column #
+    UINT File;   // offset into file list
+    UINT Line;   // line #
+    UINT Column; // column #
 
     UINT TokenLength;
     UINT TokenId; // offset to LPCSTR of length TokenLength in string datastore
@@ -107,8 +107,8 @@ typedef struct _D3D10_SHADER_DEBUG_SCOPEVAR_INFO
 
     D3D10_SHADER_DEBUG_VARTYPE VarType; // variable or function (different namespaces)
     D3D10_SHADER_VARIABLE_CLASS Class;
-    UINT Rows;          // number of rows (matrices)
-    UINT Columns;       // number of columns (vectors and matrices)
+    UINT Rows;    // number of rows (matrices)
+    UINT Columns; // number of columns (vectors and matrices)
 
     // In an array of structures, one struct member scope is provided, and
     // you'll have to add the array stride times the index to the variable
@@ -119,13 +119,13 @@ typedef struct _D3D10_SHADER_DEBUG_SCOPEVAR_INFO
     UINT StructMemberScope;
 
     // number of array indices
-    UINT uArrayIndices;    // a[3][2][1] has 3 indices
+    UINT uArrayIndices; // a[3][2][1] has 3 indices
     // maximum array index for each index
     // offset to UINT[uArrayIndices] in UINT datastore
     UINT ArrayElements; // a[3][2][1] has {3, 2, 1}
     // how many variables each array index moves
     // offset to UINT[uArrayIndices] in UINT datastore
-    UINT ArrayStrides;  // a[3][2][1] has {2, 1, 1}
+    UINT ArrayStrides; // a[3][2][1] has {2, 1, 1}
 
     UINT uVariables;
     // index of the first variable, later variables are offsets from this one
@@ -136,8 +136,8 @@ typedef struct _D3D10_SHADER_DEBUG_SCOPEVAR_INFO
 typedef struct _D3D10_SHADER_DEBUG_SCOPE_INFO
 {
     D3D10_SHADER_DEBUG_SCOPETYPE ScopeType;
-    UINT Name;         // offset to name of scope in strings list
-    UINT uNameLen;     // length of name string
+    UINT Name;     // offset to name of scope in strings list
+    UINT uNameLen; // length of name string
     UINT uVariables;
     UINT VariableData; // Offset to UINT[uVariables] indexing the Scope Variable list
 } D3D10_SHADER_DEBUG_SCOPE_INFO;
@@ -148,11 +148,11 @@ typedef struct _D3D10_SHADER_DEBUG_OUTPUTVAR
     // index variable being written to, if -1 it's not going to a variable
     UINT Var;
     // range data that the compiler expects to be true
-    UINT  uValueMin, uValueMax;
-    INT   iValueMin, iValueMax;
+    UINT uValueMin, uValueMax;
+    INT iValueMin, iValueMax;
     FLOAT fValueMin, fValueMax;
 
-    BOOL  bNaNPossible, bInfPossible;
+    BOOL bNaNPossible, bInfPossible;
 } D3D10_SHADER_DEBUG_OUTPUTVAR;
 
 typedef struct _D3D10_SHADER_DEBUG_OUTPUTREG_INFO
@@ -178,7 +178,7 @@ typedef struct _D3D10_SHADER_DEBUG_OUTPUTREG_INFO
 // per instruction data
 typedef struct _D3D10_SHADER_DEBUG_INST_INFO
 {
-    UINT Id; // Which instruction this is in the bytecode
+    UINT Id;     // Which instruction this is in the bytecode
     UINT Opcode; // instruction type
 
     // 0, 1, or 2
@@ -186,7 +186,7 @@ typedef struct _D3D10_SHADER_DEBUG_INST_INFO
 
     // up to two outputs per instruction
     D3D10_SHADER_DEBUG_OUTPUTREG_INFO pOutputs[2];
-    
+
     // index into the list of tokens for this instruction's token
     UINT TokenId;
 
@@ -214,27 +214,27 @@ typedef struct _D3D10_SHADER_DEBUG_FILE_INFO
 
 typedef struct _D3D10_SHADER_DEBUG_INFO
 {
-    UINT Size;                             // sizeof(D3D10_SHADER_DEBUG_INFO)
-    UINT Creator;                          // Offset to LPCSTR for compiler version
-    UINT EntrypointName;                   // Offset to LPCSTR for Entry point name
-    UINT ShaderTarget;                     // Offset to LPCSTR for shader target
-    UINT CompileFlags;                     // flags used to compile
-    UINT Files;                            // number of included files
-    UINT FileInfo;                         // Offset to D3D10_SHADER_DEBUG_FILE_INFO[Files]
-    UINT Instructions;                     // number of instructions
-    UINT InstructionInfo;                  // Offset to D3D10_SHADER_DEBUG_INST_INFO[Instructions]
-    UINT Variables;                        // number of variables
-    UINT VariableInfo;                     // Offset to D3D10_SHADER_DEBUG_VAR_INFO[Variables]
-    UINT InputVariables;                   // number of variables to initialize before running
-    UINT InputVariableInfo;                // Offset to D3D10_SHADER_DEBUG_INPUT_INFO[InputVariables]
-    UINT Tokens;                           // number of tokens to initialize
-    UINT TokenInfo;                        // Offset to D3D10_SHADER_DEBUG_TOKEN_INFO[Tokens]
-    UINT Scopes;                           // number of scopes
-    UINT ScopeInfo;                        // Offset to D3D10_SHADER_DEBUG_SCOPE_INFO[Scopes]
-    UINT ScopeVariables;                   // number of variables declared
-    UINT ScopeVariableInfo;                // Offset to D3D10_SHADER_DEBUG_SCOPEVAR_INFO[Scopes]
-    UINT UintOffset;                       // Offset to the UINT datastore, all UINT offsets are from this offset
-    UINT StringOffset;                     // Offset to the string datastore, all string offsets are from this offset
+    UINT Size;              // sizeof(D3D10_SHADER_DEBUG_INFO)
+    UINT Creator;           // Offset to LPCSTR for compiler version
+    UINT EntrypointName;    // Offset to LPCSTR for Entry point name
+    UINT ShaderTarget;      // Offset to LPCSTR for shader target
+    UINT CompileFlags;      // flags used to compile
+    UINT Files;             // number of included files
+    UINT FileInfo;          // Offset to D3D10_SHADER_DEBUG_FILE_INFO[Files]
+    UINT Instructions;      // number of instructions
+    UINT InstructionInfo;   // Offset to D3D10_SHADER_DEBUG_INST_INFO[Instructions]
+    UINT Variables;         // number of variables
+    UINT VariableInfo;      // Offset to D3D10_SHADER_DEBUG_VAR_INFO[Variables]
+    UINT InputVariables;    // number of variables to initialize before running
+    UINT InputVariableInfo; // Offset to D3D10_SHADER_DEBUG_INPUT_INFO[InputVariables]
+    UINT Tokens;            // number of tokens to initialize
+    UINT TokenInfo;         // Offset to D3D10_SHADER_DEBUG_TOKEN_INFO[Tokens]
+    UINT Scopes;            // number of scopes
+    UINT ScopeInfo;         // Offset to D3D10_SHADER_DEBUG_SCOPE_INFO[Scopes]
+    UINT ScopeVariables;    // number of variables declared
+    UINT ScopeVariableInfo; // Offset to D3D10_SHADER_DEBUG_SCOPEVAR_INFO[Scopes]
+    UINT UintOffset;        // Offset to the UINT datastore, all UINT offsets are from this offset
+    UINT StringOffset;      // Offset to the string datastore, all string offsets are from this offset
 } D3D10_SHADER_DEBUG_INFO;
 
 //----------------------------------------------------------------------------
@@ -249,40 +249,39 @@ typedef interface ID3D10ShaderReflection1 ID3D10ShaderReflection1;
 typedef interface ID3D10ShaderReflection1 *LPD3D10SHADERREFLECTION1;
 
 // {C3457783-A846-47CE-9520-CEA6F66E7447}
-DEFINE_GUID(IID_ID3D10ShaderReflection1, 
-0xc3457783, 0xa846, 0x47ce, 0x95, 0x20, 0xce, 0xa6, 0xf6, 0x6e, 0x74, 0x47);
+DEFINE_GUID(IID_ID3D10ShaderReflection1, 0xc3457783, 0xa846, 0x47ce, 0x95, 0x20, 0xce, 0xa6, 0xf6, 0x6e, 0x74, 0x47);
 
 #undef INTERFACE
 #define INTERFACE ID3D10ShaderReflection1
 
 DECLARE_INTERFACE_(ID3D10ShaderReflection1, IUnknown)
 {
-    STDMETHOD(QueryInterface)(THIS_ REFIID iid, LPVOID *ppv) PURE;
+    STDMETHOD(QueryInterface)(THIS_ REFIID iid, LPVOID * ppv) PURE;
     STDMETHOD_(ULONG, AddRef)(THIS) PURE;
     STDMETHOD_(ULONG, Release)(THIS) PURE;
 
-    STDMETHOD(GetDesc)(THIS_ D3D10_SHADER_DESC *pDesc) PURE;
-    
-    STDMETHOD_(ID3D10ShaderReflectionConstantBuffer*, GetConstantBufferByIndex)(THIS_ UINT Index) PURE;
-    STDMETHOD_(ID3D10ShaderReflectionConstantBuffer*, GetConstantBufferByName)(THIS_ LPCSTR Name) PURE;
-    
-    STDMETHOD(GetResourceBindingDesc)(THIS_ UINT ResourceIndex, D3D10_SHADER_INPUT_BIND_DESC *pDesc) PURE;
-    
-    STDMETHOD(GetInputParameterDesc)(THIS_ UINT ParameterIndex, D3D10_SIGNATURE_PARAMETER_DESC *pDesc) PURE;
-    STDMETHOD(GetOutputParameterDesc)(THIS_ UINT ParameterIndex, D3D10_SIGNATURE_PARAMETER_DESC *pDesc) PURE;
+    STDMETHOD(GetDesc)(THIS_ D3D10_SHADER_DESC * pDesc) PURE;
 
-    STDMETHOD_(ID3D10ShaderReflectionVariable*, GetVariableByName)(THIS_ LPCSTR Name) PURE;
+    STDMETHOD_(ID3D10ShaderReflectionConstantBuffer *, GetConstantBufferByIndex)(THIS_ UINT Index) PURE;
+    STDMETHOD_(ID3D10ShaderReflectionConstantBuffer *, GetConstantBufferByName)(THIS_ LPCSTR Name) PURE;
 
-    STDMETHOD(GetResourceBindingDescByName)(THIS_ LPCSTR Name, D3D10_SHADER_INPUT_BIND_DESC *pDesc) PURE;
+    STDMETHOD(GetResourceBindingDesc)(THIS_ UINT ResourceIndex, D3D10_SHADER_INPUT_BIND_DESC * pDesc) PURE;
 
-    STDMETHOD(GetMovInstructionCount)(THIS_ UINT* pCount) PURE;
-    STDMETHOD(GetMovcInstructionCount)(THIS_ UINT* pCount) PURE;
-    STDMETHOD(GetConversionInstructionCount)(THIS_ UINT* pCount) PURE;
-    STDMETHOD(GetBitwiseInstructionCount)(THIS_ UINT* pCount) PURE;
-    
-    STDMETHOD(GetGSInputPrimitive)(THIS_ D3D10_PRIMITIVE* pPrim) PURE;
-    STDMETHOD(IsLevel9Shader)(THIS_ BOOL* pbLevel9Shader) PURE;
-    STDMETHOD(IsSampleFrequencyShader)(THIS_ BOOL* pbSampleFrequency) PURE;
+    STDMETHOD(GetInputParameterDesc)(THIS_ UINT ParameterIndex, D3D10_SIGNATURE_PARAMETER_DESC * pDesc) PURE;
+    STDMETHOD(GetOutputParameterDesc)(THIS_ UINT ParameterIndex, D3D10_SIGNATURE_PARAMETER_DESC * pDesc) PURE;
+
+    STDMETHOD_(ID3D10ShaderReflectionVariable *, GetVariableByName)(THIS_ LPCSTR Name) PURE;
+
+    STDMETHOD(GetResourceBindingDescByName)(THIS_ LPCSTR Name, D3D10_SHADER_INPUT_BIND_DESC * pDesc) PURE;
+
+    STDMETHOD(GetMovInstructionCount)(THIS_ UINT * pCount) PURE;
+    STDMETHOD(GetMovcInstructionCount)(THIS_ UINT * pCount) PURE;
+    STDMETHOD(GetConversionInstructionCount)(THIS_ UINT * pCount) PURE;
+    STDMETHOD(GetBitwiseInstructionCount)(THIS_ UINT * pCount) PURE;
+
+    STDMETHOD(GetGSInputPrimitive)(THIS_ D3D10_PRIMITIVE * pPrim) PURE;
+    STDMETHOD(IsLevel9Shader)(THIS_ BOOL * pbLevel9Shader) PURE;
+    STDMETHOD(IsSampleFrequencyShader)(THIS_ BOOL * pbSampleFrequency) PURE;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -290,12 +289,12 @@ DECLARE_INTERFACE_(ID3D10ShaderReflection1, IUnknown)
 //////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif //__cplusplus
 
 #ifdef __cplusplus
 }
 #endif //__cplusplus
-    
-#endif //__D3D10_1SHADER_H__
 
+#endif //__D3D10_1SHADER_H__

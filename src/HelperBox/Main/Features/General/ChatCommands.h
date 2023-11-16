@@ -5,10 +5,10 @@
 #include <GWCA/Managers/UIMgr.h>
 #include <GWCA/Utilities/Hook.h>
 
-#include <Base/HelperBoxModule.h>
-#include <Base/HelperBoxUIElement.h>
 #include "DataLivings.h"
 #include "Utils.h"
+#include <Base/HelperBoxModule.h>
+#include <Base/HelperBoxUIElement.h>
 
 class ChatCommands : public HelperBoxModule
 {

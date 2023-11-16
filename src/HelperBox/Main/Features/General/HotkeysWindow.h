@@ -9,10 +9,10 @@
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/GameEntities/Party.h>
 
-#include "Hotkeys.h"
 #include "ActionsBase.h"
-#include <Base/HelperBoxWindow.h>
 #include "DataPlayer.h"
+#include "Hotkeys.h"
+#include <Base/HelperBoxWindow.h>
 
 #include <SimpleIni.h>
 #include <imgui.h>

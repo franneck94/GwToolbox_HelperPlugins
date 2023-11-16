@@ -7,16 +7,16 @@
 #include <GWCA/Managers/ChatMgr.h>
 #include <GWCA/Managers/GameThreadMgr.h>
 
+#include "HelperAgents.h"
+#include "HelperUw.h"
+#include "HelperUwPos.h"
+#include "Logger.h"
 #include <Base/HelperBox.h>
 #include <Base/HelperBoxWindow.h>
 #include <Base/MainWindow.h>
 #include <Features/Uw/UwMetadata.h>
-#include "HelperAgents.h"
 #include <HelperItems.h>
 #include <HelperMaps.h>
-#include "HelperUw.h"
-#include "HelperUwPos.h"
-#include "Logger.h"
 
 #include "ChatCommands.h"
 

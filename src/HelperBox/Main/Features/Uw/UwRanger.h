@@ -7,9 +7,9 @@
 #include <GWCA/GameEntities/Agent.h>
 
 #include "ActionsBase.h"
-#include <Base/HelperBoxWindow.h>
 #include "DataPlayer.h"
 #include "Utils.h"
+#include <Base/HelperBoxWindow.h>
 
 #include <SimpleIni.h>
 #include <imgui.h>

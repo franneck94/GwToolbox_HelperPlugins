@@ -17,10 +17,10 @@
 
 #include "ActionTypes.h"
 #include "ActionsBase.h"
-#include <Base/HelperBox.h>
 #include "DataPlayer.h"
 #include "Helper.h"
 #include "HelperAgents.h"
+#include <Base/HelperBox.h>
 #include <HelperMaps.h>
 #include <HelperPackets.h>
 

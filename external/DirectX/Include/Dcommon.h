@@ -14,17 +14,39 @@
 //These macros are defined in the Windows 7 SDK, however to enable development using the technical preview,
 //they are included here temporarily.
 //
-#ifndef DEFINE_ENUM_FLAG_OPERATORS 
-#define DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE) \
-extern "C++" { \
-inline ENUMTYPE operator | (ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((int)a) | ((int)b)); } \
-inline ENUMTYPE &operator |= (ENUMTYPE &a, ENUMTYPE b) { return (ENUMTYPE &)(((int &)a) |= ((int)b)); } \
-inline ENUMTYPE operator & (ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((int)a) & ((int)b)); } \
-inline ENUMTYPE &operator &= (ENUMTYPE &a, ENUMTYPE b) { return (ENUMTYPE &)(((int &)a) &= ((int)b)); } \
-inline ENUMTYPE operator ~ (ENUMTYPE a) { return ENUMTYPE(~((int)a)); } \
-inline ENUMTYPE operator ^ (ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((int)a) ^ ((int)b)); } \
-inline ENUMTYPE &operator ^= (ENUMTYPE &a, ENUMTYPE b) { return (ENUMTYPE &)(((int &)a) ^= ((int)b)); } \
-}
+#ifndef DEFINE_ENUM_FLAG_OPERATORS
+#define DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE)                                                                           \
+    extern "C++"                                                                                                       \
+    {                                                                                                                  \
+        inline ENUMTYPE operator|(ENUMTYPE a, ENUMTYPE b)                                                              \
+        {                                                                                                              \
+            return ENUMTYPE(((int)a) | ((int)b));                                                                      \
+        }                                                                                                              \
+        inline ENUMTYPE &operator|=(ENUMTYPE &a, ENUMTYPE b)                                                           \
+        {                                                                                                              \
+            return (ENUMTYPE &)(((int &)a) |= ((int)b));                                                               \
+        }                                                                                                              \
+        inline ENUMTYPE operator&(ENUMTYPE a, ENUMTYPE b)                                                              \
+        {                                                                                                              \
+            return ENUMTYPE(((int)a) & ((int)b));                                                                      \
+        }                                                                                                              \
+        inline ENUMTYPE &operator&=(ENUMTYPE &a, ENUMTYPE b)                                                           \
+        {                                                                                                              \
+            return (ENUMTYPE &)(((int &)a) &= ((int)b));                                                               \
+        }                                                                                                              \
+        inline ENUMTYPE operator~(ENUMTYPE a)                                                                          \
+        {                                                                                                              \
+            return ENUMTYPE(~((int)a));                                                                                \
+        }                                                                                                              \
+        inline ENUMTYPE operator^(ENUMTYPE a, ENUMTYPE b)                                                              \
+        {                                                                                                              \
+            return ENUMTYPE(((int)a) ^ ((int)b));                                                                      \
+        }                                                                                                              \
+        inline ENUMTYPE &operator^=(ENUMTYPE &a, ENUMTYPE b)                                                           \
+        {                                                                                                              \
+            return (ENUMTYPE &)(((int &)a) ^= ((int)b));                                                               \
+        }                                                                                                              \
+    }
 #endif
 
 #ifndef __field_ecount_opt
@@ -32,7 +54,7 @@ inline ENUMTYPE &operator ^= (ENUMTYPE &a, ENUMTYPE b) { return (ENUMTYPE &)(((i
 #endif
 
 #ifndef __range
-#define __range(x,y) 
+#define __range(x, y)
 #endif
 
 #ifndef __field_ecount

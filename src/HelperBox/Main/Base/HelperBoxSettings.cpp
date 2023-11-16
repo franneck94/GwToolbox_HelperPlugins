@@ -1,3 +1,4 @@
+#include "Utils.h"
 #include <Base/HelperBox.h>
 #include <Base/MainWindow.h>
 #include <Base/SettingsWindow.h>
@@ -12,7 +13,6 @@
 #include <Features/Uw/UwMesmer.h>
 #include <Features/Uw/UwMetadata.h>
 #include <Features/Uw/UwRanger.h>
-#include "Utils.h"
 
 #include <SimpleIni.h>
 

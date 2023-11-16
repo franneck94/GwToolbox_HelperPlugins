@@ -9,12 +9,12 @@
 #include <GWCA/Managers/AgentMgr.h>
 
 #include "ActionsBase.h"
-#include <Base/HelperBox.h>
 #include "DataPlayer.h"
 #include "Helper.h"
 #include "HelperUw.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
+#include <Base/HelperBox.h>
 
 #include <imgui.h>
 
