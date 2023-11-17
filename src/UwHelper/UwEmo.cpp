@@ -20,6 +20,7 @@
 #include <GWCA/Packets/Opcodes.h>
 
 #include "ActionsBase.h"
+#include "ActionsUw.h"
 #include "DataPlayer.h"
 #include "DataSkillbar.h"
 #include "Helper.h"
@@ -30,7 +31,6 @@
 #include "Utils.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
-#include "ActionsUw.h"
 #include <Base/HelperBox.h>
 
 #include "UwEmo.h"

@@ -14,6 +14,7 @@
 #include <GWCA/Managers/PartyMgr.h>
 
 #include "ActionsBase.h"
+#include "ActionsUw.h"
 #include "DataPlayer.h"
 #include "DataSkillbar.h"
 #include "HelperAgents.h"
@@ -23,7 +24,6 @@
 #include "Utils.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
-#include "ActionsUw.h"
 
 #include <SimpleIni.h>
 #include <fmt/format.h>

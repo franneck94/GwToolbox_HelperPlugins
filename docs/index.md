@@ -1,8 +1,8 @@
 # HelperBox for GuildWars
 
-This software is based on the GWCA API.  
-It is capable of opening chests from far, not like nowadays GWToolbox 🤡.  
-Besides that there are features for UWSC and for your Heroes in a PvE context.  
+This software is based on the GWCA API.
+It is capable of opening chests from far, not like nowadays GWToolbox 🤡.
+Besides that there are features for UWSC and for your Heroes in a PvE context.
 
 ## Features
 
