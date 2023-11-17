@@ -9,6 +9,10 @@
 
 #include "UtilsMath.h"
 
+#ifndef M_PI_2
+#define M_PI_2 1.57079632679489661923 // pi/2
+#endif
+
 bool FloatCompare(const float a, const float b, const float epsilon)
 {
     return fabs(a - b) <= ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);

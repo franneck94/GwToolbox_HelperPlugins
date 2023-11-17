@@ -16,7 +16,7 @@
 
 #include <fmt/format.h>
 #include <imgui.h>
-#include <implot.h>
+// #include <implot.h>
 
 namespace
 {
@@ -72,25 +72,25 @@ void DrawMovingButtons(const std::array<MoveABC *, N> &moves, bool &move_ongoing
     }
 }
 
-void PlotRectangleLine(const GW::GamePos &player_pos,
-                       const GW::GamePos &p1,
-                       const GW::GamePos &p2,
-                       std::string_view label);
+// void PlotRectangleLine(const GW::GamePos &player_pos,
+//                        const GW::GamePos &p1,
+//                        const GW::GamePos &p2,
+//                        std::string_view label);
 
-void PlotPoint(const GW::GamePos &player_pos,
-               const GW::GamePos &p,
-               std::string_view label,
-               const ImVec4 &color,
-               const float width = 5.0F);
+// void PlotPoint(const GW::GamePos &player_pos,
+//                const GW::GamePos &p,
+//                std::string_view label,
+//                const ImVec4 &color,
+//                const float width = 5.0F);
 
-void PlotCircle(const GW::GamePos &player_pos, std::string_view label, const ImVec4 &color);
+// void PlotCircle(const GW::GamePos &player_pos, std::string_view label, const ImVec4 &color);
 
-void PlotEnemies(const GW::GamePos &player_pos,
-                 const std::vector<GW::AgentLiving *> &living_agents,
-                 std::string_view label,
-                 const ImVec4 &color);
+// void PlotEnemies(const GW::GamePos &player_pos,
+//                  const std::vector<GW::AgentLiving *> &living_agents,
+//                  std::string_view label,
+//                  const ImVec4 &color);
 
-void DrawMap(const GW::GamePos &player_pos,
-             const std::vector<GW::AgentLiving *> &enemies,
-             const GW::GamePos &move_pos,
-             std::string_view label);
+// void DrawMap(const GW::GamePos &player_pos,
+//              const std::vector<GW::AgentLiving *> &enemies,
+//              const GW::GamePos &move_pos,
+//              std::string_view label);

@@ -27,10 +27,10 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#include <ShellApi.h>
 #include <Windows.h>
 
 #include <GWCA/GameContainers/Array.h>
+#include <GWCA/Utilities/Hook.h>
 
 #pragma warning(disable : 4201)
 #pragma warning(disable : 4505)
