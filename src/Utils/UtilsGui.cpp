@@ -1,5 +1,4 @@
 #include <cmath>
-#include <corecrt_math.h>
 #include <string_view>
 
 #include <GWCA/Constants/Constants.h>

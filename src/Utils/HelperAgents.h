@@ -126,10 +126,6 @@ const GW::AgentLiving *GetPlayerAsLiving();
 
 const GW::AgentLiving *GetTargetAsLiving();
 
-GW::Player *GetPlayerByName(const wchar_t *_name);
-
-std::wstring GetPlayerName(uint32_t player_number);
-
 bool FoundSpirit(const DataPlayer &player_data,
                  const std::vector<GW::AgentLiving *> &spirits,
                  const uint32_t spirit_id,

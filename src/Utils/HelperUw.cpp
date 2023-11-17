@@ -433,7 +433,7 @@ bool CheckForAggroFree(const DataPlayer &player_data, const AgentLivingData *liv
 
 float GetProgressValue()
 {
-    const auto c = GW::CharContext::instance();
+    const auto* c = GW::CharContext::instance();
 
     if (!c || !c->progress_bar)
         return 0.0F;

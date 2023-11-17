@@ -515,44 +515,6 @@ const GW::AgentLiving *GetTargetAsLiving()
     return me->GetAsAgentLiving();
 }
 
-GW::Player *GetPlayerByName(const wchar_t *_name)
-{
-    const auto players = GW::Agents::GetPlayerArray();
-    if (!players || !players->valid() || !_name)
-        return nullptr;
-
-    for (auto &player : *players)
-    {
-        if (!player.name)
-            continue;
-        if (_name == player.name)
-            return &player;
-    }
-
-    return nullptr;
-}
-
-std::wstring GetPlayerName(uint32_t player_number)
-{
-    GW::Player *player = nullptr;
-    if (!player_number)
-    {
-        player = GW::PlayerMgr::GetPlayerByID(GW::PlayerMgr::GetPlayerNumber());
-        if (!player || !player->name)
-        {
-            // Map not loaded; try to get from character context
-            auto c = GW::CharContext::instance();
-            return c ? c->player_name : L"";
-        }
-    }
-    else
-    {
-        player = GW::PlayerMgr::GetPlayerByID(player_number);
-    }
-
-    return player && player->name ? player->name : L"";
-}
-
 bool FoundSpirit(const DataPlayer &player_data,
                  const std::vector<GW::AgentLiving *> &spirits,
                  const uint32_t spirit_id,
