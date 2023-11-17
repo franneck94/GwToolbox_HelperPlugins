@@ -1,8 +1,8 @@
 # HelperBox for GuildWars
 
-This software is based on the GWCA API.
-It is capable of opening chests from far, not like nowadays GWToolbox 🤡.
-Besides that there are features for UWSC and for your Heroes in a PvE context.
+This software is based on the GWCA API.  
+It is capable of opening chests from far, not like nowadays GWToolbox 🤡.  
+Besides that there are features for UWSC and for your Heroes in a PvE context.  
 
 ## Features
 
@@ -19,16 +19,16 @@ For a detailed description:
 ### UW Helper
 
 - Ranger
-    - Ranger/Assasin
+  - Ranger/Assasin
 - Emo
-    - Elementalist/Monk
+  - Elementalist/Monk
 - Dhuum and Vale Bitch
-    - Ritualist/Ranger
-    - Dervish/Ranger
+  - Ritualist/Ranger
+  - Dervish/Ranger
 - Mesmer
-    - Mesmer/Assassin
-    - Mesmer/Elementalist
-    - Mesmer/Ranger
+  - Mesmer/Assassin
+  - Mesmer/Elementalist
+  - Mesmer/Ranger
 
 Note: The UW Helper Windows are only displayed in Embark Beach and in the Underworld.
 
