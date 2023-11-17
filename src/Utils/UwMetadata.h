@@ -14,12 +14,7 @@ class UwMetadata
 {
 public:
     UwMetadata();
-
-    static UwMetadata &Instance()
-    {
-        static UwMetadata instance;
-        return instance;
-    }
+    ~UwMetadata(){};
 
     GW::HookEntry MapLoaded_Entry;
     bool load_cb_triggered = false;

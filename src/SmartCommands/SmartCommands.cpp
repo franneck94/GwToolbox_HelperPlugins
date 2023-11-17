@@ -20,6 +20,9 @@
 namespace
 {
 constexpr static auto COOKIE_ID = uint32_t{28433};
+
+static SmartCommands::DhuumUseSkill dhuum_useskill;
+static SmartCommands::UseSkill useskill;
 }; // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -31,14 +34,16 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void SmartCommands::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
-    GW::Chat::CreateCommand(L"hb", SmartCommands::CmdHB);
     GW::Chat::CreateCommand(L"use", SmartCommands::CmdUseSkill);
     GW::Chat::CreateCommand(L"dhuum", SmartCommands::CmdDhuumUseSkill);
+    WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"SmartCommands");
 }
 
 void SmartCommands::SignalTerminate()
 {
     ToolboxUIPlugin::SignalTerminate();
+    GW::Chat::DeleteCommand(L"use");
+    GW::Chat::DeleteCommand(L"dhuum");
     GW::DisableHooks();
 }
 
@@ -130,12 +135,12 @@ void SmartCommands::DhuumUseSkill::Update()
 
     const auto progress_perc = GetProgressValue();
     // if (uw_metadata.num_finished_objectives <= 10 && progress_perc > 0.0F && progress_perc < 1.0F)
-    if (0 <= 10 && progress_perc > 0.0F && progress_perc < 1.0F)  // TODO
+    if (0 <= 10 && progress_perc > 0.0F && progress_perc < 1.0F) // TODO
     {
         slot = 1;
 
-        const auto item_context = GW::ItemContext::instance();
-        const auto world_context = GW::WorldContext::instance();
+        const auto item_context = GW::GetItemContext();
+        const auto world_context = GW::GetWorldContext();
         if (world_context && item_context)
         {
             static auto last_time_cookie = clock();
@@ -171,8 +176,6 @@ void SmartCommands::CmdDhuumUseSkill(const wchar_t *, int argc, LPWSTR *argv)
     if (!IsMapReady() || !IsUw())
         return;
 
-    auto &dhuum_useskill = Instance().dhuum_useskill;
-
     dhuum_useskill.skill_usage_delay = 0.0F;
     dhuum_useskill.slot = 0;
 
@@ -195,8 +198,6 @@ void SmartCommands::CmdUseSkill(const wchar_t *, int argc, LPWSTR *argv)
 {
     if (!IsMapReady() || !IsExplorable())
         return;
-
-    auto &useskill = Instance().useskill;
 
     useskill.skill_usage_delay = 0.0F;
     useskill.slot = 0;

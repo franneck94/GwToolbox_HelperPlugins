@@ -28,7 +28,7 @@
 #include "Utils.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
-#include <ActionsUw.h>
+#include "ActionsUw.h"
 #include <Base/HelperBox.h>
 #include "HelperItems.h"
 
@@ -383,8 +383,8 @@ RoutineState DbRoutine::Routine()
     if (!is_in_dhuum_fight || !dhuum_agent)
         return RoutineState::FINISHED;
 
-    const auto world_context = GW::WorldContext::instance();
-    const auto item_context = GW::ItemContext::instance();
+    const auto world_context = GW::GetWorldContext();
+    const auto item_context = GW::GetItemContext();
     if (world_context && item_context)
     {
         static auto last_time_cookie = clock();

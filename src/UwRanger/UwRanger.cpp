@@ -6,6 +6,7 @@
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/Constants/Maps.h>
 #include <GWCA/Constants/Skills.h>
+#include <GWCA/GWCA.h>
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/GameEntities/Map.h>
 #include <GWCA/GameEntities/Player.h>
@@ -16,15 +17,15 @@
 #include "DataPlayer.h"
 #include "DataSkillbar.h"
 #include "HelperAgents.h"
+#include "HelperMaps.h"
 #include "HelperUw.h"
 #include "HelperUwPos.h"
 #include "Utils.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
-#include <ActionsUw.h>
-#include <Base/HelperBox.h>
-#include "HelperMaps.h"
+#include "ActionsUw.h"
 
+#include <SimpleIni.h>
 #include <fmt/format.h>
 
 #include "UwRanger.h"
@@ -41,10 +42,25 @@ static const auto GENERAL_IDS = std::array<uint32_t, 4U>{GW::Constants::ModelID:
                                                          GW::Constants::ModelID::UW::FourHorseman,
                                                          GW::Constants::ModelID::UW::SkeletonOfDhuum1,
                                                          GW::Constants::ModelID::UW::SkeletonOfDhuum2};
-
-const auto KING_PATH_LEFT = GW::GamePos{4278.60F, 15898.68F, 0};
-const auto KING_PATH_RIGHT = GW::GamePos{5939.21F, 20276.94F, 0};
 } // namespace
+
+DLLAPI ToolboxPlugin *ToolboxPluginInstance()
+{
+    static UwRanger instance;
+    return &instance;
+}
+
+void UwRanger::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
+{
+    ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
+    WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"UwRanger");
+}
+
+void UwRanger::SignalTerminate()
+{
+    ToolboxUIPlugin::SignalTerminate();
+    GW::DisableHooks();
+}
 
 void AutoTargetAction::Update()
 {
@@ -74,6 +90,33 @@ void AutoTargetAction::Update()
 RoutineState AutoTargetAction::Routine()
 {
     return RoutineState::NONE;
+}
+
+void UwRanger::DrawSettings()
+{
+    static auto _attack_at_auto_target = attack_at_auto_target;
+    const auto width = ImGui::GetWindowWidth();
+
+    ImGui::Text("Also attack Behemoths wile auto target is active:");
+    ImGui::SameLine(width * 0.5F);
+    ImGui::PushItemWidth(width * 0.5F);
+    ImGui::Checkbox("###attackAtAutoTarget", &_attack_at_auto_target);
+    ImGui::PopItemWidth();
+    attack_at_auto_target = _attack_at_auto_target;
+}
+
+void UwRanger::LoadSettings(const wchar_t *folder)
+{
+    ToolboxUIPlugin::LoadSettings(folder);
+    ini.LoadFile(GetSettingFile(folder).c_str());
+    attack_at_auto_target = ini.GetBoolValue(Name(), VAR_NAME(attack_at_auto_target), attack_at_auto_target);
+}
+
+void UwRanger::SaveSettings(const wchar_t *folder)
+{
+    ToolboxUIPlugin::SaveSettings(folder);
+    ini.SetBoolValue(Name(), VAR_NAME(attack_at_auto_target), attack_at_auto_target);
+    PLUGIN_ASSERT(ini.SaveFile(GetSettingFile(folder).c_str()) == SI_OK);
 }
 
 void UwRanger::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
@@ -145,11 +188,8 @@ void UwRanger::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
     }
 }
 
-void UwRanger::Draw()
+void UwRanger::Draw(IDirect3DDevice9 *)
 {
-    if (!visible)
-        return;
-
     if (!UwHelperActivationConditions(false))
         return;
     if (!IsRangerTerra(player_data))
@@ -157,7 +197,7 @@ void UwRanger::Draw()
 
     ImGui::SetNextWindowSize(ImVec2(200.0F, 240.0F), ImGuiCond_FirstUseEver);
 
-    if (ImGui::Begin(Name(), nullptr, GetWinFlags()))
+    if (ImGui::Begin(Name(), can_close && show_closebutton ? GetVisiblePtr() : nullptr, GetWinFlags()))
     {
         const auto width = ImGui::GetWindowWidth();
         auto_target.Draw(ImVec2(width, 35.0F));
@@ -188,80 +228,9 @@ void UwRanger::Draw()
         ImGui::EndTable();
     }
     ImGui::End();
-
-    if (king_path_coldfire_ids.size())
-    {
-        auto king_coldfire_livings = std::vector<GW::AgentLiving *>{};
-        for (const auto id : king_path_coldfire_ids)
-        {
-            const auto agent = GW::Agents::GetAgentByID(id);
-            if (!agent)
-                continue;
-
-            const auto living = agent->GetAsAgentLiving();
-            if (!living)
-                continue;
-
-            king_coldfire_livings.push_back(living);
-        }
-
-#ifdef _DEBUG
-        if (king_coldfire_livings.size())
-        {
-            if (ImGui::Begin("KingColdies"))
-            {
-                const auto width = ImGui::GetWindowWidth();
-                if (ImGui::BeginTable("KingColdiesTable", 3))
-                {
-                    ImGui::TableSetupColumn("HP", ImGuiTableColumnFlags_WidthFixed, width * 0.25F);
-                    ImGui::TableSetupColumn("Dist.", ImGuiTableColumnFlags_WidthFixed, width * 0.25F);
-                    ImGui::TableSetupColumn("Target", ImGuiTableColumnFlags_WidthFixed, width * 0.50F);
-
-                    ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-                    ImGui::TableNextColumn();
-                    ImGui::Text("HP");
-                    ImGui::TableNextColumn();
-                    ImGui::Text("Dist.");
-                    ImGui::TableNextColumn();
-                    ImGui::Text("Target");
-
-                    DrawSplittedAgents(king_coldfire_livings, ImVec4(0.7F, 0.7F, 1.0F, 1.0F), "Coldfire", false);
-                }
-                ImGui::EndTable();
-            }
-            ImGui::End();
-        }
-#endif
-    }
 }
 
-static bool AddColdfire(const std::vector<uint32_t> &king_path_coldfire_ids,
-                        const GW::AgentLiving *coldfire,
-                        const GameRectangle &rectangle)
-{
-    const auto find_it = std::find(king_path_coldfire_ids.begin(), king_path_coldfire_ids.end(), coldfire->agent_id);
-    if (!rectangle.PointInGameRectangle(coldfire->pos) && find_it != king_path_coldfire_ids.end())
-        return false;
-
-    if (king_path_coldfire_ids.size() == 0)
-        return true;
-
-    if (king_path_coldfire_ids.size() >= 3)
-        return false;
-
-    const auto center_id = king_path_coldfire_ids[0];
-    const auto center_agent = GW::Agents::GetAgentByID(center_id);
-    if (!center_agent)
-        return false;
-
-    const auto dist_to_center = GW::GetDistance(coldfire->pos, center_agent->pos);
-    if (dist_to_center < GW::Constants::Range::Earshot)
-        return true;
-
-    return false;
-}
-
-void UwRanger::Update(float, const AgentLivingData &livings_data)
+void UwRanger::Update(float)
 {
     filtered_livings.clear();
     coldfire_livings.clear();
@@ -269,6 +238,8 @@ void UwRanger::Update(float, const AgentLivingData &livings_data)
     dryder_livings.clear();
     skele_livings.clear();
     horseman_livings.clear();
+
+    livings_data.Update();
 
     if (!player_data.ValidateData(UwHelperActivationConditions, false))
     {
@@ -301,26 +272,6 @@ void UwRanger::Update(float, const AgentLivingData &livings_data)
 
     auto_target.behemoth_livings = &behemoth_livings;
     auto_target.Update();
-
-    if (IsInWastes(player_data.pos, 6000.0F))
-    {
-        const auto king_path_rectangle =
-            GameRectangle(KING_PATH_LEFT, KING_PATH_RIGHT, GW::Constants::Range::Spellcast);
-
-        if (king_path_coldfire_ids.size() < 3)
-        {
-            for (const auto coldfire : coldfire_livings)
-            {
-                if (AddColdfire(king_path_coldfire_ids, coldfire, king_path_rectangle))
-                    king_path_coldfire_ids.push_back(coldfire->agent_id);
-            }
-        }
-
-        const auto remove_it = std::remove_if(king_path_coldfire_ids.begin(),
-                                              king_path_coldfire_ids.end(),
-                                              [](const auto id) { return !GW::Agents::GetAgentByID(id); });
-        king_path_coldfire_ids.erase(remove_it, king_path_coldfire_ids.end());
-    }
 
     if (!auto_target_active)
         return;

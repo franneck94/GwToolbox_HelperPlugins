@@ -13,7 +13,7 @@ public:
     SmartCommands(){};
     ~SmartCommands(){};
 
-private:
+public:
     struct BaseUseSkill
     {
         uint32_t slot = 0; // 1-8 range
@@ -30,13 +30,11 @@ private:
     {
         void Update() override;
     };
-    UseSkill useskill;
 
     struct DhuumUseSkill : public BaseUseSkill
     {
         void Update() override;
     };
-    DhuumUseSkill dhuum_useskill;
 
 public:
     const char *Name() const override
@@ -51,7 +49,7 @@ public:
 
     void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
     void SignalTerminate() override;
-    void Draw(IDirect3DDevice9 *) override;
+    void Draw(IDirect3DDevice9 *) override{};
     bool HasSettings() const override
     {
         return false;

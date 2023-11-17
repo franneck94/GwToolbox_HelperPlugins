@@ -1,4 +1,3 @@
-#define GWCA_CTOS_ENABLED 1
 #include "RawDialogs.h"
 
 #include "GWCA/Managers/CtoSMgr.h"

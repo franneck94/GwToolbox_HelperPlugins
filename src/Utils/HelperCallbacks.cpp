@@ -35,7 +35,7 @@ bool ExplorableLoadCallback(GW::HookStatus *, GW::Packet::StoC::MapLoaded *)
 
 static GW::Array<wchar_t> *GetMessageBuffer()
 {
-    const auto w = GW::WorldContext::instance();
+    const auto w = GW::GetWorldContext();
     return w && w->message_buff.valid() ? &w->message_buff : nullptr;
 }
 

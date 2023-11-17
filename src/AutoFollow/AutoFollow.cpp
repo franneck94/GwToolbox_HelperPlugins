@@ -1,4 +1,3 @@
-
 #include <cstdint>
 #include <filesystem>
 
@@ -56,14 +55,13 @@ void AutoFollow::Draw(IDirect3DDevice9 *)
     if (!player_data.ValidateData(HelperActivationConditions, false))
         return;
 
-    if ((*GetVisiblePtr()) == false)
-        return;
-
     ImGui::SetNextWindowSize(ImVec2(125.0F, 50.0F), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(Name(), GetVisiblePtr(), GetWinFlags() | ImGuiWindowFlags_NoDecoration))
+    if (ImGui::Begin(Name(),
+                     can_close && show_closebutton ? GetVisiblePtr() : nullptr,
+                     GetWinFlags() | ImGuiWindowFlags_NoDecoration))
     {
         const auto width = ImGui::GetWindowWidth();
-        auto_follow.Draw(ImVec2(width, 35.0F));
+        auto_follow.Draw(ImVec2(width, 35.0F), true);
     }
     ImGui::End();
 }

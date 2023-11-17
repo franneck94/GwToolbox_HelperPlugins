@@ -65,7 +65,7 @@ public:
 
             for (uint32_t idx = 0; idx < 8U; ++idx)
             {
-                if (skillbar_skills[idx].skill_id == (uint32_t)skill->id)
+                if (skillbar_skills[idx].skill_id == skill->id)
                 {
                     skill->idx = idx;
                     break;

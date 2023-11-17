@@ -1,4 +1,3 @@
-
 #include <algorithm>
 #include <cstdint>
 #include <vector>
@@ -22,10 +21,14 @@
 bool UwHelperActivationConditions(const bool need_party_loaded)
 {
     if (!HelperActivationConditions(need_party_loaded))
+    {
         return false;
+    }
 
     if (!IsUwEntryOutpost() && !IsUw())
+    {
         return false;
+    }
 
     return true;
 }
@@ -36,10 +39,14 @@ uint32_t GetTankId()
     std::vector<PlayerMapping> party_members;
     const auto success = GetPartyMembers(party_members);
     if (!success)
+    {
         return 0;
+    }
 
     if (party_members.size() == 1)
+    {
         return party_members[0].id;
+    }
 
     auto tank_idx = uint32_t{0};
     switch (GW::Map::GetMapID())
@@ -68,21 +75,29 @@ uint32_t GetEmoId()
     std::vector<PlayerMapping> party_members;
     const auto success = GetPartyMembers(party_members);
     if (!success)
+    {
         return 0;
+    }
 
     for (const auto &member : party_members)
     {
         const auto agent = GW::Agents::GetAgentByID(member.id);
         if (!agent)
+        {
             continue;
+        }
 
         const auto living = agent->GetAsAgentLiving();
         if (!living)
+        {
             continue;
+        }
 
         if (living->primary == static_cast<uint8_t>(GW::Constants::Profession::Elementalist) &&
             living->secondary == static_cast<uint8_t>(GW::Constants::Profession::Monk))
+        {
             return agent->agent_id;
+        }
     }
 
     return 0;
@@ -95,28 +110,38 @@ uint32_t GetDhuumBitchId()
     std::vector<PlayerMapping> party_members;
     const auto success = GetPartyMembers(party_members);
     if (!success)
+    {
         return 0;
+    }
 
     for (const auto &member : party_members)
     {
         const auto agent = GW::Agents::GetAgentByID(member.id);
         if (!agent)
+        {
             continue;
+        }
 
         const auto living = agent->GetAsAgentLiving();
         if (!living)
+        {
             continue;
+        }
 
         if (party_size <= 6)
         {
             if (living->secondary == static_cast<uint8_t>(GW::Constants::Profession::Ranger))
+            {
                 return agent->agent_id;
+            }
         }
         else
         {
             if (living->primary == static_cast<uint8_t>(GW::Constants::Profession::Ritualist) &&
                 living->secondary == static_cast<uint8_t>(GW::Constants::Profession::Ranger))
+            {
                 return agent->agent_id;
+            }
         }
     }
 
@@ -154,7 +179,9 @@ bool IsLT(const DataPlayer &player_data)
 {
     if (player_data.primary == GW::Constants::Profession::Mesmer &&
         player_data.secondary == GW::Constants::Profession::Assassin)
+    {
         return true;
+    }
 
     // Check if Me/E has Mantra of Earth => T4 build
     const auto skillbar = GW::SkillbarMgr::GetPlayerSkillbar();
@@ -163,7 +190,9 @@ bool IsLT(const DataPlayer &player_data)
         for (const auto skill : skillbar->skills)
         {
             if (skill.skill_id == GW::Constants::SkillID::Mantra_of_Earth)
+            {
                 return false;
+            }
         }
     }
 
@@ -181,7 +210,9 @@ bool IsMesmerTerra(const DataPlayer &player_data)
 {
     if (player_data.primary != GW::Constants::Profession::Mesmer ||
         player_data.secondary != GW::Constants::Profession::Elementalist)
+    {
         return false;
+    }
 
     return !IsLT(player_data);
 }
@@ -190,18 +221,24 @@ const GW::Agent *GetDhuumAgent()
 {
     const auto agents_array = GW::Agents::GetAgentArray();
     if (!agents_array || !agents_array->valid())
+    {
         return nullptr;
+    }
 
     const GW::Agent *dhuum_agent = nullptr;
 
     for (const auto agent : *agents_array)
     {
         if (!agent)
+        {
             continue;
+        }
 
         const auto living = agent->GetAsAgentLiving();
         if (!living)
+        {
             continue;
+        }
 
         if (living->player_number == static_cast<uint16_t>(GW::Constants::ModelID::UW::Dhuum))
         {
@@ -216,22 +253,32 @@ const GW::Agent *GetDhuumAgent()
 bool IsInDhuumFight(const GW::GamePos &player_pos)
 {
     if (!IsUw())
+    {
         return false;
+    }
 
     if (!IsInDhuumRoom(player_pos) && !IsInVale(player_pos)) // Vale for spirits respawn
+    {
         return false;
+    }
 
     const auto progress_perc = GetProgressValue();
     if (progress_perc >= 0.0F && progress_perc <= 1.0F)
+    {
         return true;
+    }
 
     const auto dhuum_agent = GetDhuumAgent();
     if (!dhuum_agent)
+    {
         return false;
+    }
 
     const auto dhuum_living = dhuum_agent->GetAsAgentLiving();
     if (!dhuum_living)
+    {
         return false;
+    }
 
     return dhuum_living->allegiance == GW::Constants::Allegiance::Enemy;
 }
@@ -239,11 +286,15 @@ bool IsInDhuumFight(const GW::GamePos &player_pos)
 void GetDhuumAgentData(const GW::Agent *dhuum_agent, float &dhuum_hp, uint32_t &dhuum_max_hp)
 {
     if (!dhuum_agent)
+    {
         return;
+    }
 
     const auto dhuum_living = dhuum_agent->GetAsAgentLiving();
     if (!dhuum_living)
+    {
         return;
+    }
 
     dhuum_hp = dhuum_living->hp;
     dhuum_max_hp = dhuum_living->max_hp;
@@ -253,19 +304,27 @@ bool TankIsFullteamLT()
 {
     const auto lt_id = GetTankId();
     if (!lt_id)
+    {
         return false;
+    }
 
     const auto lt_agent = GW::Agents::GetAgentByID(lt_id);
     if (!lt_agent)
+    {
         return false;
+    }
 
     const auto lt_living = lt_agent->GetAsAgentLiving();
     if (!lt_living)
+    {
         return false;
+    }
 
     if (lt_living->primary == static_cast<uint8_t>(GW::Constants::Profession::Mesmer) &&
         lt_living->secondary == static_cast<uint8_t>(GW::Constants::Profession::Assassin))
+    {
         return true;
+    }
 
     return false;
 }
@@ -274,15 +333,21 @@ bool TankIsSoloLT()
 {
     const auto lt_id = GetTankId();
     if (!lt_id)
+    {
         return false;
+    }
 
     const auto lt_agent = GW::Agents::GetAgentByID(lt_id);
     if (!lt_agent)
+    {
         return false;
+    }
 
     const auto lt_living = lt_agent->GetAsAgentLiving();
     if (!lt_living)
+    {
         return false;
+    }
 
     if (lt_living->primary == static_cast<uint8_t>(GW::Constants::Profession::Mesmer) &&
         lt_living->secondary == static_cast<uint8_t>(GW::Constants::Profession::Elementalist))
@@ -294,12 +359,15 @@ bool TankIsSoloLT()
 bool TargetIsReaper(DataPlayer &player_data)
 {
     if (!player_data.target)
+    {
         return false;
+    }
 
     const auto living_target = player_data.target->GetAsAgentLiving();
     if (!living_target || living_target->player_number != static_cast<uint32_t>(GW::Constants::ModelID::UW::Reapers))
+    {
         return false;
-
+    }
     return true;
 }
 
@@ -312,12 +380,15 @@ bool TalkReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &n
 {
     const auto id = TargetClosestNpcById(player_data, npcs, GW::Constants::ModelID::UW::Reapers);
     if (!id)
+    {
         return true;
+    }
 
     const auto agent = GW::Agents::GetAgentByID(id);
     if (!agent)
+    {
         return true;
-
+    }
     GW::Agents::GoNPC(agent, 0U);
 
     return true;
@@ -396,14 +467,20 @@ bool FoundKeeperAtPos(const std::vector<GW::AgentLiving *> &keeper_livings, cons
 bool DhuumIsCastingJudgement(const GW::Agent *dhuum_agent)
 {
     if (!dhuum_agent)
+    {
         return false;
+    }
 
     const auto dhuum_living = dhuum_agent->GetAsAgentLiving();
     if (!dhuum_living)
+    {
         return false;
+    }
 
     if (dhuum_living->GetIsCasting() && dhuum_living->skill == static_cast<uint32_t>(3085))
+    {
         return true;
+    }
 
     return false;
 }
@@ -411,7 +488,9 @@ bool DhuumIsCastingJudgement(const GW::Agent *dhuum_agent)
 bool CheckForAggroFree(const DataPlayer &player_data, const AgentLivingData *livings_data, const GW::GamePos &next_pos)
 {
     if (!livings_data)
+    {
         return true;
+    }
 
     const auto filter_ids =
         std::set<uint32_t>{GW::Constants::ModelID::UW::SkeletonOfDhuum1, GW::Constants::ModelID::UW::SkeletonOfDhuum2};
@@ -420,9 +499,13 @@ bool CheckForAggroFree(const DataPlayer &player_data, const AgentLivingData *liv
     const auto result_ids_Aggro = FilterAgentIDS(livings, filter_ids);
 
     if (player_data.pos.x == next_pos.x && player_data.pos.y == next_pos.y)
+    {
         return result_ids_Aggro.size() == 0;
+    }
     else if (result_ids_Aggro.size() == 1)
+    {
         return false;
+    }
 
     const auto rect = GameRectangle(player_data.pos, next_pos, GW::Constants::Range::Spellcast);
     const auto filtered_livings = GetEnemiesInGameRectangle(rect, livings_data->enemies);
@@ -433,21 +516,25 @@ bool CheckForAggroFree(const DataPlayer &player_data, const AgentLivingData *liv
 
 float GetProgressValue()
 {
-    const auto* c = GW::CharContext::instance();
+    return 0.0F;
 
-    if (!c || !c->progress_bar)
-        return 0.0F;
+    // const auto* c = GW::CharContext::instance();
 
-    return c->progress_bar->progress;
+    // if (!c || !c->progress_bar)
+    //     return 0.0F;
+
+    // return c->progress_bar->progress;
 }
 
 bool DhuumFightDone(const uint32_t num_objectives)
 {
-    if (num_objectives <= 10)
+    constexpr static auto num_uw_quests = 10U;
+
+    if (num_objectives <= num_uw_quests)
         return false;
 
     const auto progress_perc = GetProgressValue();
-    return num_objectives > 10 || progress_perc < 0.0F || progress_perc > 1.0F;
+    return num_objectives > num_uw_quests || progress_perc < 0.0F || progress_perc > 1.0F;
 }
 
 uint32_t GetUwTriggerRoleId(const TriggerRole role)

@@ -339,71 +339,71 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
         return;
 
     ImGui::SetNextWindowSize(ImVec2(240.0F, 45.0F), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("test", can_close && show_closebutton ? GetVisiblePtr() : nullptr, GetWinFlags()))
+    if (ImGui::Begin(Name(), can_close && show_closebutton ? GetVisiblePtr() : nullptr, GetWinFlags()))
     {
-        // const auto width = ImGui::GetWindowWidth();
-        // auto added_color_follow = false;
-        // auto toggled_follow = false;
+        const auto width = ImGui::GetWindowWidth();
+        auto added_color_follow = false;
+        auto toggled_follow = false;
 
-        // switch (current_hero_behaviour)
-        // {
-        // case HeroBehaviour::GUARD:
-        // {
-        //     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1F, 0.1F, 1.0F, 1.0F));
-        //     break;
-        // }
-        // case HeroBehaviour::AVOID_COMBAT:
-        // {
-        //     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1F, 0.9F, 0.1F, 1.0F));
-        //     break;
-        // }
-        // case HeroBehaviour::ATTACK:
-        // {
-        //     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0F, 0.1F, 0.1F, 1.0F));
-        //     break;
-        // }
-        // }
-        // if (ImGui::Button("Behaviour###toggleState", ImVec2{width / 3.0F - 10.0F, 50.0F}))
-        // {
-        //     ToggleHeroBehaviour();
-        // }
-        // ImGui::PopStyleColor();
-        // if (following_active)
-        // {
-        //     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1F, 0.9F, 0.1F, 1.0F));
-        //     added_color_follow = true;
-        // }
-        // ImGui::SameLine();
-        // if (ImGui::Button("Follow###followPlayer", ImVec2{width / 3.0F - 10.0F, 50.0F}))
-        // {
-        //     following_active = !following_active;
-        //     toggled_follow = true;
+        switch (current_hero_behaviour)
+        {
+        case HeroBehaviour::GUARD:
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1F, 0.1F, 1.0F, 1.0F));
+            break;
+        }
+        case HeroBehaviour::AVOID_COMBAT:
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1F, 0.9F, 0.1F, 1.0F));
+            break;
+        }
+        case HeroBehaviour::ATTACK:
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0F, 0.1F, 0.1F, 1.0F));
+            break;
+        }
+        }
+        if (ImGui::Button("Behaviour###toggleState", ImVec2{width / 3.0F - 10.0F, 50.0F}))
+        {
+            ToggleHeroBehaviour();
+        }
+        ImGui::PopStyleColor();
+        if (following_active)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1F, 0.9F, 0.1F, 1.0F));
+            added_color_follow = true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Follow###followPlayer", ImVec2{width / 3.0F - 10.0F, 50.0F}))
+        {
+            following_active = !following_active;
+            toggled_follow = true;
 
-        //     Log::Info("Heroes will follow the player!");
-        // }
-        // if (IsExplorable() && following_active && TIMER_DIFF(last_follow_trigger_ms) > 800 + time_dist(gen))
-        // {
-        //     FollowPlayer();
-        //     last_follow_trigger_ms = clock();
+            Log::Info("Heroes will follow the player!");
+        }
+        if (IsExplorable() && following_active && TIMER_DIFF(last_follow_trigger_ms) > 800 + time_dist(gen))
+        {
+            FollowPlayer();
+            last_follow_trigger_ms = clock();
 
-        //     UseFallback();
-        // }
-        // else if (IsMapReady() && IsExplorable() && toggled_follow)
-        // {
-        //     GW::PartyMgr::UnflagAll();
-        // }
-        // else if (IsExplorable() && !following_active)
-        // {
-        //     UseBipOnPlayer();
-        // }
-        // if (added_color_follow)
-        //     ImGui::PopStyleColor();
-        // ImGui::SameLine();
-        // if (ImGui::Button("Attack###attackTarget", ImVec2{width / 3.0F - 10.0F, 50.0F}))
-        // {
-        //     if (IsExplorable())
-        //         AttackTarget();
-        // }
+            UseFallback();
+        }
+        else if (IsMapReady() && IsExplorable() && toggled_follow)
+        {
+            GW::PartyMgr::UnflagAll();
+        }
+        else if (IsExplorable() && !following_active)
+        {
+            UseBipOnPlayer();
+        }
+        if (added_color_follow)
+            ImGui::PopStyleColor();
+        ImGui::SameLine();
+        if (ImGui::Button("Attack###attackTarget", ImVec2{width / 3.0F - 10.0F, 50.0F}))
+        {
+            if (IsExplorable())
+                AttackTarget();
+        }
     }
     ImGui::End();
 }

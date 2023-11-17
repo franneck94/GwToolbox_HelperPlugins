@@ -13,12 +13,12 @@ class ActionABC
 public:
     constexpr static auto TIMER_THRESHOLD_MS = long{200U};
 
-    static bool HasWaitedLongEnough(const long timer_threshold_ms = TIMER_THRESHOLD_MS);
+    static bool HasWaitedLongEnough(long timer_threshold_ms = TIMER_THRESHOLD_MS);
 
-    ActionABC(DataPlayer *p, std::string_view t) noexcept : player_data(p), text(t){};
+    ActionABC(DataPlayer *_player, std::string_view _text) noexcept : player_data(_player), text(_text){};
     virtual ~ActionABC() noexcept {};
 
-    void Draw(const ImVec2 button_size = ImVec2(100.0, 50.0));
+    void Draw(ImVec2 button_size = ImVec2(100.0, 50.0), bool allow_in_outpost = false);
     virtual RoutineState Routine() = 0;
     virtual void Update() = 0;
 

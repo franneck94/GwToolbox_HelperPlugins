@@ -4,14 +4,15 @@
 #include <map>
 #include <vector>
 
+#include <ToolboxUIPlugin.h>
+
 #include <GWCA/GameEntities/Agent.h>
 
 #include "ActionsBase.h"
 #include "DataPlayer.h"
 #include "Utils.h"
-#include <Base/HelperBoxWindow.h>
+#include "DataLivings.h"
 
-#include <SimpleIni.h>
 #include <imgui.h>
 
 class AutoTargetAction : public ActionABC
@@ -25,10 +26,12 @@ public:
     std::vector<GW::AgentLiving *> *behemoth_livings = nullptr;
 };
 
-class UwRanger : public HelperBoxWindow
+class UwRanger : public ToolboxUIPlugin
 {
 public:
-    UwRanger() : player_data({}), filtered_livings({}), auto_target(&player_data), last_casted_times_ms({}){};
+    UwRanger()
+        : player_data({}), filtered_livings({}), auto_target(&player_data), last_casted_times_ms({}),
+          livings_data({}){};
     ~UwRanger(){};
 
     static UwRanger &Instance()
@@ -39,24 +42,25 @@ public:
 
     const char *Name() const override
     {
-        return "UwRanger";
+        return "UWRanger";
     }
 
-    void Draw() override;
-    void Update(float delta, const AgentLivingData &) override;
-
-    void DrawSettingInternal() override
+    const char *Icon() const override
     {
-        static auto _attack_at_auto_target = attack_at_auto_target;
-        const auto width = ImGui::GetWindowWidth();
-
-        ImGui::Text("Also attack Behemoths wile auto target is active:");
-        ImGui::SameLine(width * 0.5F);
-        ImGui::PushItemWidth(width * 0.5F);
-        ImGui::Checkbox("###attackAtAutoTarget", &_attack_at_auto_target);
-        ImGui::PopItemWidth();
-        attack_at_auto_target = _attack_at_auto_target;
+        return ICON_FA_COMMENT_DOTS;
     }
+
+    void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
+    void SignalTerminate() override;
+    void Draw(IDirect3DDevice9 *) override;
+    void DrawSettings() override;
+    bool HasSettings() const override
+    {
+        return true;
+    }
+    void LoadSettings(const wchar_t *folder) override;
+    void SaveSettings(const wchar_t *folder) override;
+    void Update(float delta) override;
 
 private:
     void DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
@@ -77,7 +81,7 @@ private:
     std::vector<GW::AgentLiving *> skele_livings;
     std::vector<GW::AgentLiving *> horseman_livings;
 
-    std::vector<uint32_t> king_path_coldfire_ids;
-
     AutoTargetAction auto_target;
+
+    AgentLivingData livings_data;
 };
