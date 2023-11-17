@@ -30,6 +30,7 @@
 #include "Utils.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
+#include "ActionsUw.h"
 #include <Base/HelperBox.h>
 
 #include <fmt/format.h>

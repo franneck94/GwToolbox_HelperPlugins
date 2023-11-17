@@ -13,8 +13,7 @@
 #include "ActionsBase.h"
 #include "ActionsUw.h"
 #include "DataPlayer.h"
-#include <Base/HelperBoxWindow.h>
-#include <Features/Uw/UwMetadata.h>
+#include "ActionsUw.h"
 #include <HelperCallbacks.h>
 
 #include <SimpleIni.h>

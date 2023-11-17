@@ -17,8 +17,7 @@
 #include "HelperItems.h"
 #include "HelperUw.h"
 #include "UtilsGui.h"
-#include <Base/HelperBoxWindow.h>
-#include <Features/Uw/UwMetadata.h>
+#include "ActionsUw.h"
 
 #include <SimpleIni.h>
 #include <imgui.h>

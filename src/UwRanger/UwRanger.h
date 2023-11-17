@@ -12,6 +12,7 @@
 #include "DataLivings.h"
 #include "DataPlayer.h"
 #include "Utils.h"
+#include "DataLivings.h"
 
 #include <imgui.h>
 

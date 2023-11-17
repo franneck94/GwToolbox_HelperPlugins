@@ -15,8 +15,6 @@
 #include <GWCA/Packets/StoC.h>
 #include <GWCA/Utilities/Hook.h>
 
-#include <Base/HelperBox.h>
-
 #include "ActionsBase.h"
 #include "ActionsUw.h"
 #include "DataPlayer.h"
@@ -25,6 +23,7 @@
 #include "HelperUwPos.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
+#include "ActionsUw.h"
 
 #include "UwDhuumStats.h"
 
