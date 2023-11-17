@@ -5,6 +5,8 @@ Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugin
 Features are:
 
 - Smart Chat Commands
+- Openign Chest from afar
+- Targetting minipets
 - Oldschool Dialog Window
 - UW Helper: LT, EMO and Ranger Terra
 - Auto Follow
