@@ -3,6 +3,8 @@
 #include <array>
 #include <cstdint>
 
+#include <ToolboxUIPlugin.h>
+
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/Packets/StoC.h>
 #include <GWCA/Utilities/Hook.h>
@@ -17,7 +19,7 @@
 #include "HelperItems.h"
 #include "HelperUw.h"
 #include "UtilsGui.h"
-#include "ActionsUw.h"
+#include "UwMetadata.h"
 
 #include <SimpleIni.h>
 #include <imgui.h>
@@ -69,78 +71,33 @@ private:
     bool party_data_valid = false;
 };
 
-class UwEmo : public HelperBoxWindow
+class UwEmo : public ToolboxUIPlugin
 {
 public:
     UwEmo();
     ~UwEmo(){};
-
-    static UwEmo &Instance()
-    {
-        static UwEmo instance;
-        return instance;
-    }
 
     const char *Name() const override
     {
         return "UwEmo";
     }
 
-    void Initialize() override
+    const char *Icon() const override
     {
-        HelperBoxWindow::Initialize();
-        first_frame = true;
+        return ICON_FA_COMMENT_DOTS;
     }
 
-    void LoadSettings(CSimpleIni *ini) override
+    void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
+    void SignalTerminate() override;
+    void Draw(IDirect3DDevice9 *pDevice) override;
+    void DrawSettings() override;
+    bool HasSettings() const override
     {
-        HelperBoxWindow::LoadSettings(ini);
-        show_debug_map = ini->GetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
-        bag_idx = ini->GetLongValue(Name(), VAR_NAME(bag_idx), bag_idx);
-        slot_idx = ini->GetLongValue(Name(), VAR_NAME(slot_idx), slot_idx);
+        return true;
     }
-
-    void SaveSettings(CSimpleIni *ini) override
-    {
-        HelperBoxWindow::SaveSettings(ini);
-        ini->SetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
-        ini->SetLongValue(Name(), VAR_NAME(bag_idx), bag_idx);
-        ini->SetLongValue(Name(), VAR_NAME(slot_idx), slot_idx);
-    }
-
-    void DrawSettingInternal() override
-    {
-        static auto _bag_idx = static_cast<int>(bag_idx);
-        static auto _slot_idx = static_cast<int>(slot_idx);
-
-        const auto width = ImGui::GetWindowWidth();
-        ImGui::Text("Low HP Armor Slots:");
-
-        ImGui::Text("Bag Idx (starts at 1):");
-        ImGui::SameLine(width * 0.5F);
-        ImGui::PushItemWidth(width * 0.5F);
-        ImGui::InputInt("###inputBagIdx", &_bag_idx, 1, 1);
-        ImGui::PopItemWidth();
-        bag_idx = _bag_idx;
-
-        ImGui::Text("First Armor Piece Idx (starts at 1):");
-        ImGui::SameLine(width * 0.5F);
-        ImGui::PushItemWidth(width * 0.5F);
-        ImGui::InputInt("###inputStartSlot", &_slot_idx, 1, 1);
-        ImGui::PopItemWidth();
-        slot_idx = _slot_idx;
-
-#ifdef _DEBUG
-        ImGui::Text("Show Debug Map:");
-        ImGui::SameLine(width * 0.5F);
-        ImGui::PushItemWidth(width * 0.5F);
-        ImGui::Checkbox("debugMapActive", &show_debug_map);
-        ImGui::PopItemWidth();
-#endif
-    }
-
-    void Draw() override;
-    void Update(float delta, const AgentLivingData &) override;
+    void LoadSettings(const wchar_t *folder) override;
+    void SaveSettings(const wchar_t *folder) override;
+    void Update(float) override;
 
 private:
     void UpdateUw();
@@ -149,8 +106,9 @@ private:
     bool first_frame = false;
     EmoSkillbarData skillbar;
     DataPlayer player_data;
-    const AgentLivingData *livings_data = nullptr;
+    AgentLivingData livings_data;
     EmoRoutine emo_routine;
+    UwMetadata uw_metadata;
 
     // Settings
     bool show_debug_map = true;
@@ -159,9 +117,9 @@ private:
 
     std::function<bool()> swap_to_high_armor_fn = [&]() { return HighArmor(bag_idx, slot_idx); };
     std::function<bool()> swap_to_low_armor_fn = [&]() { return LowArmor(bag_idx, slot_idx); };
-    std::function<bool()> target_reaper_fn = [&]() { return TargetReaper(player_data, livings_data->npcs); };
+    std::function<bool()> target_reaper_fn = [&]() { return TargetReaper(player_data, livings_data.npcs); };
     std::function<bool()> target_lt_fn = [&]() { return TargetTrigger(player_data, TriggerRole::LT); };
-    std::function<bool()> talk_reaper_fn = [&]() { return TalkReaper(player_data, livings_data->npcs); };
+    std::function<bool()> talk_reaper_fn = [&]() { return TalkReaper(player_data, livings_data.npcs); };
     std::function<bool()> take_uwg_fn = [&]() { return TakeUWG(); };
 
     static inline const auto SKILLS_START_TRIGGER = GW::GamePos{-790.53F, 9529.63F, 0};

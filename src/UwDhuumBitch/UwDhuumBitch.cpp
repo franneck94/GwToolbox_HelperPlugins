@@ -7,6 +7,7 @@
 #include <GWCA/Constants/Skills.h>
 #include <GWCA/Context/ItemContext.h>
 #include <GWCA/Context/WorldContext.h>
+#include <GWCA/GWCA.h>
 #include <GWCA/GameContainers/GamePos.h>
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/GameEntities/Map.h>
@@ -30,12 +31,10 @@
 #include "Utils.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
-#include "ActionsUw.h"
-#include <Base/HelperBox.h>
 
+#include <SimpleIni.h>
 #include <fmt/format.h>
 #include <imgui.h>
-#include <implot.h>
 
 #include "UwDhuumBitch.h"
 
@@ -56,19 +55,61 @@ const static auto reaper_moves =
 const static auto full_team_moves = std::array<uint32_t, 10>{19, 20, 21, 22, 58, 59, 60, 61, 62, 63};
 }; // namespace
 
-UwDhuumBitch::UwDhuumBitch() : skillbar({}), db_routine(&player_data, &skillbar, livings_data)
+DLLAPI ToolboxPlugin *ToolboxPluginInstance()
+{
+    static UwDhuumBitch instance;
+    return &instance;
+}
+
+void UwDhuumBitch::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
+{
+    ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
+
+    WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"UwDhuumBitch");
+}
+
+void UwDhuumBitch::SignalTerminate()
+{
+    ToolboxUIPlugin::SignalTerminate();
+    GW::DisableHooks();
+}
+
+void UwDhuumBitch::LoadSettings(const wchar_t *folder)
+{
+    ToolboxUIPlugin::LoadSettings(folder);
+    // show_debug_map = ini->GetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+}
+
+void UwDhuumBitch::SaveSettings(const wchar_t *folder)
+{
+    ToolboxUIPlugin::SaveSettings(folder);
+    // ini->SetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+}
+
+void UwDhuumBitch::DrawSettings()
+{
+    ToolboxUIPlugin::DrawSettings();
+    const auto width = ImGui::GetWindowWidth();
+    ImGui::Text("Show Debug Map:");
+    ImGui::SameLine(width * 0.5F);
+    ImGui::PushItemWidth(width * 0.5F);
+    ImGui::Checkbox("debugMapActive", &show_debug_map);
+    ImGui::PopItemWidth();
+}
+
+UwDhuumBitch::UwDhuumBitch() : skillbar({}), db_routine(&player_data, &skillbar, &livings_data)
 {
     if (skillbar.ValidateData())
         skillbar.Load();
 };
 
-void UwDhuumBitch::Draw()
+void UwDhuumBitch::Draw(IDirect3DDevice9 *)
 {
-    if (!visible || !player_data.ValidateData(UwHelperActivationConditions, true) || !IsDhuumBitch(player_data))
+    if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsDhuumBitch(player_data))
         return;
 
     ImGui::SetNextWindowSize(ImVec2(110.0F, 170.0F), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(Name(), nullptr, GetWinFlags()))
+    if (ImGui::Begin(Name(), can_close && show_closebutton ? GetVisiblePtr() : nullptr, GetWinFlags()))
     {
         db_routine.Draw();
         DrawMovingButtons(moves, move_ongoing, move_idx);
@@ -76,8 +117,8 @@ void UwDhuumBitch::Draw()
     ImGui::End();
 
 #ifdef _DEBUG
-    if (IsUw() && show_debug_map && livings_data)
-        DrawMap(player_data.pos, livings_data->enemies, moves[move_idx]->pos, "DbMap");
+    // if (IsUw() && show_debug_map && livings_data)
+    //     DrawMap(player_data.pos, livings_data->enemies, moves[move_idx]->pos, "DbMap");
 #endif
 }
 
@@ -87,9 +128,9 @@ void UwDhuumBitch::UpdateUw()
 
     MoveABC::SkipNonFullteamMoves(TankIsFullteamLT(), full_team_moves, moves.size(), move_idx);
 
-    MoveABC::UpdatedUwMoves(player_data, livings_data, moves, move_idx, move_ongoing);
+    MoveABC::UpdatedUwMoves(player_data, &livings_data, moves, move_idx, move_ongoing);
 
-    if (UwMetadata::Instance().num_finished_objectives == 10U && !move_ongoing &&
+    if (uw_metadata.num_finished_objectives == 10U && !move_ongoing &&
         (moves[move_idx]->name == "Go To Dhuum 1" || moves[move_idx]->name == "Go To Dhuum 2"))
     {
         moves[move_idx]->Execute();
@@ -106,7 +147,7 @@ void UwDhuumBitch::UpdateUw()
          moves[move_idx]->name == "Go To Dhuum 6");
     const auto is_moving = player_data.living->GetIsMoving();
 
-    Move_PositionABC::LtMoveTrigger(UwMetadata::Instance().lt_is_ready,
+    Move_PositionABC::LtMoveTrigger(uw_metadata.lt_is_ready,
                                     move_ongoing,
                                     is_hm_trigger_take,
                                     is_hm_trigger_move,
@@ -116,26 +157,26 @@ void UwDhuumBitch::UpdateUw()
 
 void UwDhuumBitch::UpdateUwEntry()
 {
-    if (UwMetadata::Instance().load_cb_triggered && !TankIsSoloLT())
+    if (uw_metadata.load_cb_triggered && !TankIsSoloLT())
     {
-        UwMetadata::Instance().load_cb_triggered = false;
+        uw_metadata.load_cb_triggered = false;
         move_idx = 0;
         move_ongoing = false;
     }
 
-    if (UwMetadata::Instance().load_cb_triggered)
+    if (uw_metadata.load_cb_triggered)
     {
         move_idx = 0;
         move_ongoing = false;
         moves[0]->Execute();
-        UwMetadata::Instance().load_cb_triggered = false;
+        uw_metadata.load_cb_triggered = false;
         move_ongoing = true;
 
         *damage_action_state = ActionState::ACTIVE;
     }
 }
 
-void UwDhuumBitch::Update(float, const AgentLivingData &_livings_data)
+void UwDhuumBitch::Update(float)
 {
     if (!player_data.ValidateData(UwHelperActivationConditions, true))
     {
@@ -145,9 +186,9 @@ void UwDhuumBitch::Update(float, const AgentLivingData &_livings_data)
         return;
     }
     player_data.Update();
-    livings_data = &_livings_data;
-    db_routine.livings_data = livings_data;
-    db_routine.num_finished_objectives = UwMetadata::Instance().num_finished_objectives;
+    // livings_data = &_livings_data;
+    // db_routine.livings_data = livings_data;
+    db_routine.num_finished_objectives = uw_metadata.num_finished_objectives;
 
     if (!IsDhuumBitch(player_data))
         return;

@@ -5,6 +5,7 @@
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/Constants/Maps.h>
+#include <GWCA/GWCA.h>
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/GameEntities/Map.h>
 #include <GWCA/GameEntities/Player.h>
@@ -23,7 +24,6 @@
 #include "HelperUwPos.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
-#include "ActionsUw.h"
 
 #include "UwDhuumStats.h"
 
@@ -36,6 +36,24 @@ constexpr static auto TIME_WINDOW_REST_MS = (TIME_WINDOW_REST_S * 1000L);
 constexpr static auto REST_SKILL_ID = uint32_t{3087};
 constexpr static auto REST_SKILL_REAPER_ID = uint32_t{3079U};
 } // namespace
+
+DLLAPI ToolboxPlugin *ToolboxPluginInstance()
+{
+    static UwDhuumStats instance;
+    return &instance;
+}
+
+void UwDhuumStats::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
+{
+    ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
+    WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"UwDhuumStats");
+}
+
+void UwDhuumStats::SignalTerminate()
+{
+    ToolboxUIPlugin::SignalTerminate();
+    GW::DisableHooks();
+}
 
 void UwDhuumStats::SkillPacketCallback(const uint32_t value_id,
                                        const uint32_t caster_id,
@@ -127,27 +145,24 @@ static void FormatTime(const uint64_t &duration, size_t bufsize, char *buf)
         snprintf(buf, bufsize, "%02d:%02llu", mins, secs);
 }
 
-void UwDhuumStats::Draw()
+void UwDhuumStats::Draw(IDirect3DDevice9 *)
 {
     static char buffer[16]{'\0'};
     static auto entered_dhuum_room_first = false;
 
-    if (UwMetadata::Instance().load_cb_triggered)
+    if (uw_metadata.load_cb_triggered)
         entered_dhuum_room_first = false;
-
-    if (!visible)
-        return;
 
     if (!player_data.ValidateData(UwHelperActivationConditions, false))
         return;
 
     ImGui::SetNextWindowSize(ImVec2(150.0F, 175.0F), ImGuiCond_FirstUseEver);
 
-    if (ImGui::Begin(Name(), nullptr, GetWinFlags()))
+    if (ImGui::Begin(Name(), can_close && show_closebutton ? GetVisiblePtr() : nullptr, GetWinFlags()))
     {
         const auto is_in_dhuum_fight = IsInDhuumFight(player_data.pos);
         const auto entered_dhuum_room = IsInDhuumRoom(player_data.pos, GW::Constants::Range::Compass);
-        const auto dhuum_fight_done = DhuumFightDone(UwMetadata::Instance().num_finished_objectives);
+        const auto dhuum_fight_done = DhuumFightDone(uw_metadata.num_finished_objectives);
 
         if (!entered_dhuum_room_first && is_in_dhuum_fight)
         {
@@ -254,7 +269,7 @@ void UwDhuumStats::UpdateDamageData()
         eta_damage_s = 0.0F;
 }
 
-void UwDhuumStats::Update(float, const AgentLivingData &)
+void UwDhuumStats::Update(float)
 {
     if (!player_data.ValidateData(UwHelperActivationConditions, false))
         return;

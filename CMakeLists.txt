@@ -78,12 +78,16 @@ target_link_libraries(helper_utils PUBLIC
 
 include(gwtoolboxdll_plugins)
 
-add_tb_plugin(AllowAllDialogs)
+add_tb_plugin(AllowAllDialogs)  # Does not work currently
 add_tb_plugin(LongFinger)
 add_tb_plugin(RawDialogs)
 add_tb_plugin(TargetEverything)
-add_tb_plugin(AutoFollow)
+
+add_tb_plugin(AutoFollow)  # To be Tweaked
 add_tb_plugin(HeroWindow)
-add_tb_plugin(SmartCommands)
+add_tb_plugin(SmartCommands)  # Dhuum Command needs be checked
 add_tb_plugin(UwRanger)
-add_tb_plugin(UwMesmer)
+add_tb_plugin(UwMesmer)  # TBD
+add_tb_plugin(UwDhuumStats)  # TBD
+add_tb_plugin(UwDhuumBitch)  # TBD
+add_tb_plugin(UwEmo)  # TBD

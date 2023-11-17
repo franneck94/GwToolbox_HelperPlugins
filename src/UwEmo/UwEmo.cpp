@@ -6,6 +6,7 @@
 #include <GWCA/Constants/Skills.h>
 #include <GWCA/Context/ItemContext.h>
 #include <GWCA/Context/WorldContext.h>
+#include <GWCA/GWCA.h>
 #include <GWCA/GameContainers/Array.h>
 #include <GWCA/GameContainers/GamePos.h>
 #include <GWCA/GameEntities/Agent.h>
@@ -31,7 +32,6 @@
 #include "Utils.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
-#include "ActionsUw.h"
 
 #include "UwEmo.h"
 
@@ -63,20 +63,86 @@ const static auto reaper_moves =
 const static auto full_team_moves = std::array<uint32_t, 9>{31, 32, 33, 34, 52, 53, 54, 55};
 }; // namespace
 
-UwEmo::UwEmo() : skillbar({}), emo_routine(&player_data, &skillbar, &bag_idx, &slot_idx, livings_data)
+DLLAPI ToolboxPlugin *ToolboxPluginInstance()
+{
+    static UwEmo instance;
+    return &instance;
+}
+
+void UwEmo::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
+{
+    ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
+
+    WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"UwEmo");
+}
+
+void UwEmo::SignalTerminate()
+{
+    ToolboxUIPlugin::SignalTerminate();
+    GW::DisableHooks();
+}
+
+void UwEmo::LoadSettings(const wchar_t *folder)
+{
+    ToolboxUIPlugin::LoadSettings(folder);
+    // show_debug_map = ini->GetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+    // bag_idx = ini->GetLongValue(Name(), VAR_NAME(bag_idx), bag_idx);
+    // slot_idx = ini->GetLongValue(Name(), VAR_NAME(slot_idx)s, slot_idx);
+}
+
+void UwEmo::SaveSettings(const wchar_t *folder)
+{
+    ToolboxUIPlugin::SaveSettings(folder);
+    // ini->SetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+    // ini->SetLongValue(Name(), VAR_NAME(bag_idx), bag_idx);
+    // ini->SetLongValue(Name(), VAR_NAME(slot_idx), slot_idx);
+}
+
+void UwEmo::DrawSettings()
+{
+    ToolboxUIPlugin::DrawSettings();
+
+    static auto _bag_idx = static_cast<int>(bag_idx);
+    static auto _slot_idx = static_cast<int>(slot_idx);
+
+    const auto width = ImGui::GetWindowWidth();
+    ImGui::Text("Low HP Armor Slots:");
+
+    ImGui::Text("Bag Idx (starts at 1):");
+    ImGui::SameLine(width * 0.5F);
+    ImGui::PushItemWidth(width * 0.5F);
+    ImGui::InputInt("###inputBagIdx", &_bag_idx, 1, 1);
+    ImGui::PopItemWidth();
+    bag_idx = _bag_idx;
+
+    ImGui::Text("First Armor Piece Idx (starts at 1):");
+    ImGui::SameLine(width * 0.5F);
+    ImGui::PushItemWidth(width * 0.5F);
+    ImGui::InputInt("###inputStartSlot", &_slot_idx, 1, 1);
+    ImGui::PopItemWidth();
+    slot_idx = _slot_idx;
+
+    ImGui::Text("Show Debug Map:");
+    ImGui::SameLine(width * 0.5F);
+    ImGui::PushItemWidth(width * 0.5F);
+    ImGui::Checkbox("debugMapActive", &show_debug_map);
+    ImGui::PopItemWidth();
+}
+
+UwEmo::UwEmo() : skillbar({}), uw_metadata({}), emo_routine(&player_data, &skillbar, &bag_idx, &slot_idx, &livings_data)
 {
     if (skillbar.ValidateData())
         skillbar.Load();
 };
 
-void UwEmo::Draw()
+void UwEmo::Draw(IDirect3DDevice9 *)
 {
-    if (!visible || !player_data.ValidateData(UwHelperActivationConditions, true) || !IsEmo(player_data))
+    if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsEmo(player_data))
         return;
 
     ImGui::SetNextWindowSize(ImVec2(110.0F, 170.0F), ImGuiCond_FirstUseEver);
 
-    if (ImGui::Begin(Name(), nullptr, GetWinFlags()))
+    if (ImGui::Begin(Name(), can_close && show_closebutton ? GetVisiblePtr() : nullptr, GetWinFlags()))
     {
         emo_routine.Draw();
 
@@ -86,8 +152,8 @@ void UwEmo::Draw()
     ImGui::End();
 
 #ifdef _DEBUG
-    if (IsUw() && show_debug_map && livings_data)
-        DrawMap(player_data.pos, livings_data->enemies, moves[move_idx]->pos, "EmoMap");
+    // if (IsUw() && show_debug_map && livings_data)
+    //     DrawMap(player_data.pos, livings_data.enemies, moves[move_idx]->pos, "EmoMap");
 #endif
 }
 
@@ -97,9 +163,9 @@ void UwEmo::UpdateUw()
 
     MoveABC::SkipNonFullteamMoves(TankIsFullteamLT(), full_team_moves, moves.size(), move_idx);
 
-    MoveABC::UpdatedUwMoves(player_data, livings_data, moves, move_idx, move_ongoing);
+    MoveABC::UpdatedUwMoves(player_data, &livings_data, moves, move_idx, move_ongoing);
 
-    if (UwMetadata::Instance().num_finished_objectives == 10U && !move_ongoing &&
+    if (uw_metadata.num_finished_objectives == 10U && !move_ongoing &&
         (moves[move_idx]->name == "Go To Dhuum 1" || moves[move_idx]->name == "Go To Dhuum 2"))
     {
         moves[move_idx]->Execute();
@@ -121,7 +187,7 @@ void UwEmo::UpdateUw()
          moves[move_idx]->name == "Go Planes Start");
     const auto is_moving = player_data.living->GetIsMoving();
 
-    Move_PositionABC::LtMoveTrigger(UwMetadata::Instance().lt_is_ready,
+    Move_PositionABC::LtMoveTrigger(uw_metadata.lt_is_ready,
                                     move_ongoing,
                                     is_hm_trigger_take,
                                     is_hm_trigger_move,
@@ -133,23 +199,23 @@ void UwEmo::UpdateUwEntry()
 {
     static auto triggered_tank_bonds_at_start = false;
 
-    if (UwMetadata::Instance().load_cb_triggered)
+    if (uw_metadata.load_cb_triggered)
     {
         move_idx = 0;
-        UwMetadata::Instance().num_finished_objectives = 0U;
+        uw_metadata.num_finished_objectives = 0U;
         move_ongoing = false;
         emo_routine.used_canthas = false;
     }
 
-    if (UwMetadata::Instance().load_cb_triggered && !TankIsSoloLT())
+    if (uw_metadata.load_cb_triggered && !TankIsSoloLT())
     {
-        UwMetadata::Instance().load_cb_triggered = false;
+        uw_metadata.load_cb_triggered = false;
         emo_routine.action_state = ActionState::ACTIVE;
     }
 
-    if (UwMetadata::Instance().load_cb_triggered)
+    if (uw_metadata.load_cb_triggered)
     {
-        UwMetadata::Instance().load_cb_triggered = false;
+        uw_metadata.load_cb_triggered = false;
         triggered_tank_bonds_at_start = true;
         emo_routine.action_state = ActionState::ACTIVE;
         return;
@@ -164,7 +230,7 @@ void UwEmo::UpdateUwEntry()
     }
 }
 
-void UwEmo::Update(float, const AgentLivingData &_livings_data)
+void UwEmo::Update(float)
 {
     if (!player_data.ValidateData(UwHelperActivationConditions, true))
     {
@@ -173,9 +239,9 @@ void UwEmo::Update(float, const AgentLivingData &_livings_data)
         return;
     }
     player_data.Update();
-    livings_data = &_livings_data;
-    emo_routine.livings_data = livings_data;
-    emo_routine.num_finished_objectives = UwMetadata::Instance().num_finished_objectives;
+    // livings_data = &_livings_data;
+    // emo_routine.livings_data = livings_data;
+    emo_routine.num_finished_objectives = uw_metadata.num_finished_objectives;
 
     if (!IsEmo(player_data))
         return;
@@ -729,8 +795,8 @@ RoutineState EmoRoutine::Routine()
         !used_canthas && ((GW::PartyMgr::GetPartySize() <= 4) ||
                           (GW::PartyMgr::GetPartySize() == 5 && GW::Map::GetInstanceTime() < EIGHT_MINS_IN_MS));
 
-    const auto item_context = GW::ItemContext::instance();
-    const auto world_context = GW::WorldContext::instance();
+    const auto item_context = GW::GetItemContext();
+    const auto world_context = GW::GetWorldContext();
 
     if (item_context && IsAtValeSpirits(player_data->pos) && stone_should_be_used &&
         UseInventoryItem(CANTHA_STONE_ID, 1, item_context->bags_array.size()))

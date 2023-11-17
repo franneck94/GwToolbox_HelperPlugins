@@ -3,6 +3,8 @@
 #include <array>
 #include <cstdint>
 
+#include <ToolboxUIPlugin.h>
+
 #include <GWCA/Packets/StoC.h>
 #include <GWCA/Utilities/Hook.h>
 
@@ -10,11 +12,10 @@
 #include "ActionsMove.h"
 #include "DataLivings.h"
 #include "DataPlayer.h"
+#include "HelperCallbacks.h"
 #include "HelperUw.h"
 #include "UtilsGui.h"
-#include <Base/HelperBoxWindow.h>
-#include <Features/Uw/UwMetadata.h>
-#include <HelperCallbacks.h>
+#include "UwMetadata.h"
 
 #include <SimpleIni.h>
 #include <imgui.h>
@@ -43,55 +44,33 @@ public:
     uint32_t num_finished_objectives = 0U;
 };
 
-class UwDhuumBitch : public HelperBoxWindow
+class UwDhuumBitch : public ToolboxUIPlugin
 {
 public:
     UwDhuumBitch();
     ~UwDhuumBitch(){};
-
-    static UwDhuumBitch &Instance()
-    {
-        static UwDhuumBitch instance;
-        return instance;
-    }
 
     const char *Name() const override
     {
         return "UwDhuumBitch";
     }
 
-    void Initialize() override
+    const char *Icon() const override
     {
-        HelperBoxWindow::Initialize();
-        first_frame = true;
+        return ICON_FA_COMMENT_DOTS;
     }
 
-    void LoadSettings(CSimpleIni *ini) override
+    void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
+    void SignalTerminate() override;
+    void Draw(IDirect3DDevice9 *pDevice) override;
+    void DrawSettings() override;
+    bool HasSettings() const override
     {
-        HelperBoxWindow::LoadSettings(ini);
-        show_debug_map = ini->GetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+        return true;
     }
-
-    void SaveSettings(CSimpleIni *ini) override
-    {
-        HelperBoxWindow::SaveSettings(ini);
-        ini->SetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
-    }
-
-    void DrawSettingInternal() override
-    {
-#ifdef _DEBUG
-        const auto width = ImGui::GetWindowWidth();
-        ImGui::Text("Show Debug Map:");
-        ImGui::SameLine(width * 0.5F);
-        ImGui::PushItemWidth(width * 0.5F);
-        ImGui::Checkbox("debugMapActive", &show_debug_map);
-        ImGui::PopItemWidth();
-#endif
-    }
-
-    void Draw() override;
-    void Update(float delta, const AgentLivingData &) override;
+    void LoadSettings(const wchar_t *folder) override;
+    void SaveSettings(const wchar_t *folder) override;
+    void Update(float) override;
 
 private:
     void UpdateUw();
@@ -102,13 +81,14 @@ private:
 
     bool first_frame = false;
     DataPlayer player_data;
-    const AgentLivingData *livings_data = nullptr;
+    AgentLivingData livings_data;
     DbSkillbarData skillbar;
+    UwMetadata uw_metadata;
 
     DbRoutine db_routine;
 
-    std::function<bool()> target_reaper_fn = [&]() { return TargetReaper(player_data, livings_data->npcs); };
-    std::function<bool()> talk_reaper_fn = [&]() { return TalkReaper(player_data, livings_data->npcs); };
+    std::function<bool()> target_reaper_fn = [&]() { return TargetReaper(player_data, livings_data.npcs); };
+    std::function<bool()> talk_reaper_fn = [&]() { return TalkReaper(player_data, livings_data.npcs); };
     std::function<bool()> cast_sq = [&]() {
         skillbar.sq.Cast(player_data.energy);
         return true;

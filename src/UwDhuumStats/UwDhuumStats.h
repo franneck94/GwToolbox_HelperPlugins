@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <vector>
 
+#include <ToolboxUIPlugin.h>
+
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/Managers/StoCMgr.h>
 #include <GWCA/Packets/StoC.h>
@@ -12,14 +14,14 @@
 
 #include "ActionsBase.h"
 #include "ActionsUw.h"
+#include "DataLivings.h"
 #include "DataPlayer.h"
-#include "ActionsUw.h"
-#include <HelperCallbacks.h>
+#include "HelperCallbacks.h"
+#include "UwMetadata.h"
 
-#include <SimpleIni.h>
 #include <imgui.h>
 
-class UwDhuumStats : public HelperBoxWindow
+class UwDhuumStats : public ToolboxUIPlugin
 {
 private:
     void SkillPacketCallback(const uint32_t value_id,
@@ -38,13 +40,13 @@ private:
     void UpdateDamageData();
 
 public:
-    UwDhuumStats() : player_data({}), rests({}), damages({})
+    UwDhuumStats() : player_data({}), rests({}), damages({}), livings_data({}), uw_metadata({})
     {
         /* Skill on self or party player_data */
         GW::StoC::RegisterPacketCallback<GW::Packet::StoC::GenericValue>(
             &SkillCasted_Entry,
             [this](GW::HookStatus *, GW::Packet::StoC::GenericValue *packet) -> void {
-                const uint32_t value_id = packet->Value_id;
+                const uint32_t value_id = packet->value_id;
                 const uint32_t caster_id = packet->agent_id;
                 const uint32_t target_id = 0U;
                 const uint32_t value = packet->value;
@@ -64,23 +66,29 @@ public:
     };
     ~UwDhuumStats(){};
 
-    static UwDhuumStats &Instance()
-    {
-        static UwDhuumStats instance;
-        return instance;
-    }
-
     const char *Name() const override
     {
         return "DhuumStatsWindow";
     }
 
-    void Draw() override;
-    void Update(float delta, const AgentLivingData &) override;
+    const char *Icon() const override
+    {
+        return ICON_FA_COMMENT_DOTS;
+    }
+
+    void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
+    void SignalTerminate() override;
+    void Draw(IDirect3DDevice9 *) override;
+    bool HasSettings() const override
+    {
+        return false;
+    }
+    void Update(float delta) override;
 
 private:
     DataPlayer player_data;
-    const AgentLivingData *livings_data = nullptr;
+    AgentLivingData livings_data;
+    UwMetadata uw_metadata;
 
     GW::HookEntry SkillCasted_Entry;
     GW::HookEntry Damage_Entry;

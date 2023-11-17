@@ -19,9 +19,9 @@ The command to stop useskill is one of the following:
 
 ## Dhuum
 
-This is a **smart** useskill for the Dhuum fight.  
-While the progress bar is not finished, *Rest* is cast.  
-If the progress bar is finished but Dhuum is not below 25%, the damage skill is cast.  
+This is a **smart** useskill for the Dhuum fight.
+While the progress bar is not finished, *Rest* is cast.
+If the progress bar is finished but Dhuum is not below 25%, the damage skill is cast.
 If the player is not attacking Dhuum, auto-attacking will be started.
 
 The command to start Dhuum useskil is:

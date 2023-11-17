@@ -238,22 +238,22 @@ bool UseInventoryItem(const uint32_t item_id, const size_t from_bag, const size_
 
 GW::WeaponSet *GetWeaponSets()
 {
-    const auto *c = GW::ItemContext::instance();
+    const auto *ctx = GW::GetItemContext();
 
-    if (!c || !c->inventory)
+    if (!ctx || !ctx->inventory)
         return nullptr;
 
-    return c->inventory->weapon_sets;
+    return ctx->inventory->weapon_sets;
 }
 
 GW::WeaponSet *GetActiveWeaponSet()
 {
-    const auto *c = GW::ItemContext::instance();
+    const auto *ctx = GW::GetItemContext();
 
-    if (!c || !c->inventory)
+    if (!ctx || !ctx->inventory)
         return nullptr;
 
-    return &c->inventory->weapon_sets[c->inventory->active_weapon_set];
+    return &ctx->inventory->weapon_sets[ctx->inventory->active_weapon_set];
 }
 
 std::pair<GW::WeaponSet *, uint32_t> GetFirstRangeWeaponSet()
