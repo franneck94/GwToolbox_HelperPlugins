@@ -264,7 +264,7 @@ void UwMesmer::Draw(IDirect3DDevice9 *)
     if (!IsUwMesmer(player_data))
         return;
 
-    ImGui::SetNextWindowSize(ImVec2(200.0F, 240.0F), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(200.0F, 240.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
                      can_close && show_closebutton ? GetVisiblePtr() : nullptr,
                      GetWinFlags(ImGuiWindowFlags_NoResize)))

@@ -89,17 +89,19 @@ void UwEmo::SignalTerminate()
 void UwEmo::LoadSettings(const wchar_t *folder)
 {
     ToolboxUIPlugin::LoadSettings(folder);
-    // show_debug_map = ini->GetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
-    // bag_idx = ini->GetLongValue(Name(), VAR_NAME(bag_idx), bag_idx);
-    // slot_idx = ini->GetLongValue(Name(), VAR_NAME(slot_idx)s, slot_idx);
+    ini.LoadFile(GetSettingFile(folder).c_str());
+    show_debug_map = ini.GetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+    bag_idx = ini.GetLongValue(Name(), VAR_NAME(bag_idx), bag_idx);
+    slot_idx = ini.GetLongValue(Name(), VAR_NAME(slot_idx), slot_idx);
 }
 
 void UwEmo::SaveSettings(const wchar_t *folder)
 {
     ToolboxUIPlugin::SaveSettings(folder);
-    // ini->SetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
-    // ini->SetLongValue(Name(), VAR_NAME(bag_idx), bag_idx);
-    // ini->SetLongValue(Name(), VAR_NAME(slot_idx), slot_idx);
+    ini.SetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+    ini.SetLongValue(Name(), VAR_NAME(bag_idx), bag_idx);
+    ini.SetLongValue(Name(), VAR_NAME(slot_idx), slot_idx);
+    PLUGIN_ASSERT(ini.SaveFile(GetSettingFile(folder).c_str()) == SI_OK);
 }
 
 void UwEmo::DrawSettings()
@@ -144,7 +146,7 @@ void UwEmo::Draw(IDirect3DDevice9 *)
     if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsEmo(player_data))
         return;
 
-    ImGui::SetNextWindowSize(ImVec2(115.0F, 180.0F), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(115.0F, 180.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
                      can_close && show_closebutton ? GetVisiblePtr() : nullptr,
                      GetWinFlags(ImGuiWindowFlags_NoResize)))

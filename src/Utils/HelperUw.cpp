@@ -13,6 +13,7 @@
 #include "DataPlayer.h"
 #include "Helper.h"
 #include "HelperAgents.h"
+#include "HelperQuests.h"
 #include "HelperUwPos.h"
 #include "UtilsMath.h"
 

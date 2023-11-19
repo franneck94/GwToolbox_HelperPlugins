@@ -1,88 +1,24 @@
-#include "RawDialogs.h"
-
-#include "GWCA/Managers/CtoSMgr.h"
-#include "GWCA/Packets/Opcodes.h"
-
 #include <cstdint>
 #include <filesystem>
 
-#include <Defines.h>
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/GWCA.h>
-#include <imgui.h>
-
-#include <GWCA/Managers/MapMgr.h>
-#include <GWCA/Managers/MemoryMgr.h>
-
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/ChatMgr.h>
+#include <GWCA/Managers/CtoSMgr.h>
 #include <GWCA/Managers/GameThreadMgr.h>
+#include <GWCA/Managers/MapMgr.h>
+#include <GWCA/Managers/MemoryMgr.h>
+#include <GWCA/Packets/Opcodes.h>
 
-DLLAPI ToolboxPlugin *ToolboxPluginInstance()
-{
-    static RawDialogs instance;
-    return &instance;
-}
+#include <imgui.h>
 
-auto ParseUInt(const wchar_t *str, unsigned int *val, const int base = 0)
-{
-    wchar_t *end;
-    if (!str)
-    {
-        return false;
-    }
-    *val = std::wcstoul(str, &end, base);
-    if (str == end || errno == ERANGE)
-    {
-        return false;
-    }
-    return true;
-}
+#include "HelperQuests.h"
+#include "RawDialogs.h"
+#include "Utils.h"
 
-auto ParseUInt(const char *str, unsigned int *val, const int base = 0)
+namespace
 {
-    char *end;
-    if (!str)
-    {
-        return false;
-    }
-    *val = std::strtoul(str, &end, base);
-    if (str == end || errno == ERANGE)
-    {
-        return false;
-    }
-    return true;
-}
-
-auto ParseInt(const wchar_t *str, int *val, const int base = 0)
-{
-    wchar_t *end;
-    if (!str)
-    {
-        return false;
-    }
-    *val = std::wcstol(str, &end, base);
-    if (str == end || errno == ERANGE)
-    {
-        return false;
-    }
-    return true;
-}
-
-auto ParseInt(const char *str, int *val, const int base = 0)
-{
-    char *end;
-    if (!str)
-    {
-        return false;
-    }
-    *val = std::strtol(str, &end, base);
-    if (str == end || errno == ERANGE)
-    {
-        return false;
-    }
-    return true;
-}
 
 void SendDialog(const wchar_t *, const int argc, const LPWSTR *argv)
 {
@@ -118,6 +54,13 @@ void SendDialog(const wchar_t *, const int argc, const LPWSTR *argv)
     }
     GW::GameThread::Enqueue([id] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, id); });
 }
+} // namespace
+
+DLLAPI ToolboxPlugin *ToolboxPluginInstance()
+{
+    static RawDialogs instance;
+    return &instance;
+}
 
 void RawDialogs::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
@@ -134,168 +77,6 @@ void RawDialogs::SignalTerminate()
     GW::Chat::DeleteCommand(L"rawdialog");
     GW::DisableHooks();
 }
-
-namespace
-{
-constexpr const char *const questnames[] = {"UW - Chamber",
-                                            "UW - Wastes",
-                                            "UW - UWG",
-                                            "UW - Mnt",
-                                            "UW - Pits",
-                                            "UW - Planes",
-                                            "UW - Pools",
-                                            "UW - Escort",
-                                            "UW - Restore",
-                                            "UW - Vale",
-                                            "FoW - Defend",
-                                            "FoW - Army Of Darkness",
-                                            "FoW - WailingLord",
-                                            "FoW - Griffons",
-                                            "FoW - Slaves",
-                                            "FoW - Restore",
-                                            "FoW - Hunt",
-                                            "FoW - Forgemaster",
-                                            "FoW - Tos",
-                                            "FoW - Toc",
-                                            "FoW - Khobay",
-                                            "DoA - Gloom 1: Deathbringer Company",
-                                            "DoA - Gloom 2: The Rifts Between Us",
-                                            "DoA - Gloom 3: To The Rescue",
-                                            "DoA - City",
-                                            "DoA - Veil 1: Breaching Stygian Veil",
-                                            "DoA - Veil 2: Brood Wars",
-                                            "DoA - Foundry 1: Foundry Of Failed Creations",
-                                            "DoA - Foundry 2: Foundry Breakout"};
-constexpr const char *const dialognames[] = {
-    "Craft fow armor",
-    "Prof Change - Warrior",
-    "Prof Change - Ranger",
-    "Prof Change - Monk",
-    "Prof Change - Necro",
-    "Prof Change - Mesmer",
-    "Prof Change - Elementalist",
-    "Prof Change - Assassin",
-    "Prof Change - Ritualist",
-    "Prof Change - Paragon",
-    "Prof Change - Dervish",
-    "Kama -> Docks @ Hahnna",
-    "Docks -> Kaineng @ Mhenlo",
-    "Docks -> LA Gate @ Mhenlo",
-    "LA Gate -> LA @ Neiro",
-    "Faction mission outpost",
-    "Nightfall mission outpost",
-};
-
-GW::Constants::QuestID IndexToQuestID(const int index)
-{
-    switch (index)
-    {
-    case 0:
-        return GW::Constants::QuestID::UW_Chamber;
-    case 1:
-        return GW::Constants::QuestID::UW_Wastes;
-    case 2:
-        return GW::Constants::QuestID::UW_UWG;
-    case 3:
-        return GW::Constants::QuestID::UW_Mnt;
-    case 4:
-        return GW::Constants::QuestID::UW_Pits;
-    case 5:
-        return GW::Constants::QuestID::UW_Planes;
-    case 6:
-        return GW::Constants::QuestID::UW_Pools;
-    case 7:
-        return GW::Constants::QuestID::UW_Escort;
-    case 8:
-        return GW::Constants::QuestID::UW_Restore;
-    case 9:
-        return GW::Constants::QuestID::UW_Vale;
-    case 10:
-        return GW::Constants::QuestID::Fow_Defend;
-    case 11:
-        return GW::Constants::QuestID::Fow_ArmyOfDarknesses;
-    case 12:
-        return GW::Constants::QuestID::Fow_WailingLord;
-    case 13:
-        return GW::Constants::QuestID::Fow_Griffons;
-    case 14:
-        return GW::Constants::QuestID::Fow_Slaves;
-    case 15:
-        return GW::Constants::QuestID::Fow_Restore;
-    case 16:
-        return GW::Constants::QuestID::Fow_Hunt;
-    case 17:
-        return GW::Constants::QuestID::Fow_Forgemaster;
-    case 18:
-        return GW::Constants::QuestID::Fow_Tos;
-    case 19:
-        return GW::Constants::QuestID::Fow_Toc;
-    case 20:
-        return GW::Constants::QuestID::Fow_Khobay;
-    case 21:
-        return GW::Constants::QuestID::Doa_DeathbringerCompany;
-    case 22:
-        return GW::Constants::QuestID::Doa_RiftBetweenUs;
-    case 23:
-        return GW::Constants::QuestID::Doa_ToTheRescue;
-    case 24:
-        return GW::Constants::QuestID::Doa_City;
-    case 25:
-        return GW::Constants::QuestID::Doa_BreachingStygianVeil;
-    case 26:
-        return GW::Constants::QuestID::Doa_BroodWars;
-    case 27:
-        return GW::Constants::QuestID::Doa_FoundryOfFailedCreations;
-    case 28:
-        return GW::Constants::QuestID::Doa_FoundryBreakout;
-    default:
-        return static_cast<GW::Constants::QuestID>(0);
-    }
-}
-
-uint32_t IndexToDialogID(const int index)
-{
-    switch (index)
-    {
-    case 0:
-        return GW::Constants::DialogID::FowCraftArmor;
-    case 1:
-        return GW::Constants::DialogID::ProfChangeWarrior;
-    case 2:
-        return GW::Constants::DialogID::ProfChangeRanger;
-    case 3:
-        return GW::Constants::DialogID::ProfChangeMonk;
-    case 4:
-        return GW::Constants::DialogID::ProfChangeNecro;
-    case 5:
-        return GW::Constants::DialogID::ProfChangeMesmer;
-    case 6:
-        return GW::Constants::DialogID::ProfChangeEle;
-    case 7:
-        return GW::Constants::DialogID::ProfChangeAssassin;
-    case 8:
-        return GW::Constants::DialogID::ProfChangeRitualist;
-    case 9:
-        return GW::Constants::DialogID::ProfChangeParagon;
-    case 10:
-        return GW::Constants::DialogID::ProfChangeDervish;
-    case 11:
-        return GW::Constants::DialogID::FerryKamadanToDocks;
-    case 12:
-        return GW::Constants::DialogID::FerryDocksToKaineng;
-    case 13:
-        return GW::Constants::DialogID::FerryDocksToLA;
-    case 14:
-        return GW::Constants::DialogID::FerryGateToLA;
-    case 15:
-        return GW::Constants::DialogID::FactionMissionOutpost;
-    case 16:
-        return GW::Constants::DialogID::NightfallMissionOutpost;
-    default:
-        return 0;
-    }
-}
-} // namespace
 
 void RawDialogs::Draw(IDirect3DDevice9 *)
 {
