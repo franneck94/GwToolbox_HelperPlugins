@@ -70,7 +70,7 @@ public:
     void Draw(IDirect3DDevice9 *) override;
     bool HasSettings() const override
     {
-        return false;
+        return true;
     }
     void Update(float delta) override;
 

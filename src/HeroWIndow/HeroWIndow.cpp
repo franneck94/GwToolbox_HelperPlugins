@@ -338,7 +338,7 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
     if ((*GetVisiblePtr()) == false)
         return;
 
-    ImGui::SetNextWindowSize(ImVec2(240.0F, 45.0F), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(240.0F, 45.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
                      can_close && show_closebutton ? GetVisiblePtr() : nullptr,
                      GetWinFlags(ImGuiWindowFlags_NoResize)))

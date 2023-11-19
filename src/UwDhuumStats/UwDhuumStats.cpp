@@ -178,7 +178,7 @@ void UwDhuumStats::Draw(IDirect3DDevice9 *)
     if (!player_data.ValidateData(UwHelperActivationConditions, false))
         return;
 
-    ImGui::SetNextWindowSize(ImVec2(150.0F, 200.0F), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(150.0F, 200.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
                      can_close && show_closebutton ? GetVisiblePtr() : nullptr,
                      GetWinFlags(ImGuiWindowFlags_NoResize)))

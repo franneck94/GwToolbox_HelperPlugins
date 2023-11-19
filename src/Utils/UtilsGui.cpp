@@ -136,11 +136,11 @@ void DrawButton(ActionState &action_state, const ImVec4 color, std::string_view 
 //             ImPlot::SetupAxisLimits(ImAxis_X1,
 //                                     -GW::Constants::Range::Compass,
 //                                     GW::Constants::Range::Compass,
-//                                     ImGuiCond_Always);
+//                                     ImGuiCond_FirstUseEver);
 //             ImPlot::SetupAxisLimits(ImAxis_Y1,
 //                                     -GW::Constants::Range::Compass,
 //                                     GW::Constants::Range::Compass,
-//                                     ImGuiCond_Always);
+//                                     ImGuiCond_FirstUseEver);
 
 //             PlotPoint(player_pos, player_pos, "player_pos", ImVec4{1.0F, 1.0F, 1.0F, 1.0F}, 5.0F);
 //             PlotPoint(player_pos, next_pos, "target", ImVec4{0.5F, 0.5F, 0.0F, 1.0F}, 5.0F);

@@ -77,13 +77,14 @@ void UwDhuumBitch::SignalTerminate()
 void UwDhuumBitch::LoadSettings(const wchar_t *folder)
 {
     ToolboxUIPlugin::LoadSettings(folder);
-    // show_debug_map = ini->GetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+    show_debug_map = ini.GetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
 }
 
 void UwDhuumBitch::SaveSettings(const wchar_t *folder)
 {
     ToolboxUIPlugin::SaveSettings(folder);
-    // ini->SetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+    ini.SetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+    PLUGIN_ASSERT(ini.SaveFile(GetSettingFile(folder).c_str()) == SI_OK);
 }
 
 void UwDhuumBitch::DrawSettings()
@@ -108,7 +109,7 @@ void UwDhuumBitch::Draw(IDirect3DDevice9 *)
     if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsDhuumBitch(player_data))
         return;
 
-    ImGui::SetNextWindowSize(ImVec2(115.0F, 178.0F), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(115.0F, 178.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
                      can_close && show_closebutton ? GetVisiblePtr() : nullptr,
                      GetWinFlags(ImGuiWindowFlags_NoResize)))
