@@ -33,7 +33,6 @@
 #include "UtilsMath.h"
 
 #include <SimpleIni.h>
-#include <fmt/format.h>
 #include <imgui.h>
 
 #include "UwDhuumBitch.h"

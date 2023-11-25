@@ -26,7 +26,6 @@
 #include "UtilsMath.h"
 
 #include <SimpleIni.h>
-#include <fmt/format.h>
 
 #include "UwRanger.h"
 
@@ -183,7 +182,7 @@ void UwRanger::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
 
         ImGui::PopStyleColor();
         ImGui::TableNextColumn();
-        const auto _label = fmt::format("Target##{}{}", label.data(), idx);
+        const auto _label = std::format("Target##{}{}", label.data(), idx);
         if (ImGui::Button(_label.data()))
         {
             player_data.ChangeTarget(living->agent_id);
