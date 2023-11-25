@@ -42,11 +42,11 @@ namespace
 static auto move_ongoing = false;
 static ActionState *damage_action_state = nullptr;
 
-constexpr static auto COOKIE_ID = uint32_t{28433};
-constexpr static auto VAMPIRISMUS_AGENT_ID = uint32_t{5723};
-constexpr static auto SOS1_AGENT_ID = uint32_t{4229};
-constexpr static auto SOS2_AGENT_ID = uint32_t{4230};
-constexpr static auto SOS3_AGENT_ID = uint32_t{4231};
+constexpr auto COOKIE_ID = uint32_t{28433};
+constexpr auto VAMPIRISMUS_AGENT_ID = uint32_t{5723};
+constexpr auto SOS1_AGENT_ID = uint32_t{4229};
+constexpr auto SOS2_AGENT_ID = uint32_t{4230};
+constexpr auto SOS3_AGENT_ID = uint32_t{4231};
 
 const static auto reaper_moves =
     std::map<std::string, uint32_t>{{"Lab", 20}, {"Pits", 43}, {"Planes", 50}, {"Wastes", 58}};
@@ -63,7 +63,7 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void UwDhuumBitch::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
-
+    uw_metadata.Initialize();
     WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"UwDhuumBitch");
 }
 

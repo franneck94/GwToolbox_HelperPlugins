@@ -33,8 +33,8 @@ namespace
 {
 static auto finished_skill = false;
 
-static constexpr auto SPAWN_SPIRIT_ID = uint32_t{2374};
-static constexpr auto MAX_TABLE_LENGTH = uint32_t{6U};
+constexpr auto SPAWN_SPIRIT_ID = uint32_t{2374};
+constexpr auto MAX_TABLE_LENGTH = uint32_t{6U};
 static const auto IDS = std::array<uint32_t, 6U>{GW::Constants::ModelID::UW::BladedAatxe,
                                                  GW::Constants::ModelID::UW::DyingNightmare,
                                                  GW::Constants::ModelID::UW::TerrorwebDryder,

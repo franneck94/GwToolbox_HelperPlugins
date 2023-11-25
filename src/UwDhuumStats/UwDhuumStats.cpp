@@ -29,12 +29,12 @@
 
 namespace
 {
-constexpr static auto TIME_WINDOW_DMG_S = long{180L};
-constexpr static auto TIME_WINDOW_DMG_MS = (TIME_WINDOW_DMG_S * 1000L);
-constexpr static auto TIME_WINDOW_REST_S = long{20L};
-constexpr static auto TIME_WINDOW_REST_MS = (TIME_WINDOW_REST_S * 1000L);
-constexpr static auto REST_SKILL_ID = uint32_t{3087};
-constexpr static auto REST_SKILL_REAPER_ID = uint32_t{3079U};
+constexpr auto TIME_WINDOW_DMG_S = long{180L};
+constexpr auto TIME_WINDOW_DMG_MS = (TIME_WINDOW_DMG_S * 1000L);
+constexpr auto TIME_WINDOW_REST_S = long{20L};
+constexpr auto TIME_WINDOW_REST_MS = (TIME_WINDOW_REST_S * 1000L);
+constexpr auto REST_SKILL_ID = uint32_t{3087};
+constexpr auto REST_SKILL_REAPER_ID = uint32_t{3079U};
 } // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -96,11 +96,15 @@ void UwDhuumStats::SkillPacketCallback(const uint32_t value_id,
     case GW::Packet::StoC::GenericValueID::attack_skill_finished:
     {
         if (!no_target)
+        {
             agent_id = target_id;
+        }
         break;
     }
     default:
+    {
         return;
+    }
     }
 
     if (REST_SKILL_ID == activated_skill_id || REST_SKILL_REAPER_ID == activated_skill_id)
@@ -142,10 +146,12 @@ void UwDhuumStats::DamagePacketCallback(const uint32_t type,
 
     const auto caster_living = caster_agent->GetAsAgentLiving();
     if (!caster_living)
+    {
         if (!caster_agent)
         {
             return;
         }
+    }
 
     if (caster_living->allegiance != GW::Constants::Allegiance::Ally_NonAttackable &&
         caster_living->allegiance != GW::Constants::Allegiance::Npc_Minipet &&

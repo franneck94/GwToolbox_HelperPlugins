@@ -14,12 +14,12 @@
 
 namespace
 {
-static constexpr auto HELPERBOX_CHAN = GW::Chat::Channel::CHANNEL_GWCA2;
-static constexpr auto HELPERBOX_SENDER = L"HelperBox++";
-static constexpr auto HELPERBOX_SENDER_COL = 0x00ccff;
-static constexpr auto HELPERBOX_WARNING_COL = 0xFFFF44;
-static constexpr auto HELPERBOX_ERROR_COL = 0xFF4444;
-static constexpr auto HELPERBOX_INFO_COL = 0xFFFFFF;
+constexpr auto HELPERBOX_CHAN = GW::Chat::Channel::CHANNEL_GWCA2;
+constexpr auto HELPERBOX_SENDER = L"HelperBox++";
+constexpr auto HELPERBOX_SENDER_COL = 0x00ccff;
+constexpr auto HELPERBOX_WARNING_COL = 0xFFFF44;
+constexpr auto HELPERBOX_ERROR_COL = 0xFF4444;
+constexpr auto HELPERBOX_INFO_COL = 0xFFFFFF;
 
 FILE *logfile = nullptr;
 FILE *stdout_file = nullptr;

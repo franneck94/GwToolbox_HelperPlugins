@@ -68,13 +68,10 @@ add_tb_plugin(UwRanger)
 add_tb_plugin(UwMesmer)
 add_tb_plugin(SmartCommands)
 add_tb_plugin(DialogWindow)
+
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     add_tb_plugin(AllowAllDialogs)
+    add_tb_plugin(UwDhuumStats)
+    add_tb_plugin(UwDhuumBitch)
+    add_tb_plugin(UwEmo)
 endif()
-
-# TO BE FIXED
-# if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" AND 0)
-#     add_tb_plugin(UwDhuumStats)
-#     add_tb_plugin(UwDhuumBitch)
-#     add_tb_plugin(UwEmo)
-# endif()

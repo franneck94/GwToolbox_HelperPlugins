@@ -6,6 +6,7 @@
 
 #include "DataLivings.h"
 #include "Utils.h"
+#include "UwMetadata.h"
 
 class SmartCommands : public ToolboxUIPlugin
 {
@@ -58,7 +59,4 @@ public:
 
     static void CmdDhuumUseSkill(const wchar_t *, int argc, LPWSTR *argv);
     static void CmdUseSkill(const wchar_t *, int argc, LPWSTR *argv);
-
-private:
-    // UwMetadata uw_metadata;
 };

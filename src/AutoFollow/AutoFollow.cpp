@@ -33,18 +33,23 @@ void AutoFollowAction::Update()
         const auto routine_state = Routine();
 
         if (routine_state == RoutineState::FINISHED)
+        {
             action_state = ActionState::INACTIVE;
+        }
     }
 }
 
 RoutineState AutoFollowAction::Routine()
 {
     if (!player_data || !player_data->target || !player_data->target->GetIsLivingType())
+    {
         return RoutineState::FINISHED;
+    }
 
     if (player_data->living->GetIsMoving())
+    {
         return RoutineState::ACTIVE;
-
+    }
     GW::Agents::GoPlayer(player_data->target);
 
     return RoutineState::ACTIVE;
