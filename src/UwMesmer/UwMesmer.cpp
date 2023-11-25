@@ -169,7 +169,9 @@ void LtRoutine::Update()
     static auto paused = false;
 
     if (GW::PartyMgr::GetIsPartyDefeated())
+    {
         action_state = ActionState::INACTIVE;
+    }
 
     if (action_state == ActionState::ACTIVE && PauseRoutine())
     {
@@ -183,14 +185,18 @@ void LtRoutine::Update()
         action_state = ActionState::ACTIVE;
     }
 
+#ifdef _DEBUG
     if (IsOnSpawnPlateau(player_data->pos) && !TankIsFullteamLT() && !player_data->target && load_cb_triggered)
     {
         starting_active = true;
         action_state = ActionState::ACTIVE;
     }
+#endif
 
     if (action_state == ActionState::ACTIVE)
+    {
         (void)Routine();
+    }
 }
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
