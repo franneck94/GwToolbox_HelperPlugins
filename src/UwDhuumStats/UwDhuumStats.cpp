@@ -116,37 +116,56 @@ void UwDhuumStats::DamagePacketCallback(const uint32_t type,
                                         const float value)
 {
     if (!dhuum_id || target_id != dhuum_id || value >= 0 || !caster_id)
+    {
         return;
+    }
 
     switch (type)
     {
-    case GW::Packet::StoC::P156_Type::damage:
-    case GW::Packet::StoC::P156_Type::critical:
-    case GW::Packet::StoC::P156_Type::armorignoring:
+    case GW::Packet::StoC::GenericValueID::damage:
+    case GW::Packet::StoC::GenericValueID::critical:
+    case GW::Packet::StoC::GenericValueID::armorignoring:
+    {
         break;
+    }
     default:
+    {
         return;
+    }
     }
 
     const auto caster_agent = GW::Agents::GetAgentByID(caster_id);
     if (!caster_agent)
+    {
         return;
+    }
+
     const auto caster_living = caster_agent->GetAsAgentLiving();
     if (!caster_living)
-        return;
+        if (!caster_agent)
+        {
+            return;
+        }
 
     if (caster_living->allegiance != GW::Constants::Allegiance::Ally_NonAttackable &&
         caster_living->allegiance != GW::Constants::Allegiance::Npc_Minipet &&
         caster_living->allegiance != GW::Constants::Allegiance::Minion &&
         caster_living->allegiance != GW::Constants::Allegiance::Spirit_Pet)
+    {
         return;
+    }
 
     const auto target_agent = GW::Agents::GetAgentByID(target_id);
     if (!target_agent)
+    {
         return;
+    }
+
     const auto target_living = target_agent->GetAsAgentLiving();
     if (!target_living)
+    {
         return;
+    }
 
     const auto dmg_f32 = -value * target_living->max_hp;
     ++num_attacks;
@@ -162,9 +181,13 @@ static void FormatTime(const uint64_t &duration, size_t bufsize, char *buf)
     const auto mins = std::chrono::duration_cast<std::chrono::minutes>(msecs).count() % 60;
     const auto hrs = std::chrono::duration_cast<std::chrono::hours>(msecs).count() % 60;
     if (hrs)
+    {
         snprintf(buf, bufsize, "%02d:%02d:%02llu", hrs, mins, secs);
+    }
     else
+    {
         snprintf(buf, bufsize, "%02d:%02llu", mins, secs);
+    }
 }
 
 void UwDhuumStats::Draw(IDirect3DDevice9 *)
