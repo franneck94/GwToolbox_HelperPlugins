@@ -53,6 +53,7 @@ void LongFinger::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
             }
         });
     });
+
     WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized\nUse /longfinger to open locked chests from afar.", L"LongFinger");
 }
 
