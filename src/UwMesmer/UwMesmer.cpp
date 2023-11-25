@@ -71,19 +71,27 @@ bool LtRoutine::RoutineSelfEnches() const
 
     if (need_obsi && DoNeedEnchNow(player_data, GW::Constants::SkillID::Obsidian_Flesh, 2.0F) &&
         (RoutineState::FINISHED == skillbar->obsi.Cast(player_data->energy)))
+    {
         return true;
+    }
 
     if (need_stoneflesh && DoNeedEnchNow(player_data, GW::Constants::SkillID::Stoneflesh_Aura, 2.0F) &&
         (RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_data->energy)))
+    {
         return true;
+    }
 
     if (need_mantra && DoNeedEnchNow(player_data, GW::Constants::SkillID::Mantra_of_Resolve, 0.0F) &&
         (RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_data->energy)))
+    {
         return true;
+    }
 
     if (need_visage && DoNeedEnchNow(player_data, GW::Constants::SkillID::Sympathetic_Visage, 0.0F) &&
         (RoutineState::FINISHED == skillbar->visage.Cast(player_data->energy)))
+    {
         return true;
+    }
 
     return false;
 }
@@ -94,13 +102,19 @@ RoutineState LtRoutine::Routine()
     static auto took_quest = false;
 
     if (!IsUw())
+    {
         return RoutineState::FINISHED;
+    }
 
     if (gone_to_npc)
+    {
         delay_ms = 475L;
+    }
 
     if (!ActionABC::HasWaitedLongEnough(delay_ms))
+    {
         return RoutineState::ACTIVE;
+    }
 
     if (starting_active)
     {
@@ -119,7 +133,9 @@ RoutineState LtRoutine::Routine()
             {
                 player_data->ChangeTarget(agent_id);
                 if (RoutineState::FINISHED == skillbar->ebon.Cast(player_data->energy, agent_id))
+                {
                     return RoutineState::FINISHED;
+                }
             }
         }
         else
@@ -143,16 +159,24 @@ RoutineState LtRoutine::Routine()
 
             if (skillbar->stoneflesh.CanBeCasted(player_data->energy) &&
                 RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_data->energy))
+            {
                 return RoutineState::FINISHED;
+            }
             if (skillbar->mantra_of_resolve.CanBeCasted(player_data->energy) &&
                 RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_data->energy))
+            {
                 return RoutineState::FINISHED;
+            }
             if (skillbar->visage.CanBeCasted(player_data->energy) &&
                 RoutineState::FINISHED == skillbar->visage.Cast(player_data->energy))
+            {
                 return RoutineState::FINISHED;
+            }
             if (skillbar->obsi.CanBeCasted(player_data->energy) &&
                 RoutineState::FINISHED == skillbar->obsi.Cast(player_data->energy))
+            {
                 return RoutineState::FINISHED;
+            }
 
             starting_active = false;
             gone_to_npc = false;
