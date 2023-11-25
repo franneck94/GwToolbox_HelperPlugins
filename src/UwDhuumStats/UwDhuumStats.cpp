@@ -172,11 +172,15 @@ void UwDhuumStats::Draw(IDirect3DDevice9 *)
     static char buffer[16]{'\0'};
     static auto entered_dhuum_room_first = false;
 
-    if (uw_metadata.load_cb_triggered)
-        entered_dhuum_room_first = false;
-
     if (!player_data.ValidateData(UwHelperActivationConditions, false))
+    {
         return;
+    }
+
+    if (uw_metadata.load_cb_triggered)
+    {
+        entered_dhuum_room_first = false;
+    }
 
     ImGui::SetNextWindowSize(ImVec2(150.0F, 200.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
@@ -218,7 +222,9 @@ void UwDhuumStats::Draw(IDirect3DDevice9 *)
             ImGui::Text("Finished: %s", buffer);
         }
         else
+        {
             ImGui::Text("ETA: n/a");
+        }
     }
     ImGui::End();
 }
@@ -295,22 +301,33 @@ void UwDhuumStats::UpdateDamageData()
 void UwDhuumStats::Update(float)
 {
     if (!player_data.ValidateData(UwHelperActivationConditions, false))
+    {
         return;
+    }
+
     player_data.Update();
 
     const auto is_in_dhuum_room = IsInDhuumRoom(player_data.pos, GW::Constants::Range::Compass);
     if (!is_in_dhuum_room)
+    {
         return;
+    }
 
     const auto is_in_dhuum_fight = IsInDhuumFight(player_data.pos);
     if (!is_in_dhuum_fight)
+    {
         ResetData();
+    }
 
     const auto dhuum_agent = GetDhuumAgent();
     if (dhuum_agent)
+    {
         GetDhuumAgentData(dhuum_agent, dhuum_hp, dhuum_max_hp);
+    }
     if (dhuum_agent)
+    {
         dhuum_id = dhuum_agent->agent_id;
+    }
 
     RemoveOldData();
     UpdateRestData();

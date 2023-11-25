@@ -227,12 +227,16 @@ void UwMesmer::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings, const 
     for (const auto living : livings)
     {
         if (!living)
+        {
             continue;
+        }
 
         ImGui::TableNextRow();
 
         if (living->hp == 0.0F || living->GetIsDead())
+        {
             continue;
+        }
 
         if ((living->player_number == static_cast<uint32_t>(GW::Constants::ModelID::UW::BladedAatxe) ||
              living->player_number == static_cast<uint32_t>(GW::Constants::ModelID::UW::FourHorseman)) &&
@@ -244,6 +248,7 @@ void UwMesmer::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings, const 
         {
             ImGui::PushStyleColor(ImGuiCol_Text, color);
         }
+
         const auto distance = GW::GetDistance(player_data.pos, living->pos);
         ImGui::TableNextColumn();
         ImGui::Text("%3.0f%%", living->hp * 100.0F);
@@ -254,21 +259,25 @@ void UwMesmer::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings, const 
         const auto _label = fmt::format("Target##{}{}", label.data(), idx);
         ImGui::TableNextColumn();
         if (ImGui::Button(_label.data()))
+        {
             player_data.ChangeTarget(living->agent_id);
+        }
 
         ++idx;
 
         if (idx >= MAX_TABLE_LENGTH)
+        {
             break;
+        }
     }
 }
 
 void UwMesmer::Draw(IDirect3DDevice9 *)
 {
-    if (!UwHelperActivationConditions(false))
+    if (!player_data.ValidateData(UwHelperActivationConditions, false) || !IsUwMesmer(player_data))
+    {
         return;
-    if (!IsUwMesmer(player_data))
-        return;
+    }
 
     ImGui::SetNextWindowSize(ImVec2(200.0F, 240.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
@@ -313,19 +322,26 @@ void UwMesmer::Update(float)
     horseman_livings.clear();
     keeper_livings.clear();
 
-    livings_data.Update();
-
     if (!player_data.ValidateData(UwHelperActivationConditions, false))
+    {
         return;
+    }
+
+    livings_data.Update();
     player_data.Update();
 
     if (!IsSpiker(player_data) && !IsLT(player_data))
+    {
         return;
+    }
 
     if (TankIsSoloLT())
     {
         if (!skillbar.ValidateData())
+        {
             return;
+        }
+
         skillbar.Update();
     }
 
@@ -349,5 +365,7 @@ void UwMesmer::Update(float)
     SortByDistance(player_data, skele_livings);
 
     if (TankIsSoloLT())
+    {
         lt_routine.Update();
+    }
 }

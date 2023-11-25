@@ -144,7 +144,9 @@ UwEmo::UwEmo() : skillbar({}), uw_metadata({}), emo_routine(&player_data, &skill
 void UwEmo::Draw(IDirect3DDevice9 *)
 {
     if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsEmo(player_data))
+    {
         return;
+    }
 
     ImGui::SetNextWindowSize(ImVec2(115.0F, 180.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
@@ -154,7 +156,9 @@ void UwEmo::Draw(IDirect3DDevice9 *)
         emo_routine.Draw();
 
         if (IsUw() || IsUwEntryOutpost())
+        {
             DrawMovingButtons(moves, move_ongoing, move_idx);
+        }
     }
     ImGui::End();
 
@@ -245,12 +249,15 @@ void UwEmo::Update(float)
         move_ongoing = false;
         return;
     }
+
     player_data.Update();
     emo_routine.livings_data = &livings_data;
     emo_routine.num_finished_objectives = uw_metadata.num_finished_objectives;
 
     if (!IsEmo(player_data))
+    {
         return;
+    }
 
     if (IsUw() && first_frame)
     {
@@ -259,7 +266,10 @@ void UwEmo::Update(float)
     }
 
     if (!skillbar.ValidateData())
+    {
         return;
+    }
+
     skillbar.Update();
 
     emo_casting_action_state = &emo_routine.action_state;

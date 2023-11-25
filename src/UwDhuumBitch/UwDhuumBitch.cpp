@@ -107,7 +107,9 @@ UwDhuumBitch::UwDhuumBitch() : skillbar({}), db_routine(&player_data, &skillbar,
 void UwDhuumBitch::Draw(IDirect3DDevice9 *)
 {
     if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsDhuumBitch(player_data))
+    {
         return;
+    }
 
     ImGui::SetNextWindowSize(ImVec2(115.0F, 178.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
@@ -188,12 +190,15 @@ void UwDhuumBitch::Update(float)
         db_routine.action_state = ActionState::INACTIVE;
         return;
     }
+
     player_data.Update();
     db_routine.livings_data = &livings_data;
     db_routine.num_finished_objectives = uw_metadata.num_finished_objectives;
 
     if (!IsDhuumBitch(player_data))
+    {
         return;
+    }
 
     if (IsUw() && first_frame)
     {
