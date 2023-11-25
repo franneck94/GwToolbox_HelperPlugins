@@ -78,16 +78,20 @@ target_link_libraries(helper_utils PUBLIC
 
 include(gwtoolboxdll_plugins)
 
+# WORKING
 add_tb_plugin(AllowAllDialogs)  # Does not work currently
 add_tb_plugin(LongFinger)
-add_tb_plugin(RawDialogs)
 add_tb_plugin(TargetEverything)
-
 add_tb_plugin(AutoFollow)  # To be Tweaked
 add_tb_plugin(HeroWindow)
-add_tb_plugin(SmartCommands)  # Dhuum Command needs be checked
 add_tb_plugin(UwRanger)
 add_tb_plugin(UwMesmer)  # Tobe Tweaked
-add_tb_plugin(UwDhuumStats)  # To be checked
-add_tb_plugin(UwDhuumBitch)  # To be implemented correct
-add_tb_plugin(UwEmo)  # To be implemented correct
+add_tb_plugin(SmartCommands)  # Dhuum Command needs be checked
+
+# TO BE FIXED
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    add_tb_plugin(UwDhuumStats)
+    add_tb_plugin(UwDhuumBitch)
+    add_tb_plugin(UwEmo)
+    add_tb_plugin(RawDialogs)
+endif()
