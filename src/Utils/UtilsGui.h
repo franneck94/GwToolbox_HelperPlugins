@@ -14,7 +14,6 @@
 #include "UtilsGui.h"
 #include "UtilsMath.h"
 
-#include <fmt/format.h>
 #include <imgui.h>
 // #include <implot.h>
 

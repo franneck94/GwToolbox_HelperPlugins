@@ -16,9 +16,6 @@
 #include "Logger.h"
 #include "Utils.h"
 
-#include <fmt/format.h>
-
-
 void MoveABC::Execute() const
 {
     static auto gen = std::mt19937{};

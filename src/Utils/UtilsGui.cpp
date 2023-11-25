@@ -9,7 +9,6 @@
 #include "ActionsBase.h"
 #include "HelperMaps.h"
 
-#include <fmt/format.h>
 #include <imgui.h>
 // #include <implot.h>
 
@@ -78,7 +77,7 @@ void DrawButton(ActionState &action_state, const ImVec4 color, std::string_view 
 // {
 //     for (int i = 0; i < 360; i++)
 //     {
-//         const auto label_ = fmt::format("{}###{}", label.data(), i);
+//         const auto label_ = std::format("{}###{}", label.data(), i);
 //         const auto x_p = player_pos.x + 1050.0F * std::sin((float)i);
 //         const auto y_p = player_pos.y + 1050.0F * std::cos((float)i);
 //         const auto pos = GW::GamePos{x_p, y_p, 0};
@@ -96,7 +95,7 @@ void DrawButton(ActionState &action_state, const ImVec4 color, std::string_view 
 //     {
 //         if (!living)
 //             continue;
-//         const auto label_ = fmt::format("{}##{}", label.data(), idx);
+//         const auto label_ = std::format("{}##{}", label.data(), idx);
 //         if (living->login_number == GW::Constants::ModelID::UW::SkeletonOfDhuum1 ||
 //             living->login_number == GW::Constants::ModelID::UW::SkeletonOfDhuum2)
 //             PlotPoint(player_pos, living->pos, label_, ImVec4{0.0F, 0.0F, 1.0f, 1.0F});
@@ -119,10 +118,10 @@ void DrawButton(ActionState &action_state, const ImVec4 color, std::string_view 
 //         return;
 
 //     ImGui::SetNextWindowSize(ImVec2{450.0F, 450.0F}, ImGuiCond_FirstUseEver);
-//     const auto label_window = fmt::format("{}Window", label.data());
+//     const auto label_window = std::format("{}Window", label.data());
 //     if (ImGui::Begin(label_window.data(), nullptr, ImGuiWindowFlags_None))
 //     {
-//         const auto label_plot = fmt::format("{}Plot", label.data());
+//         const auto label_plot = std::format("{}Plot", label.data());
 //         if (ImPlot::BeginPlot(label_plot.data(), ImVec2{400.0F, 400.0F}, ImPlotFlags_CanvasOnly))
 //         {
 //             const auto next_pos = move_pos;
