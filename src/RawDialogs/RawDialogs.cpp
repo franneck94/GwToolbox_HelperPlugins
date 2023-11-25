@@ -52,8 +52,31 @@ void SendDialog(const wchar_t *, const int argc, const LPWSTR *argv)
     {
         return;
     }
+
     GW::GameThread::Enqueue([id] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, id); });
 }
+
+void DrawDialogButton(const int x_idx, const int x_qty, const char *text, const char *help, const DWORD dialog)
+{
+    if (x_idx != 0)
+    {
+        ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+    }
+    const float w = (ImGui::GetWindowWidth() - ImGui::GetStyle().ItemInnerSpacing.x * (x_qty - 1)) / x_qty;
+    if (ImGui::Button(text, ImVec2(w, 0)))
+    {
+#ifdef _DEBUG
+        GW::GameThread::Enqueue([dialog] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, dialog); });
+#else
+        GW::Agents::SendDialog(dialog);
+#endif
+    }
+    if (text != nullptr && ImGui::IsItemHovered())
+    {
+        ImGui::SetTooltip(help);
+    }
+}
+
 } // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -77,23 +100,6 @@ void RawDialogs::SignalTerminate()
 
 void RawDialogs::Draw(IDirect3DDevice9 *)
 {
-    auto DialogButton =
-        [](const int x_idx, const int x_qty, const char *text, const char *help, const DWORD dialog) -> void {
-        if (x_idx != 0)
-        {
-            ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
-        }
-        const float w = (ImGui::GetWindowWidth() - ImGui::GetStyle().ItemInnerSpacing.x * (x_qty - 1)) / x_qty;
-        if (ImGui::Button(text, ImVec2(w, 0)))
-        {
-            GW::GameThread::Enqueue([dialog] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, dialog); });
-        }
-        if (text != nullptr && ImGui::IsItemHovered())
-        {
-            ImGui::SetTooltip(help);
-        }
-    };
-
     const auto &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f),
                             ImGuiCond_FirstUseEver,
@@ -105,38 +111,42 @@ void RawDialogs::Draw(IDirect3DDevice9 *)
     {
         if (show_common)
         {
-            DialogButton(0,
-                         2,
-                         "Four Horseman",
-                         "Take quest in Planes",
-                         QuestAcceptDialog(GW::Constants::QuestID::UW_Planes));
-            DialogButton(1,
-                         2,
-                         "Demon Assassin",
-                         "Take quest in Mountains",
-                         QuestAcceptDialog(GW::Constants::QuestID::UW_Mnt));
-            DialogButton(0, 2, "Tower of Strength", "Take quest", QuestAcceptDialog(GW::Constants::QuestID::Fow_Tos));
-            DialogButton(1,
-                         2,
-                         "Foundry Reward",
-                         "Accept quest reward",
-                         QuestRewardDialog(GW::Constants::QuestID::Doa_FoundryBreakout));
+            DrawDialogButton(0,
+                             2,
+                             "Four Horseman",
+                             "Take quest in Planes",
+                             QuestAcceptDialog(GW::Constants::QuestID::UW_Planes));
+            DrawDialogButton(1,
+                             2,
+                             "Demon Assassin",
+                             "Take quest in Mountains",
+                             QuestAcceptDialog(GW::Constants::QuestID::UW_Mnt));
+            DrawDialogButton(0,
+                             2,
+                             "Tower of Strength",
+                             "Take quest",
+                             QuestAcceptDialog(GW::Constants::QuestID::Fow_Tos));
+            DrawDialogButton(1,
+                             2,
+                             "Foundry Reward",
+                             "Accept quest reward",
+                             QuestRewardDialog(GW::Constants::QuestID::Doa_FoundryBreakout));
             ImGui::Separator();
         }
         if (show_uwteles)
         {
-            DialogButton(0, 4, "Lab", "Teleport Lab", GW::Constants::DialogID::UwTeleLab);
-            DialogButton(1, 4, "Vale", "Teleport Vale", GW::Constants::DialogID::UwTeleVale);
-            DialogButton(2, 4, "Pits", "Teleport Pits", GW::Constants::DialogID::UwTelePits);
-            DialogButton(3, 4, "Pools", "Teleport Pools", GW::Constants::DialogID::UwTelePools);
+            DrawDialogButton(0, 4, "Lab", "Teleport Lab", GW::Constants::DialogID::UwTeleLab);
+            DrawDialogButton(1, 4, "Vale", "Teleport Vale", GW::Constants::DialogID::UwTeleVale);
+            DrawDialogButton(2, 4, "Pits", "Teleport Pits", GW::Constants::DialogID::UwTelePits);
+            DrawDialogButton(3, 4, "Pools", "Teleport Pools", GW::Constants::DialogID::UwTelePools);
 
-            DialogButton(0, 3, "Planes", "Teleport Planes", GW::Constants::DialogID::UwTelePlanes);
-            DialogButton(1, 3, "Wastes", "Teleport Wastes", GW::Constants::DialogID::UwTeleWastes);
-            DialogButton(2,
-                         3,
-                         "Mountains",
-                         "Teleport Mountains\nThis is NOT the mountains quest",
-                         GW::Constants::DialogID::UwTeleMnt);
+            DrawDialogButton(0, 3, "Planes", "Teleport Planes", GW::Constants::DialogID::UwTelePlanes);
+            DrawDialogButton(1, 3, "Wastes", "Teleport Wastes", GW::Constants::DialogID::UwTeleWastes);
+            DrawDialogButton(2,
+                             3,
+                             "Mountains",
+                             "Teleport Mountains\nThis is NOT the mountains quest",
+                             GW::Constants::DialogID::UwTeleMnt);
             ImGui::Separator();
         }
         constexpr size_t n_quests = _countof(questnames);
@@ -152,20 +162,28 @@ void RawDialogs::Draw(IDirect3DDevice9 *)
                 ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
                 if (ImGui::Button("Take", ImVec2(40.0f, 0)))
                 {
+#ifdef _DEBUG
                     GW::GameThread::Enqueue([&] {
                         GW::CtoS::SendPacket(0x8,
                                              GAME_CMSG_SEND_DIALOG,
                                              QuestAcceptDialog(IndexToQuestID(fav_index[index])));
                     });
+#else
+                    GW::Agents::SendDialog(QuestAcceptDialog(IndexToQuestID(fav_index[index])));
+#endif
                 }
                 ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
                 if (ImGui::Button("Reward", ImVec2(60.0f, 0)))
                 {
+#ifdef _DEBUG
                     GW::GameThread::Enqueue([&] {
                         GW::CtoS::SendPacket(0x8,
                                              GAME_CMSG_SEND_DIALOG,
                                              QuestAcceptDialog(IndexToQuestID(fav_index[index])));
                     });
+#else
+                    GW::Agents::SendDialog(QuestAcceptDialog(IndexToQuestID(fav_index[index])));
+#endif
                 }
                 ImGui::PopID();
             }
@@ -181,8 +199,12 @@ void RawDialogs::Draw(IDirect3DDevice9 *)
             ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
             if (ImGui::Button("Send##1", ImVec2(60.0f, 0)))
             {
+#ifdef _DEBUG
                 GW::GameThread::Enqueue(
                     [&] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, IndexToDialogID(dialogindex)); });
+#else
+                GW::Agents::SendDialog(IndexToDialogID(dialogindex));
+#endif
             }
 
             ImGui::PushItemWidth(-60.0f - ImGui::GetStyle().ItemInnerSpacing.x);
@@ -199,7 +221,11 @@ void RawDialogs::Draw(IDirect3DDevice9 *)
                 if (ParseInt(customdialogbuf, &iid) && 0 <= iid)
                 {
                     const auto id = static_cast<uint32_t>(iid);
+#ifdef _DEBUG
                     GW::GameThread::Enqueue([&] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, id); });
+#else
+                    GW::Agents::SendDialog(id);
+#endif
                 }
             }
         }
