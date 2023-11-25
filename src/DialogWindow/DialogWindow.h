@@ -9,10 +9,10 @@ enum class QuestID : uint32_t;
 
 // namespace GW
 
-class RawDialogs : public ToolboxUIPlugin
+class DialogWindow : public ToolboxUIPlugin
 {
 public:
-    RawDialogs()
+    DialogWindow()
     {
         can_show_in_main_window = true;
         can_close = true;
@@ -20,7 +20,7 @@ public:
 
     const char *Name() const override
     {
-        return "RawDialogs";
+        return "DialogWindow";
     }
     const char *Icon() const override
     {

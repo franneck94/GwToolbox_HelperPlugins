@@ -4,7 +4,7 @@ set(CMAKE_GENERATOR_PLATFORM win32)
 
 project(
     "GWToolbox_HelperPlugins"
-    VERSION 1.0.0
+    VERSION 0.3.0
     LANGUAGES C CXX)
 
 # Global CMake variables are set here
@@ -35,13 +35,6 @@ include(Warnings)
 include(gwtoolboxpp)
 
 FetchContent_Declare(
-    fmt
-    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG 8.1.1
-    GIT_SHALLOW TRUE)
-FetchContent_MakeAvailable(fmt)
-
-FetchContent_Declare(
     implot
     GIT_REPOSITORY https://github.com/epezent/implot
     GIT_TAG v0.14)
@@ -60,21 +53,9 @@ file(GLOB UTIL_SOURCES
 add_library(helper_utils STATIC ${UTIL_SOURCES})
 target_include_directories(helper_utils PUBLIC "src/Utils")
 target_link_libraries(helper_utils PUBLIC
-    RestClient
     imgui
-    directxtex
     gwca
-    earcut
-    easywsclient
-    discord_game_sdk
-    nlohmann_json::nlohmann_json
-    simpleini
-    imgui::fonts
-    IconFontCppHeaders
-    nativefiledialog
-    wintoast
-    Stdafx
-    fmt::fmt)
+    Stdafx)
 
 include(gwtoolboxdll_plugins)
 
@@ -89,9 +70,9 @@ add_tb_plugin(UwMesmer)  # Tobe Tweaked
 add_tb_plugin(SmartCommands)  # Dhuum Command needs be checked
 
 # TO BE FIXED
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" AND 0)
     add_tb_plugin(UwDhuumStats)
     add_tb_plugin(UwDhuumBitch)
     add_tb_plugin(UwEmo)
-    add_tb_plugin(RawDialogs)
+    add_tb_plugin(DialogWindow)
 endif()

@@ -19,18 +19,12 @@ macro(add_tb_plugin PLUGIN)
         imgui
         directxtex
         gwca
-        earcut
         easywsclient
-        discord_game_sdk
         nlohmann_json::nlohmann_json
         simpleini
         imgui::fonts
-        IconFontCppHeaders
-        nativefiledialog
-        wintoast
         helper_utils
-        Stdafx
-        fmt::fmt)
+        Stdafx)
     target_link_options(${PLUGIN} PRIVATE
         "$<$<CONFIG:DEBUG>:/NODEFAULTLIB:LIBCMT>"
         )

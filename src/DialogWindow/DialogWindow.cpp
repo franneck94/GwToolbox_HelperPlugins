@@ -14,48 +14,11 @@
 #include <imgui.h>
 
 #include "HelperQuests.h"
-#include "RawDialogs.h"
+#include "DialogWindow.h"
 #include "Utils.h"
 
 namespace
 {
-
-void SendDialog(const wchar_t *, const int argc, const LPWSTR *argv)
-{
-    const auto IsMapReady = [] {
-        return (GW::Map::GetInstanceType() != GW::Constants::InstanceType::Loading && !GW::Map::GetIsObserving() &&
-                GW::MemoryMgr::GetGWWindowHandle() == GetActiveWindow());
-    };
-    const auto ParseUInt = [](const wchar_t *str, unsigned int *val, const int base = 0) {
-        wchar_t *end;
-        if (!str)
-        {
-            return false;
-        }
-        *val = wcstoul(str, &end, base);
-        if (str == end || errno == ERANGE)
-        {
-            return false;
-        }
-        return true;
-    };
-    if (!IsMapReady())
-    {
-        return;
-    }
-    if (argc <= 1)
-    {
-        return;
-    }
-    uint32_t id = 0;
-    if (!(ParseUInt(argv[1], &id) && id))
-    {
-        return;
-    }
-
-    GW::GameThread::Enqueue([id] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, id); });
-}
-
 void DrawDialogButton(const int x_idx, const int x_qty, const char *text, const char *help, const DWORD dialog)
 {
     if (x_idx != 0)
@@ -76,29 +39,28 @@ void DrawDialogButton(const int x_idx, const int x_qty, const char *text, const 
         ImGui::SetTooltip(help);
     }
 }
-
 } // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 {
-    static RawDialogs instance;
+    static DialogWindow instance;
     return &instance;
 }
 
-void RawDialogs::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
+void DialogWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
 
-    WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"RawDialogs");
+    WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"DialogWindow");
 }
 
-void RawDialogs::SignalTerminate()
+void DialogWindow::SignalTerminate()
 {
     ToolboxUIPlugin::SignalTerminate();
     GW::DisableHooks();
 }
 
-void RawDialogs::Draw(IDirect3DDevice9 *)
+void DialogWindow::Draw(IDirect3DDevice9 *)
 {
     const auto &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f),
@@ -179,10 +141,10 @@ void RawDialogs::Draw(IDirect3DDevice9 *)
                     GW::GameThread::Enqueue([&] {
                         GW::CtoS::SendPacket(0x8,
                                              GAME_CMSG_SEND_DIALOG,
-                                             QuestAcceptDialog(IndexToQuestID(fav_index[index])));
+                                             QuestRewardDialog(IndexToQuestID(fav_index[index])));
                     });
 #else
-                    GW::Agents::SendDialog(QuestAcceptDialog(IndexToQuestID(fav_index[index])));
+                    GW::Agents::SendDialog(QuestRewardDialog(IndexToQuestID(fav_index[index])));
 #endif
                 }
                 ImGui::PopID();
@@ -225,7 +187,6 @@ void RawDialogs::Draw(IDirect3DDevice9 *)
                     GW::GameThread::Enqueue([&] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, id); });
 #else
                     GW::Agents::SendDialog(id);
-#endif
                 }
             }
         }
@@ -233,7 +194,7 @@ void RawDialogs::Draw(IDirect3DDevice9 *)
     ImGui::End();
 }
 
-void RawDialogs::DrawSettings()
+void DialogWindow::DrawSettings()
 {
     ToolboxUIPlugin::DrawSettings();
     ImGui::PushItemWidth(100.0f);
@@ -258,7 +219,7 @@ void RawDialogs::DrawSettings()
     ImGui::Checkbox("Custom", &show_custom);
 }
 
-void RawDialogs::LoadSettings(const wchar_t *folder)
+void DialogWindow::LoadSettings(const wchar_t *folder)
 {
     ToolboxUIPlugin::LoadSettings(folder);
     ini.LoadFile(GetSettingFile(folder).c_str());
@@ -277,7 +238,7 @@ void RawDialogs::LoadSettings(const wchar_t *folder)
     show_custom = ini.GetBoolValue(Name(), VAR_NAME(show_custom), show_custom);
 }
 
-void RawDialogs::SaveSettings(const wchar_t *folder)
+void DialogWindow::SaveSettings(const wchar_t *folder)
 {
     ToolboxUIPlugin::SaveSettings(folder);
     ini.SetLongValue(Name(), "fav_count", fav_count);

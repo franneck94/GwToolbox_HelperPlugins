@@ -27,8 +27,6 @@
 #include "UtilsGui.h"
 #include "UtilsMath.h"
 
-#include <fmt/format.h>
-
 #include "UwMesmer.h"
 
 namespace
@@ -280,7 +278,7 @@ void UwMesmer::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings, const 
         ImGui::Text("%4.0f", distance);
         ImGui::PopStyleColor();
 
-        const auto _label = fmt::format("Target##{}{}", label.data(), idx);
+        const auto _label = std::format("Target##{}{}", label.data(), idx);
         ImGui::TableNextColumn();
         if (ImGui::Button(_label.data()))
         {
