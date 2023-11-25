@@ -13,8 +13,8 @@
 
 #include <imgui.h>
 
-#include "HelperQuests.h"
 #include "DialogWindow.h"
+#include "HelperQuests.h"
 #include "Utils.h"
 
 namespace
@@ -187,6 +187,7 @@ void DialogWindow::Draw(IDirect3DDevice9 *)
                     GW::GameThread::Enqueue([&] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, id); });
 #else
                     GW::Agents::SendDialog(id);
+#endif
                 }
             }
         }

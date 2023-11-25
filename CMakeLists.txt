@@ -4,7 +4,7 @@ set(CMAKE_GENERATOR_PLATFORM win32)
 
 project(
     "GWToolbox_HelperPlugins"
-    VERSION 0.3.0
+    VERSION 0.4.0
     LANGUAGES C CXX)
 
 # Global CMake variables are set here
@@ -59,20 +59,20 @@ target_link_libraries(helper_utils PUBLIC
 
 include(gwtoolboxdll_plugins)
 
-# WORKING
-add_tb_plugin(AllowAllDialogs)  # Does not work currently
+# KIND OF WORKING
 add_tb_plugin(LongFinger)
 add_tb_plugin(TargetEverything)
-add_tb_plugin(AutoFollow)  # To be Tweaked
+add_tb_plugin(AutoFollow)
 add_tb_plugin(HeroWindow)
 add_tb_plugin(UwRanger)
-add_tb_plugin(UwMesmer)  # Tobe Tweaked
-add_tb_plugin(SmartCommands)  # Dhuum Command needs be checked
+add_tb_plugin(UwMesmer)
+add_tb_plugin(SmartCommands)
+add_tb_plugin(DialogWindow)
 
 # TO BE FIXED
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" AND 0)
     add_tb_plugin(UwDhuumStats)
     add_tb_plugin(UwDhuumBitch)
     add_tb_plugin(UwEmo)
-    add_tb_plugin(DialogWindow)
+    add_tb_plugin(AllowAllDialogs)
 endif()
