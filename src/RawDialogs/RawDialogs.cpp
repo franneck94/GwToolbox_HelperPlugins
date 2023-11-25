@@ -66,15 +66,12 @@ void RawDialogs::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
 
-    GW::Chat::CreateCommand(L"rawdialog", SendDialog);
     WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"RawDialogs");
 }
 
 void RawDialogs::SignalTerminate()
 {
     ToolboxUIPlugin::SignalTerminate();
-    GW::Chat::DeleteCommand(L"dialog");
-    GW::Chat::DeleteCommand(L"rawdialog");
     GW::DisableHooks();
 }
 
