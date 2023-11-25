@@ -28,7 +28,6 @@ SendPacket_pt SendPacket_Ret = 0;
 
 bool OnIsDialogAvailable(unsigned int)
 {
-    // Any other logic here.
     return true;
 }
 
@@ -46,7 +45,9 @@ bool CtoSHandler_Func(uint32_t context, uint32_t size, void *packet)
         }
     }
     if (!status.blocked)
+    {
         SendPacket_Ret(context, size, packet);
+    }
     GW::HookBase::LeaveHook();
     return true;
 }
@@ -61,9 +62,13 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void AllowAllDialogs::SignalTerminate()
 {
     if (SendDialog_Func)
+    {
         GW::HookBase::DisableHooks(SendDialog_Func);
+    }
     if (SendPacket_Func)
+    {
         GW::HookBase::DisableHooks(SendPacket_Func);
+    }
 }
 
 bool AllowAllDialogs::CanTerminate()
