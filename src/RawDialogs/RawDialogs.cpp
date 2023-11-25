@@ -23,8 +23,8 @@ namespace
 void SendDialog(const wchar_t *, const int argc, const LPWSTR *argv)
 {
     const auto IsMapReady = [] {
-        return GW::Map::GetInstanceType() != GW::Constants::InstanceType::Loading && !GW::Map::GetIsObserving() &&
-               GW::MemoryMgr::GetGWWindowHandle() == GetActiveWindow();
+        return (GW::Map::GetInstanceType() != GW::Constants::InstanceType::Loading && !GW::Map::GetIsObserving() &&
+                GW::MemoryMgr::GetGWWindowHandle() == GetActiveWindow());
     };
     const auto ParseUInt = [](const wchar_t *str, unsigned int *val, const int base = 0) {
         wchar_t *end;
@@ -89,7 +89,7 @@ void RawDialogs::Draw(IDirect3DDevice9 *)
         const float w = (ImGui::GetWindowWidth() - ImGui::GetStyle().ItemInnerSpacing.x * (x_qty - 1)) / x_qty;
         if (ImGui::Button(text, ImVec2(w, 0)))
         {
-            GW::Agents::SendDialog(dialog);
+            GW::GameThread::Enqueue([dialog] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, dialog); });
         }
         if (text != nullptr && ImGui::IsItemHovered())
         {
@@ -155,12 +155,20 @@ void RawDialogs::Draw(IDirect3DDevice9 *)
                 ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
                 if (ImGui::Button("Take", ImVec2(40.0f, 0)))
                 {
-                    GW::Agents::SendDialog(QuestAcceptDialog(IndexToQuestID(fav_index[index])));
+                    GW::GameThread::Enqueue([&] {
+                        GW::CtoS::SendPacket(0x8,
+                                             GAME_CMSG_SEND_DIALOG,
+                                             QuestAcceptDialog(IndexToQuestID(fav_index[index])));
+                    });
                 }
                 ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
                 if (ImGui::Button("Reward", ImVec2(60.0f, 0)))
                 {
-                    GW::Agents::SendDialog(QuestRewardDialog(IndexToQuestID(fav_index[index])));
+                    GW::GameThread::Enqueue([&] {
+                        GW::CtoS::SendPacket(0x8,
+                                             GAME_CMSG_SEND_DIALOG,
+                                             QuestAcceptDialog(IndexToQuestID(fav_index[index])));
+                    });
                 }
                 ImGui::PopID();
             }
@@ -176,7 +184,8 @@ void RawDialogs::Draw(IDirect3DDevice9 *)
             ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
             if (ImGui::Button("Send##1", ImVec2(60.0f, 0)))
             {
-                GW::Agents::SendDialog(IndexToDialogID(dialogindex));
+                GW::GameThread::Enqueue(
+                    [&] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, IndexToDialogID(dialogindex)); });
             }
 
             ImGui::PushItemWidth(-60.0f - ImGui::GetStyle().ItemInnerSpacing.x);
@@ -193,7 +202,7 @@ void RawDialogs::Draw(IDirect3DDevice9 *)
                 if (ParseInt(customdialogbuf, &iid) && 0 <= iid)
                 {
                     const auto id = static_cast<uint32_t>(iid);
-                    GW::Agents::SendDialog(id);
+                    GW::GameThread::Enqueue([&] { GW::CtoS::SendPacket(0x8, GAME_CMSG_SEND_DIALOG, id); });
                 }
             }
         }
