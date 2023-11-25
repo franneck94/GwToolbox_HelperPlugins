@@ -53,7 +53,9 @@ RoutineState AutoFollowAction::Routine()
 void AutoFollow::Draw(IDirect3DDevice9 *)
 {
     if (!player_data.ValidateData(HelperActivationConditions, false))
+    {
         return;
+    }
 
     ImGui::SetNextWindowSize(ImVec2(125.0F, 50.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
@@ -69,8 +71,10 @@ void AutoFollow::Draw(IDirect3DDevice9 *)
 void AutoFollow::Update(float)
 {
     if (!player_data.ValidateData(HelperActivationConditions, false))
+    {
         return;
-    player_data.Update();
+    }
 
+    player_data.Update();
     auto_follow.Update();
 }

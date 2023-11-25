@@ -22,11 +22,6 @@ bool HelperActivationConditions(const bool need_party_loaded)
         return false;
     }
 
-    if (!IsMapReady())
-    {
-        return false;
-    }
-
     return true;
 }
 

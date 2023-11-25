@@ -71,19 +71,27 @@ bool LtRoutine::RoutineSelfEnches() const
 
     if (need_obsi && DoNeedEnchNow(player_data, GW::Constants::SkillID::Obsidian_Flesh, 2.0F) &&
         (RoutineState::FINISHED == skillbar->obsi.Cast(player_data->energy)))
+    {
         return true;
+    }
 
     if (need_stoneflesh && DoNeedEnchNow(player_data, GW::Constants::SkillID::Stoneflesh_Aura, 2.0F) &&
         (RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_data->energy)))
+    {
         return true;
+    }
 
     if (need_mantra && DoNeedEnchNow(player_data, GW::Constants::SkillID::Mantra_of_Resolve, 0.0F) &&
         (RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_data->energy)))
+    {
         return true;
+    }
 
     if (need_visage && DoNeedEnchNow(player_data, GW::Constants::SkillID::Sympathetic_Visage, 0.0F) &&
         (RoutineState::FINISHED == skillbar->visage.Cast(player_data->energy)))
+    {
         return true;
+    }
 
     return false;
 }
@@ -94,13 +102,19 @@ RoutineState LtRoutine::Routine()
     static auto took_quest = false;
 
     if (!IsUw())
+    {
         return RoutineState::FINISHED;
+    }
 
     if (gone_to_npc)
+    {
         delay_ms = 475L;
+    }
 
     if (!ActionABC::HasWaitedLongEnough(delay_ms))
+    {
         return RoutineState::ACTIVE;
+    }
 
     if (starting_active)
     {
@@ -119,7 +133,9 @@ RoutineState LtRoutine::Routine()
             {
                 player_data->ChangeTarget(agent_id);
                 if (RoutineState::FINISHED == skillbar->ebon.Cast(player_data->energy, agent_id))
+                {
                     return RoutineState::FINISHED;
+                }
             }
         }
         else
@@ -143,16 +159,24 @@ RoutineState LtRoutine::Routine()
 
             if (skillbar->stoneflesh.CanBeCasted(player_data->energy) &&
                 RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_data->energy))
+            {
                 return RoutineState::FINISHED;
+            }
             if (skillbar->mantra_of_resolve.CanBeCasted(player_data->energy) &&
                 RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_data->energy))
+            {
                 return RoutineState::FINISHED;
+            }
             if (skillbar->visage.CanBeCasted(player_data->energy) &&
                 RoutineState::FINISHED == skillbar->visage.Cast(player_data->energy))
+            {
                 return RoutineState::FINISHED;
+            }
             if (skillbar->obsi.CanBeCasted(player_data->energy) &&
                 RoutineState::FINISHED == skillbar->obsi.Cast(player_data->energy))
+            {
                 return RoutineState::FINISHED;
+            }
 
             starting_active = false;
             gone_to_npc = false;
@@ -169,7 +193,9 @@ void LtRoutine::Update()
     static auto paused = false;
 
     if (GW::PartyMgr::GetIsPartyDefeated())
+    {
         action_state = ActionState::INACTIVE;
+    }
 
     if (action_state == ActionState::ACTIVE && PauseRoutine())
     {
@@ -183,14 +209,18 @@ void LtRoutine::Update()
         action_state = ActionState::ACTIVE;
     }
 
+#ifdef _DEBUG
     if (IsOnSpawnPlateau(player_data->pos) && !TankIsFullteamLT() && !player_data->target && load_cb_triggered)
     {
         starting_active = true;
         action_state = ActionState::ACTIVE;
     }
+#endif
 
     if (action_state == ActionState::ACTIVE)
+    {
         (void)Routine();
+    }
 }
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -221,12 +251,16 @@ void UwMesmer::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings, const 
     for (const auto living : livings)
     {
         if (!living)
+        {
             continue;
+        }
 
         ImGui::TableNextRow();
 
         if (living->hp == 0.0F || living->GetIsDead())
+        {
             continue;
+        }
 
         if ((living->player_number == static_cast<uint32_t>(GW::Constants::ModelID::UW::BladedAatxe) ||
              living->player_number == static_cast<uint32_t>(GW::Constants::ModelID::UW::FourHorseman)) &&
@@ -238,6 +272,7 @@ void UwMesmer::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings, const 
         {
             ImGui::PushStyleColor(ImGuiCol_Text, color);
         }
+
         const auto distance = GW::GetDistance(player_data.pos, living->pos);
         ImGui::TableNextColumn();
         ImGui::Text("%3.0f%%", living->hp * 100.0F);
@@ -248,21 +283,25 @@ void UwMesmer::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings, const 
         const auto _label = fmt::format("Target##{}{}", label.data(), idx);
         ImGui::TableNextColumn();
         if (ImGui::Button(_label.data()))
+        {
             player_data.ChangeTarget(living->agent_id);
+        }
 
         ++idx;
 
         if (idx >= MAX_TABLE_LENGTH)
+        {
             break;
+        }
     }
 }
 
 void UwMesmer::Draw(IDirect3DDevice9 *)
 {
-    if (!UwHelperActivationConditions(false))
+    if (!player_data.ValidateData(UwHelperActivationConditions, false) || !IsUwMesmer(player_data))
+    {
         return;
-    if (!IsUwMesmer(player_data))
-        return;
+    }
 
     ImGui::SetNextWindowSize(ImVec2(200.0F, 240.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
@@ -307,19 +346,26 @@ void UwMesmer::Update(float)
     horseman_livings.clear();
     keeper_livings.clear();
 
-    livings_data.Update();
-
     if (!player_data.ValidateData(UwHelperActivationConditions, false))
+    {
         return;
+    }
+
+    livings_data.Update();
     player_data.Update();
 
     if (!IsSpiker(player_data) && !IsLT(player_data))
+    {
         return;
+    }
 
     if (TankIsSoloLT())
     {
         if (!skillbar.ValidateData())
+        {
             return;
+        }
+
         skillbar.Update();
     }
 
@@ -343,5 +389,7 @@ void UwMesmer::Update(float)
     SortByDistance(player_data, skele_livings);
 
     if (TankIsSoloLT())
+    {
         lt_routine.Update();
+    }
 }

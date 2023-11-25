@@ -329,14 +329,11 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
     static auto gen = std::mt19937{};
     static auto time_dist = std::uniform_int_distribution<long>(-10, 10);
 
-    if (!player_data.ValidateData(HelperActivationConditions, true))
+    if (!player_data.ValidateData(HelperActivationConditions, true) || !party_heros || party_heros->size() == 0 ||
+        GetNumPlayerHeroes() == 0 || (*GetVisiblePtr()) == false)
+    {
         return;
-
-    if (!party_heros || party_heros->size() == 0 || GetNumPlayerHeroes() == 0)
-        return;
-
-    if ((*GetVisiblePtr()) == false)
-        return;
+    }
 
     ImGui::SetNextWindowSize(ImVec2(240.0F, 45.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
@@ -399,12 +396,16 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
             UseBipOnPlayer();
         }
         if (added_color_follow)
+        {
             ImGui::PopStyleColor();
+        }
         ImGui::SameLine();
         if (ImGui::Button("Attack###attackTarget", ImVec2{width / 3.0F - 10.0F, 50.0F}))
         {
             if (IsExplorable())
+            {
                 AttackTarget();
+            }
         }
     }
     ImGui::End();
@@ -417,6 +418,7 @@ void HeroWindow::Update(float)
         ResetData();
         return;
     }
+
     player_data.Update();
 
     const auto *const party_info = GW::PartyMgr::GetPartyInfo();
@@ -432,7 +434,11 @@ void HeroWindow::Update(float)
 
     follow_pos = player_data.pos;
     if (player_data.target)
+    {
         target_agent_id = player_data.target->agent_id;
+    }
     else
+    {
         target_agent_id = 0U;
+    }
 }
