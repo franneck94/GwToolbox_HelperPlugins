@@ -1,4 +1,0 @@
-# Documentation
-mkdocs
-mkdocstrings
-mkdocs-material
