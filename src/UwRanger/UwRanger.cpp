@@ -31,8 +31,8 @@
 
 namespace
 {
-constexpr  auto HEALING_SPRING_U16 = static_cast<uint16_t>(GW::Constants::SkillID::Healing_Spring);
-constexpr  auto MAX_TABLE_LENGTH = 6U;
+constexpr auto HEALING_SPRING_U16 = static_cast<uint16_t>(GW::Constants::SkillID::Healing_Spring);
+constexpr auto MAX_TABLE_LENGTH = 6U;
 static auto auto_target_active = false;
 
 static const auto T1_IDS = std::array<uint32_t, 1U>{GW::Constants::ModelID::UW::ColdfireNight};
