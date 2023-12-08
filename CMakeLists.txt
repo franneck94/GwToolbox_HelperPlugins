@@ -16,7 +16,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # Sanity Check
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    message(FATAL_ERROR "You are configuring a 64bit build, this is not supported. Run cmake with `-A Win32`")
+    message(FATAL_ERROR "Run cmake with `-A Win32`")
 endif()
 
 # Settings
@@ -62,7 +62,6 @@ include(gwtoolboxdll_plugins)
 # KIND OF WORKING
 add_tb_plugin(LongFinger)
 add_tb_plugin(TargetEverything)
-add_tb_plugin(AutoFollow)
 add_tb_plugin(HeroWindow)
 add_tb_plugin(UwRanger)
 add_tb_plugin(UwMesmer)
@@ -74,4 +73,5 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     add_tb_plugin(UwDhuumStats)
     add_tb_plugin(UwDhuumBitch)
     add_tb_plugin(UwEmo)
+    add_tb_plugin(AutoFollow)
 endif()
