@@ -52,6 +52,8 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void UwRanger::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
+    GW::Initialize();
+
     WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"UwRanger");
 }
 

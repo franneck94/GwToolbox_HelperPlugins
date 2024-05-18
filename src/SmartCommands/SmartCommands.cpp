@@ -36,9 +36,12 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void SmartCommands::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
+    GW::Initialize();
+
     GW::Chat::CreateCommand(L"use", SmartCommands::CmdUseSkill);
     GW::Chat::CreateCommand(L"dhuum", SmartCommands::CmdDhuumUseSkill);
     uw_metadata.Initialize();
+
     WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"SmartCommands");
 }
 

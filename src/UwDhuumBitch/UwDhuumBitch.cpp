@@ -63,7 +63,10 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void UwDhuumBitch::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
+    GW::Initialize();
+
     uw_metadata.Initialize();
+
     WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"UwDhuumBitch");
 }
 

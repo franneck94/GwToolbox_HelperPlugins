@@ -41,7 +41,6 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
     GW::Initialize();
-    GW::Scanner::Initialize(toolbox_dll);
 
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(
         &MapLoaded_Entry,

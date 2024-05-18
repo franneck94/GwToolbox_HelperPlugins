@@ -71,12 +71,13 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void UwEmo::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
-
-    WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"UwEmo");
+    GW::Initialize();
 
     emo_routine.Initialize();
     skillbar.Initialize();
     uw_metadata.Initialize();
+
+    WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"UwEmo");
 }
 
 void UwEmo::SignalTerminate()
