@@ -14,6 +14,7 @@
 #include <GWCA/GameEntities/Player.h>
 #include <GWCA/Managers/PartyMgr.h>
 #include <GWCA/Managers/SkillbarMgr.h>
+#include <GWCA/Utilities/Scanner.h>
 
 #include "ActionsBase.h"
 #include "ActionsUw.h"
@@ -231,6 +232,7 @@ void UwMesmer::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMOD
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
     GW::Initialize();
+    GW::Scanner::Initialize();
 
     skillbar.Initialize();
     uw_metadata.Initialize();

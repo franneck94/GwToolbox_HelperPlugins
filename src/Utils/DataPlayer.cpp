@@ -21,17 +21,13 @@
 bool DataPlayer::ValidateData(std::function<bool(bool)> cb_fn, const bool need_party_loaded) const
 {
     if (!cb_fn(need_party_loaded))
-    {
         return false;
-    }
 
     const auto *const me_agent = GW::Agents::GetPlayer();
     const auto *const me_living = GW::Agents::GetPlayerAsAgentLiving();
 
     if (me_agent == nullptr || me_living == nullptr)
-    {
         return false;
-    }
 
     return true;
 }
@@ -68,9 +64,7 @@ void DataPlayer::Update()
 bool DataPlayer::CanCast() const
 {
     if (living->GetIsDead() || living->GetIsKnockedDown() || living->GetIsCasting() || living->GetIsMoving())
-    {
         return false;
-    }
 
     return true;
 }
@@ -78,9 +72,7 @@ bool DataPlayer::CanCast() const
 bool DataPlayer::CanAttack() const
 {
     if (living->GetIsDead() || living->GetIsKnockedDown() || living->GetIsCasting() || living->GetIsMoving())
-    {
         return false;
-    }
 
     return true;
 }
@@ -89,9 +81,7 @@ bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id) const
 {
     const auto *const me_buffs = GW::Effects::GetPlayerBuffs();
     if (!me_buffs || !me_buffs->valid())
-    {
         return false;
-    }
 
     for (const auto &buff : *me_buffs)
     {
@@ -114,9 +104,7 @@ bool DataPlayer::HasEffect(const GW::Constants::SkillID effect_skill_id) const
 {
     const auto *const me_effects = GW::Effects::GetPlayerEffectsArray();
     if (!me_effects)
-    {
         return false;
-    }
 
     for (const auto &effect : me_effects->effects)
     {
@@ -137,17 +125,13 @@ bool DataPlayer::HasEffect(const GW::Constants::SkillID effect_skill_id) const
 
 uint32_t DataPlayer::GetNumberOfPartyBonds() const
 {
-    const auto effects = GW::Effects::GetPartyEffectsArray();
+    const auto *effects = GW::Effects::GetPartyEffectsArray();
     if (!effects || !effects->valid())
-    {
         return false;
-    }
 
     const auto &buffs = (*effects)[0].buffs;
     if (!buffs.valid())
-    {
         return false;
-    }
 
     auto num_bonds = uint32_t{0};
     for (size_t i = 0; i < buffs.size(); ++i)
@@ -155,9 +139,7 @@ uint32_t DataPlayer::GetNumberOfPartyBonds() const
         const auto agent_id = buffs[i].target_agent_id;
 
         if (agent_id != id)
-        {
             ++num_bonds;
-        }
     }
 
     return num_bonds;
@@ -175,11 +157,9 @@ static float GetTimeRemaining(const float duration, const DWORD timestamp)
 
 float DataPlayer::GetRemainingEffectDuration(const GW::Constants::SkillID effect_skill_id) const
 {
-    const auto me_effects = GW::Effects::GetPlayerEffectsArray();
+    const auto *me_effects = GW::Effects::GetPlayerEffectsArray();
     if (!me_effects)
-    {
         return false;
-    }
 
     for (const auto &effect : me_effects->effects)
     {
@@ -226,14 +206,11 @@ bool DataPlayer::CastEffect(const DataSkill &skill_data)
 void DataPlayer::ChangeTarget(const uint32_t target_id)
 {
     if (!GW::Agents::GetAgentByID(target_id))
-    {
         return;
-    }
 
-    GW::GameThread::Enqueue([this, target_id]() {
-        GW::Agents::ChangeTarget(target_id);
-        target = GW::Agents::GetTarget();
-    });
+    GW::GameThread::Enqueue([&, target_id] { GW::Agents::ChangeTarget(target_id); });
+
+    target = GW::Agents::GetTarget();
 }
 
 
@@ -243,14 +220,10 @@ bool DataPlayer::SkillStoppedCallback(const GW::Packet::StoC::GenericValue *cons
     const auto caster_id = packet->agent_id;
 
     if (caster_id != id)
-    {
         return false;
-    }
 
     if (value_id == GW::Packet::StoC::GenericValueID::skill_stopped)
-    {
         return true;
-    }
 
     return false;
 }

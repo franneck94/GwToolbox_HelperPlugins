@@ -31,6 +31,14 @@
 
 #include "HeroWindow.h"
 
+namespace
+{
+constexpr auto CTOS_ID_HERO_ACTION = 0xC;
+constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
+constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
+constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
+} // namespace
+
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 {
     static HeroWindow instance;
@@ -73,13 +81,14 @@ static void HeroUseSkill(const uint32_t hero_agent_id,
 {
     struct HeroUseSkill_s
     {
-        const uint32_t header = GAME_CMSG_HERO_USE_SKILL;
+        uint32_t header;
         uint32_t hero_agent_id;
         uint32_t skill_id;
         uint32_t call_target;
         uint32_t target_id;
     };
     static HeroUseSkill_s pak;
+    pak.header = GAME_CMSG_HERO_USE_SKILL;
     pak.hero_agent_id = hero_agent_id;
     pak.skill_id = (uint32_t)(skill_id);
     pak.call_target = 0U;
@@ -92,10 +101,10 @@ static bool HeroCastSkillIfAvailable(const GW::HeroPartyMember &hero,
                                      const uint32_t target_agent_id,
                                      const GW::Constants::SkillID skill_id)
 {
-    if (!hero_living || skill_id == GW::Constants::SkillID::No_Skill)
+    if (!hero_living || (skill_id == GW::Constants::SkillID::No_Skill))
         return false;
 
-    const auto skillbar_array = GW::SkillbarMgr::GetSkillbarArray();
+    const auto *skillbar_array = GW::SkillbarMgr::GetSkillbarArray();
     if (!skillbar_array)
         return false;
 
@@ -110,10 +119,10 @@ static bool HeroCastSkillIfAvailable(const GW::HeroPartyMember &hero,
             if (!has_skill_in_skillbar)
                 continue;
 
-            const auto skill_data = GW::SkillbarMgr::GetSkillConstantData(skill_id);
+            const auto *skill_data = GW::SkillbarMgr::GetSkillConstantData(skill_id);
             if (!skill_data)
                 continue;
-            const auto hero_energy = (hero_living->energy * hero_living->max_energy);
+            const auto hero_energy = (static_cast<uint32_t>(hero_living->energy) * hero_living->max_energy);
 
             if (has_skill_in_skillbar && skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost())
             {
@@ -157,7 +166,7 @@ void HeroWindow::ToggleHeroBehaviour()
     for (const auto &hero : *party_heros)
     {
         if (hero.owner_player_id == player_data.living->login_number)
-            GW::CtoS::SendPacket(0xC,
+            GW::CtoS::SendPacket(CTOS_ID_HERO_ACTION,
                                  GAME_CMSG_HERO_BEHAVIOR,
                                  hero.agent_id,
                                  static_cast<uint8_t>(current_hero_behaviour));
@@ -186,7 +195,7 @@ void HeroWindow::UseBipOnPlayer()
     if (player_data.energy_perc > 0.30F)
         return;
 
-    const auto effects = GetEffects(player_data.id);
+    const auto *effects = GetEffects(player_data.id);
     if (!effects)
         return;
 
@@ -205,10 +214,10 @@ void HeroWindow::UseBipOnPlayer()
     {
         if (hero.owner_player_id == player_data.living->login_number)
         {
-            const auto hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
+            const auto *hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
             if (!hero_agent)
                 continue;
-            const auto hero_living = hero_agent->GetAsAgentLiving();
+            const auto *hero_living = hero_agent->GetAsAgentLiving();
             if (!hero_living)
                 continue;
 
@@ -232,10 +241,10 @@ bool HeroWindow::MesmerSpikeTarget(const GW::HeroPartyMember &hero)
     if (!IsMapReady() || !IsExplorable())
         return false;
 
-    const auto hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
+    const auto *hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
     if (!hero_agent)
         return false;
-    const auto hero_living = hero_agent->GetAsAgentLiving();
+    const auto *hero_living = hero_agent->GetAsAgentLiving();
     if (!hero_living)
         return false;
 
@@ -258,7 +267,7 @@ void HeroWindow::UseFallback()
     if (!HasWaitedLongEnough(wait_time_ms))
         return;
 
-    const auto effects = GetEffects(player_data.id);
+    const auto *effects = GetEffects(player_data.id);
     if (!effects)
         return;
 
@@ -272,10 +281,10 @@ void HeroWindow::UseFallback()
     {
         if (hero.owner_player_id == player_data.living->login_number)
         {
-            const auto hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
+            const auto *hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
             if (!hero_agent)
                 continue;
-            const auto hero_living = hero_agent->GetAsAgentLiving();
+            const auto *hero_living = hero_agent->GetAsAgentLiving();
             if (!hero_living)
                 continue;
 
@@ -296,10 +305,10 @@ void HeroWindow::AttackTarget()
     if (!IsMapReady() || !IsExplorable() || !target_agent_id || !party_heros)
         return;
 
-    const auto target_agent = GW::Agents::GetAgentByID(target_agent_id);
+    const auto *target_agent = GW::Agents::GetAgentByID(target_agent_id);
     if (!target_agent)
         return;
-    const auto target_living = target_agent->GetAsAgentLiving();
+    const auto *target_living = target_agent->GetAsAgentLiving();
     if (!target_living)
         return;
 
@@ -312,7 +321,7 @@ void HeroWindow::AttackTarget()
     {
         if (hero.owner_player_id == player_data.living->login_number)
         {
-            GW::CtoS::SendPacket(0xC, GAME_CMSG_HERO_LOCK_TARGET, hero.agent_id, target_agent_id);
+            GW::CtoS::SendPacket(CTOS_ID_HERO_ACTION, GAME_CMSG_HERO_LOCK_TARGET, hero.agent_id, target_agent_id);
 
             (void)MesmerSpikeTarget(hero);
         }
@@ -352,17 +361,17 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
         {
         case HeroBehaviour::GUARD:
         {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1F, 0.1F, 1.0F, 1.0F));
+            ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_BLUE);
             break;
         }
         case HeroBehaviour::AVOID_COMBAT:
         {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1F, 0.9F, 0.1F, 1.0F));
+            ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
             break;
         }
         case HeroBehaviour::ATTACK:
         {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0F, 0.1F, 0.1F, 1.0F));
+            ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_RED);
             break;
         }
         }
@@ -373,7 +382,7 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
         ImGui::PopStyleColor();
         if (following_active)
         {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1F, 0.9F, 0.1F, 1.0F));
+            ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
             added_color_follow = true;
         }
         ImGui::SameLine();
