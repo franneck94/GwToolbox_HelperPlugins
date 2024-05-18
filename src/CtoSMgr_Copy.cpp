@@ -9,13 +9,10 @@
 #include <GWCA/Managers/GameThreadMgr.h>
 #include <GWCA/Managers/RenderMgr.h>
 
-// #define GWCA_CTOS_DISABLED 1
-
 namespace {
     using namespace GW;
 
-    typedef void(__cdecl *SendPacket_pt)(
-        uint32_t context, uint32_t size, void* packet);
+    using SendPacket_pt = void(__cdecl *)(uint32_t context, uint32_t size, void* packet);
     SendPacket_pt SendPacket_Func = 0;
     SendPacket_pt RetSendPacket = 0;
 
@@ -50,7 +47,7 @@ namespace {
 
         GWCA_ASSERT(SendPacket_Func);
         GWCA_ASSERT(game_srv_object_addr);
-        HookBase::CreateHook(SendPacket_Func, CtoSHandler_Func, (void**)&RetSendPacket);
+        HookBase::CreateHook((void**)&SendPacket_Func, CtoSHandler_Func, (void**)&RetSendPacket);
 
     }
     void EnableHooks() {
@@ -102,7 +99,7 @@ namespace GW {
         void* buffer_cpy = malloc(size);
         GWCA_ASSERT(buffer_cpy != NULL);
         memcpy(buffer_cpy, buffer, size);
-        GameThread::Enqueue([buffer_cpy, size]() {
+        GameThread::Enqueue([buffer_cpy, size] {
             SendPacket_Func(*(uint32_t*)game_srv_object_addr, size, buffer_cpy);
             free(buffer_cpy);
         });

@@ -390,7 +390,7 @@ bool TalkReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &n
     {
         return true;
     }
-    GW::Agents::GoNPC(agent, 0U);
+    GW::Agents::InteractAgent(agent, 0U); // Former GoNPC?
 
     return true;
 }

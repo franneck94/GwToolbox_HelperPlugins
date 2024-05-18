@@ -60,14 +60,14 @@ bool IsDoaEntryOutpost()
     return (GW::Map::GetMapID() == GW::Constants::MapID::Gate_of_Torment_outpost);
 }
 
-int RegionFromDistrict(const GW::Constants::District district)
+GW::Constants::ServerRegion RegionFromDistrict(const GW::Constants::District district)
 {
     switch (district)
     {
     case GW::Constants::District::International:
-        return GW::Constants::Region::International;
+        return GW::Constants::ServerRegion::International;
     case GW::Constants::District::American:
-        return GW::Constants::Region::America;
+        return GW::Constants::ServerRegion::America;
     case GW::Constants::District::EuropeEnglish:
     case GW::Constants::District::EuropeFrench:
     case GW::Constants::District::EuropeGerman:
@@ -75,13 +75,13 @@ int RegionFromDistrict(const GW::Constants::District district)
     case GW::Constants::District::EuropeSpanish:
     case GW::Constants::District::EuropePolish:
     case GW::Constants::District::EuropeRussian:
-        return GW::Constants::Region::Europe;
+        return GW::Constants::ServerRegion::Europe;
     case GW::Constants::District::AsiaKorean:
-        return GW::Constants::Region::Korea;
+        return GW::Constants::ServerRegion::Korea;
     case GW::Constants::District::AsiaChinese:
-        return GW::Constants::Region::China;
+        return GW::Constants::ServerRegion::China;
     case GW::Constants::District::AsiaJapanese:
-        return GW::Constants::Region::Japan;
+        return GW::Constants::ServerRegion::Japan;
     default:
         break;
     }
@@ -89,30 +89,30 @@ int RegionFromDistrict(const GW::Constants::District district)
     return GW::Map::GetRegion();
 }
 
-int LanguageFromDistrict(const GW::Constants::District district)
+GW::Constants::Language LanguageFromDistrict(const GW::Constants::District district)
 {
     switch (district)
     {
     case GW::Constants::District::EuropeEnglish:
-        return GW::Constants::EuropeLanguage::English;
+        return GW::Constants::Language::English;
     case GW::Constants::District::EuropeFrench:
-        return GW::Constants::EuropeLanguage::French;
+        return GW::Constants::Language::French;
     case GW::Constants::District::EuropeGerman:
-        return GW::Constants::EuropeLanguage::German;
+        return GW::Constants::Language::German;
     case GW::Constants::District::EuropeItalian:
-        return GW::Constants::EuropeLanguage::Italian;
+        return GW::Constants::Language::Italian;
     case GW::Constants::District::EuropeSpanish:
-        return GW::Constants::EuropeLanguage::Spanish;
+        return GW::Constants::Language::Spanish;
     case GW::Constants::District::EuropePolish:
-        return GW::Constants::EuropeLanguage::Polish;
+        return GW::Constants::Language::Polish;
     case GW::Constants::District::EuropeRussian:
-        return GW::Constants::EuropeLanguage::Russian;
+        return GW::Constants::Language::Russian;
     case GW::Constants::District::AsiaKorean:
     case GW::Constants::District::AsiaChinese:
     case GW::Constants::District::AsiaJapanese:
     case GW::Constants::District::International:
     case GW::Constants::District::American:
-        return 0;
+        return GW::Constants::Language::Unknown;
     default:
         break;
     }

@@ -57,6 +57,6 @@ public:
     }
     void Update(float delta) override;
 
-    static void CmdDhuumUseSkill(const wchar_t *, int argc, LPWSTR *argv);
-    static void CmdUseSkill(const wchar_t *, int argc, LPWSTR *argv);
+    static void CmdDhuumUseSkill(const wchar_t* cmd, const int argc, const LPWSTR* argv);
+    static void CmdUseSkill(const wchar_t* cmd, const int argc, const LPWSTR* argv);
 };

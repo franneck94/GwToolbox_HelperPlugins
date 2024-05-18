@@ -19,9 +19,9 @@ bool IsDoa();
 
 bool IsDoaEntryOutpost();
 
-int RegionFromDistrict(const GW::Constants::District district);
+GW::Constants::ServerRegion RegionFromDistrict(const GW::Constants::District district);
 
-int LanguageFromDistrict(const GW::Constants::District district);
+GW::Constants::Language LanguageFromDistrict(const GW::Constants::District district);
 
 bool IsAlreadyInOutpost(const GW::Constants::MapID outpost_id,
                         const GW::Constants::District district,

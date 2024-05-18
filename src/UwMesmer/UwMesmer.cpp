@@ -142,7 +142,7 @@ RoutineState LtRoutine::Routine()
             if (!gone_to_npc)
             {
                 const auto agent = GW::Agents::GetAgentByID(agent_id);
-                GW::Agents::GoNPC(agent, 0U);
+                GW::Agents::InteractAgent(agent, 0U); // Former GoNPC?
                 gone_to_npc = true;
                 took_quest = false;
                 return RoutineState::ACTIVE;
