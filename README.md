@@ -5,17 +5,14 @@ Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugin
 Features are:
 
 - Smart Chat Commands
-- Opening Chest from afar
-- Targetting minipets
-- Oldschool Dialog Window
-- UW Helper: Ranger and Mesmer
-- Smart Hero Commands
+- UW Helper: Ranger, Mesmer, EMO and DB
+- Smart Hero Commands (This is really helpful for GWAMM'ing)
 
-## Developement
+## Development
 
 - CMake 3.21+, Git
 - MSVC 2022 with C++23
-- Optional: Python 3.8+ for the Documenation
+- Optional: Python 3.8+ for the Documentation
 
 ```bash
 mkdir build

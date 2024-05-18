@@ -17,6 +17,5 @@ endif()
 
 FetchContent_Populate(gwtoolboxpp)
 
-add_compile_definitions(GWCA_CTOS_DISABLED=0)
 add_compile_definitions(GWCA_CTOS_ENABLED=1)
 add_subdirectory(${gwtoolboxpp_SOURCE_DIR} EXCLUDE_FROM_ALL)

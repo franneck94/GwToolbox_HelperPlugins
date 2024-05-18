@@ -4,7 +4,7 @@ set(CMAKE_GENERATOR_PLATFORM win32)
 
 project(
     "GWToolbox_HelperPlugins"
-    VERSION 0.4.2
+    VERSION 0.5.0
     LANGUAGES C CXX)
 
 # Global CMake variables are set here
@@ -22,7 +22,7 @@ endif()
 # Settings
 add_definitions(-DGWCA_CTOS_ENABLED=1)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(GWTOOLBOXPP_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../GWToolboxpp")
+set(GWTOOLBOXPP_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/build/_deps/gwtoolboxpp-src")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/bin/")
 
 # CMAKE MODULES
@@ -59,19 +59,9 @@ target_link_libraries(helper_utils PUBLIC
 
 include(gwtoolboxdll_plugins)
 
-# KIND OF WORKING
-add_tb_plugin(LongFinger)
-add_tb_plugin(TargetEverything)
 add_tb_plugin(HeroWindow)
 add_tb_plugin(UwRanger)
 add_tb_plugin(UwMesmer)
 add_tb_plugin(SmartCommands)
-add_tb_plugin(DialogWindow)
-
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    add_tb_plugin(AllowAllDialogs)
-    add_tb_plugin(UwDhuumStats)
-    add_tb_plugin(UwDhuumBitch)
-    add_tb_plugin(UwEmo)
-    add_tb_plugin(AutoFollow)
-endif()
+add_tb_plugin(UwDhuumBitch)
+add_tb_plugin(UwEmo)

@@ -15,6 +15,7 @@
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
 #include <GWCA/Managers/UIMgr.h>
+#include <GWCA/Utilities/Scanner.h>
 
 #include "ActionTypes.h"
 #include "ActionsBase.h"
@@ -39,10 +40,14 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
+    GW::Initialize();
+    GW::Scanner::Initialize(toolbox_dll);
 
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(
         &MapLoaded_Entry,
         [this](GW::HookStatus *, const GW::Packet::StoC::MapLoaded *) -> void { ResetData(); });
+
+    GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"HeroWindow");
 }
 
 void HeroWindow::SignalTerminate()
