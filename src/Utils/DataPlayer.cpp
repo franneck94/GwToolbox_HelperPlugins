@@ -208,9 +208,10 @@ void DataPlayer::ChangeTarget(const uint32_t target_id)
     if (!GW::Agents::GetAgentByID(target_id))
         return;
 
-    GW::GameThread::Enqueue([&, target_id] { GW::Agents::ChangeTarget(target_id); });
-
-    target = GW::Agents::GetTarget();
+    GW::GameThread::Enqueue([&, target_id] {
+        GW::Agents::ChangeTarget(target_id);
+        target = GW::Agents::GetTarget();
+    });
 }
 
 

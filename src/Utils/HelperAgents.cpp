@@ -187,12 +187,14 @@ bool CastBondIfNotAvailable(const DataSkill &skill_data, const uint32_t target_i
 {
     const auto has_bond = AgentHasBuff(static_cast<GW::Constants::SkillID>(skill_data.id), target_id);
     const auto bond_avail = skill_data.CanBeCasted(player_data->energy);
+    const auto skill_idx = skill_data.idx;
 
     if (!has_bond && bond_avail)
     {
-        GW::GameThread::Enqueue([&]() { GW::SkillbarMgr::UseSkill(skill_data.idx, target_id); });
+        GW::GameThread::Enqueue([skill_idx, target_id]() { GW::SkillbarMgr::UseSkill(skill_idx, target_id); });
         return true;
     }
+
     return false;
 }
 

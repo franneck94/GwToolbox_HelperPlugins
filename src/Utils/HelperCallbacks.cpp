@@ -18,7 +18,7 @@
 
 #include "HelperCallbacks.h"
 
-bool ExplorableLoadCallback()
+bool IsExplorableInstance()
 {
     switch (GW::Map::GetInstanceType())
     {

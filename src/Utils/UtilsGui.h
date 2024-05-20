@@ -19,7 +19,7 @@
 
 namespace
 {
-static const auto DEFAULT_BUTTON_SIZE = ImVec2(100.0, 50.0);
+static const auto DEFAULT_BUTTON_SIZE = ImVec2(100.0, 55.0);
 static const auto SKIP_BUTTON_X = DEFAULT_BUTTON_SIZE.x / 2.25F;
 static const auto SKIP_BUTTON_Y = DEFAULT_BUTTON_SIZE.y / 2.0F;
 } // namespace

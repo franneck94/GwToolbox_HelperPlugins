@@ -39,8 +39,8 @@
 
 namespace
 {
-static auto move_ongoing = false;
-static ActionState *damage_action_state = nullptr;
+auto move_ongoing = false;
+ActionState *damage_action_state = nullptr;
 
 constexpr auto COOKIE_ID = uint32_t{28433};
 constexpr auto VAMPIRISMUS_AGENT_ID = uint32_t{5723};
@@ -48,10 +48,9 @@ constexpr auto SOS1_AGENT_ID = uint32_t{4229};
 constexpr auto SOS2_AGENT_ID = uint32_t{4230};
 constexpr auto SOS3_AGENT_ID = uint32_t{4231};
 
-const static auto reaper_moves =
-    std::map<std::string, uint32_t>{{"Lab", 20}, {"Pits", 43}, {"Planes", 50}, {"Wastes", 58}};
+const auto reaper_moves = std::map<std::string, uint32_t>{{"Lab", 20}, {"Pits", 43}, {"Planes", 50}, {"Wastes", 58}};
 
-const static auto full_team_moves = std::array<uint32_t, 10>{19, 20, 21, 22, 58, 59, 60, 61, 62, 63};
+const auto full_team_moves = std::array<uint32_t, 10>{19, 20, 21, 22, 58, 59, 60, 61, 62, 63};
 }; // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -92,12 +91,13 @@ void UwDhuumBitch::SaveSettings(const wchar_t *folder)
 void UwDhuumBitch::DrawSettings()
 {
     ToolboxUIPlugin::DrawSettings();
-    const auto width = ImGui::GetWindowWidth();
-    ImGui::Text("Show Debug Map:");
-    ImGui::SameLine(width * 0.5F);
-    ImGui::PushItemWidth(width * 0.5F);
-    ImGui::Checkbox("debugMapActive", &show_debug_map);
-    ImGui::PopItemWidth();
+
+    // const auto width = ImGui::GetWindowWidth();
+    // ImGui::Text("Show Debug Map:");
+    // ImGui::SameLine(width * 0.5F);
+    // ImGui::PushItemWidth(width * 0.5F);
+    // ImGui::Checkbox("debugMapActive", &show_debug_map);
+    // ImGui::PopItemWidth();
 }
 
 UwDhuumBitch::UwDhuumBitch() : skillbar({}), db_routine(&player_data, &skillbar, &livings_data)

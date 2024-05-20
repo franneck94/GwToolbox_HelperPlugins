@@ -127,11 +127,11 @@ void UwEmo::DrawSettings()
     ImGui::PopItemWidth();
     slot_idx = _slot_idx;
 
-    ImGui::Text("Show Debug Map:");
-    ImGui::SameLine(width * 0.5F);
-    ImGui::PushItemWidth(width * 0.5F);
-    ImGui::Checkbox("debugMapActive", &show_debug_map);
-    ImGui::PopItemWidth();
+    // ImGui::Text("Show Debug Map:");
+    // ImGui::SameLine(width * 0.5F);
+    // ImGui::PushItemWidth(width * 0.5F);
+    // ImGui::Checkbox("debugMapActive", &show_debug_map);
+    // ImGui::PopItemWidth();
 }
 
 UwEmo::UwEmo() : skillbar({}), uw_metadata({}), emo_routine(&player_data, &skillbar, &bag_idx, &slot_idx, &livings_data)
@@ -246,17 +246,17 @@ void UwEmo::Update(float)
     {
         move_idx = 0;
         move_ongoing = false;
-        return;
     }
+
+    if (!player_data.ValidateData(HelperActivationConditions, true))
+        return;
 
     player_data.Update();
     emo_routine.livings_data = &livings_data;
     emo_routine.num_finished_objectives = uw_metadata.num_finished_objectives;
 
     if (!IsEmo(player_data))
-    {
         return;
-    }
 
     if (IsUw() && first_frame)
     {
@@ -265,9 +265,7 @@ void UwEmo::Update(float)
     }
 
     if (!skillbar.ValidateData())
-    {
         return;
-    }
 
     skillbar.Update();
 
@@ -349,10 +347,6 @@ bool EmoRoutine::RoutineSelfBonds() const
     const auto need_sb_right_now = DoNeedEnchNow(player_data, GW::Constants::SkillID::Spirit_Bond, 2.0F);
     const auto need_ether_right_now = DoNeedEnchNow(player_data, GW::Constants::SkillID::Ether_Renewal, 3.0F);
 
-    const auto is_full_energy = player_data->energy_perc == 1.0F;
-    if (!is_full_energy && (!found_ether || need_ether_right_now) && player_data->CastEffect(skillbar->ether))
-        return true;
-
     if (player_data->energy > 30U)
     {
         if (CastBondIfNotAvailable(skillbar->balth, player_data->id, player_data))
@@ -361,6 +355,10 @@ bool EmoRoutine::RoutineSelfBonds() const
         if (CastBondIfNotAvailable(skillbar->prot, player_data->id, player_data))
             return true;
     }
+
+    const auto is_full_energy = player_data->energy_perc == 1.0F;
+    if (!is_full_energy && (!found_ether || need_ether_right_now) && player_data->CastEffect(skillbar->ether))
+        return true;
 
     if (!found_ether)
         return false;
@@ -908,10 +906,11 @@ void EmoRoutine::Update()
 {
     static auto paused = false;
 
-    if (GW::PartyMgr::GetIsPartyDefeated())
-    {
+    if (GW::PartyMgr::GetIsPartyDefeated() || !IsExplorableInstance())
         action_state = ActionState::INACTIVE;
-    }
+
+    if (!IsExplorableInstance())
+        return;
 
     if (IsUw())
     {
@@ -943,9 +942,12 @@ void EmoRoutine::Update()
         action_state = ActionState::ACTIVE;
     }
 
-    if (action_state == ActionState::INACTIVE && GW::PartyMgr::GetPartySize() <= 6 && player_data->living &&
-        !player_data->living->GetIsMoving() &&
-        ((player_data->energy_perc < 0.10F || player_data->hp_perc < 0.10F) && livings_data->enemies.size() > 0U))
+    const auto need_to_pump =
+        ((player_data->energy_perc < 0.10F) || (player_data->hp_perc < 0.10F)) && (livings_data->enemies.size() > 0U);
+    const auto do_transition_inactive_to_active = (GW::PartyMgr::GetPartySize() <= 6) && player_data->living &&
+                                                  !player_data->living->GetIsMoving() && need_to_pump;
+
+    if (action_state == ActionState::INACTIVE && do_transition_inactive_to_active)
         action_state = ActionState::ACTIVE;
 
     static auto not_moving_timer = clock();
@@ -963,9 +965,7 @@ bool EmoRoutine::BondLtAtStartRoutine() const
 {
     auto [tank_id, has_tank] = GetTankId();
     if (!tank_id || !has_tank)
-    {
         return false;
-    }
 
     const auto *tank = GW::Agents::GetAgentByID(tank_id);
     if (!tank)

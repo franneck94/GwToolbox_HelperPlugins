@@ -5,6 +5,6 @@
 
 #include "ActionTypes.h"
 
-bool ExplorableLoadCallback();
+bool IsExplorableInstance();
 
 bool OnChatMessagePlayerReady(GW::HookStatus *, GW::Packet::StoC::PacketBase *packet, const TriggerRole trigger_role);

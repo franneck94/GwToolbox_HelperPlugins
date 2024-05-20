@@ -25,7 +25,7 @@ void UwMetadata::Initialize()
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(
         &MapLoaded_Entry,
         [this](GW::HookStatus *, GW::Packet::StoC::MapLoaded *) -> void {
-            load_cb_triggered = ExplorableLoadCallback();
+            load_cb_triggered = IsExplorableInstance();
             num_finished_objectives = 0U;
         });
 

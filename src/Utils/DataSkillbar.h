@@ -27,8 +27,8 @@ public:
     {
         GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(
             &MapLoaded_Entry,
-            [this](GW::HookStatus *, const GW::Packet::StoC::MapLoaded *) -> void {
-                reset = ExplorableLoadCallback();
+            [this](GW::HookStatus*, GW::Packet::StoC::MapLoaded*) -> void {
+                reset = IsExplorableInstance();
             });
     }
 
