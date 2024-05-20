@@ -49,7 +49,7 @@ private:
     void FollowPlayer();
     void UseBipOnPlayer();
     void UseFallback();
-    bool MesmerSpikeTarget(const GW::HeroPartyMember &hero);
+    void MesmerSpikeTarget(const GW::HeroPartyMember &hero) const;
     void AttackTarget();
     void ResetData();
 

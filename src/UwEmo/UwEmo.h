@@ -27,7 +27,11 @@
 class EmoRoutine : public EmoActionABC
 {
 public:
-    EmoRoutine(DataPlayer *p, EmoSkillbarData *s, uint32_t *_bag_idx, uint32_t *_slot_idx, const AgentLivingData *a);
+    EmoRoutine(DataPlayer *_player,
+               EmoSkillbarData *_skillbar,
+               const uint32_t *_bag_idx,
+               const uint32_t *_slot_idx,
+               const AgentLivingData *a);
 
     RoutineState Routine() override;
     void Update() override;

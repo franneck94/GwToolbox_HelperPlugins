@@ -37,8 +37,8 @@
 
 namespace
 {
-static ActionState *emo_casting_action_state = nullptr;
-static auto move_ongoing = false;
+ActionState *emo_casting_action_state = nullptr;
+auto move_ongoing = false;
 
 constexpr auto DHUUM_JUDGEMENT_SKILL_ID = uint32_t{3085U};
 constexpr auto CANTHA_IDS = std::array<uint32_t, 4>{GW::Constants::ModelID::SummoningStone::ImperialBarrage,
@@ -56,10 +56,9 @@ constexpr auto COOKIE_ID = uint32_t{28433};
 constexpr auto SEVEN_MINS_IN_MS = 7LL * 60LL * 1000LL;
 constexpr auto EIGHT_MINS_IN_MS = 8LL * 60LL * 1000LL;
 
-const static auto reaper_moves =
-    std::map<std::string, uint32_t>{{"Lab", 32}, {"Pits", 45}, {"Planes", 48}, {"Wastes", 50}};
+const auto reaper_moves = std::map<std::string, uint32_t>{{"Lab", 32}, {"Pits", 45}, {"Planes", 48}, {"Wastes", 50}};
 
-const static auto full_team_moves = std::array<uint32_t, 9>{31, 32, 33, 34, 52, 53, 54, 55};
+const auto full_team_moves = std::array<uint32_t, 9>{31, 32, 33, 34, 52, 53, 54, 55};
 }; // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -283,12 +282,12 @@ void UwEmo::Update(float)
     emo_routine.Update();
 }
 
-EmoRoutine::EmoRoutine(DataPlayer *p,
-                       EmoSkillbarData *s,
-                       uint32_t *_bag_idx,
-                       uint32_t *_slot_idx,
+EmoRoutine::EmoRoutine(DataPlayer *_player,
+                       EmoSkillbarData *_skillbar,
+                       const uint32_t *_bag_idx,
+                       const uint32_t *_slot_idx,
                        const AgentLivingData *a)
-    : EmoActionABC(p, "EmoRoutine", s), bag_idx(_bag_idx), slot_idx(_slot_idx), livings_data(a)
+    : EmoActionABC(_player, "EmoRoutine", _skillbar), bag_idx(_bag_idx), slot_idx(_slot_idx), livings_data(a)
 {
 }
 
@@ -322,7 +321,7 @@ bool EmoRoutine::RoutineWhenInRangeBondLT() const
     if (dist > GW::Constants::Range::Spellcast)
         return false;
 
-    const auto lt_living = lt_agent->GetAsAgentLiving();
+    const auto *lt_living = lt_agent->GetAsAgentLiving();
     if (!lt_living || lt_living->GetIsDead() || lt_living->hp == 0.00F)
         return false;
 
@@ -468,7 +467,7 @@ bool EmoRoutine::RoutineLtAtFusePulls() const
     if (!lt_agent || !player_data->target || player_data->target->agent_id != lt_agent->agent_id)
         return false;
 
-    const auto target_living = player_data->target->GetAsAgentLiving();
+    const auto *target_living = player_data->target->GetAsAgentLiving();
     if (!target_living || target_living->GetIsMoving() || player_data->living->GetIsMoving() ||
         target_living->GetIsDead() || target_living->hp == 0.00F ||
         target_living->primary != static_cast<uint8_t>(GW::Constants::Profession::Mesmer))
@@ -512,7 +511,7 @@ bool EmoRoutine::RoutineDbAtDhuum() const
     if (dist > GW::Constants::Range::Spellcast)
         return false;
 
-    const auto living = db_agent->GetAsAgentLiving();
+    const auto *living = db_agent->GetAsAgentLiving();
     if (!living || living->GetIsDead() || living->hp == 0.00F)
         return false;
 
@@ -530,11 +529,11 @@ bool EmoRoutine::RoutineTurtle() const
     if (!found_turtle || !turtle_id)
         return false;
 
-    const auto turtle_agent = GW::Agents::GetAgentByID(turtle_id);
+    const auto *turtle_agent = GW::Agents::GetAgentByID(turtle_id);
     if (!turtle_agent)
         return false;
 
-    const auto turtle_living = turtle_agent->GetAsAgentLiving();
+    const auto *turtle_living = turtle_agent->GetAsAgentLiving();
     if (!turtle_living || turtle_living->GetIsDead() || turtle_living->hp == 0.00F)
         return false;
 
@@ -569,13 +568,13 @@ bool EmoRoutine::RoutineGDW() const
 
     if (last_idx >= GW::PartyMgr::GetPartySize())
         last_idx = 0;
-    const auto id = party_members[last_idx].id;
+    const auto member_id = party_members[last_idx].id;
     last_idx++;
 
-    if (!player_data->CanCast() || !id || !party_data_valid || id == player_data->id)
+    if (!player_data->CanCast() || !member_id || !party_data_valid || member_id == player_data->id)
         return false;
 
-    const auto agent = GW::Agents::GetAgentByID(id);
+    const auto agent = GW::Agents::GetAgentByID(member_id);
     if (!agent)
         return false;
 
@@ -600,11 +599,11 @@ bool EmoRoutine::RoutineTurtleGDW() const
     if (!player_data->CanCast())
         return false;
 
-    const auto agent = GW::Agents::GetAgentByID(turtle_id);
+    const auto *agent = GW::Agents::GetAgentByID(turtle_id);
     if (!agent)
         return false;
 
-    const auto living = agent->GetAsAgentLiving();
+    const auto *living = agent->GetAsAgentLiving();
     if (!living || living->GetIsMoving() || living->GetIsDead() || living->hp == 0.00F)
         return false;
 
@@ -625,14 +624,15 @@ bool EmoRoutine::RoutineDbBeforeDhuum() const
     if (!db_agent)
         return false;
 
-    const auto living = db_agent->GetAsAgentLiving();
+    const auto *living = db_agent->GetAsAgentLiving();
     if (!living)
         return false;
 
     const auto dist = GW::GetDistance(player_data->pos, db_agent->pos);
     if (GW::PartyMgr::GetPartySize() <= 6 && dist > 2100.0F)
         return false;
-    else if (GW::PartyMgr::GetPartySize() > 6 && dist > GW::Constants::Range::Spellcast)
+
+    if (GW::PartyMgr::GetPartySize() > 6 && dist > GW::Constants::Range::Spellcast)
         return false;
 
     if (GW::PartyMgr::GetPartySize() > 6 && CastBondIfNotAvailable(skillbar->balth, living->agent_id, player_data))
@@ -702,11 +702,11 @@ bool EmoRoutine::DropBondsLT() const
     if (!lt_agent || !lt_agent->agent_id)
         return false;
 
-    auto buffs = GW::Effects::GetPlayerBuffs();
+    auto *buffs = GW::Effects::GetPlayerBuffs();
     if (!buffs || !buffs->valid() || buffs->size() == 0)
         return false;
 
-    const auto lt_living = lt_agent->GetAsAgentLiving();
+    const auto *lt_living = lt_agent->GetAsAgentLiving();
     if (!lt_living)
         return false;
 
@@ -720,7 +720,7 @@ bool EmoRoutine::DropAllBonds() const
 {
     auto dropped_smth = false;
 
-    auto buffs = GW::Effects::GetPlayerBuffs();
+    auto *buffs = GW::Effects::GetPlayerBuffs();
     if (!buffs || !buffs->valid() || buffs->size() == 0)
         return false;
 
@@ -815,8 +815,8 @@ RoutineState EmoRoutine::Routine()
         !used_canthas && ((GW::PartyMgr::GetPartySize() <= 4) ||
                           (GW::PartyMgr::GetPartySize() == 5 && GW::Map::GetInstanceTime() < EIGHT_MINS_IN_MS));
 
-    const auto item_context = GW::GetItemContext();
-    const auto world_context = GW::GetWorldContext();
+    const auto *item_context = GW::GetItemContext();
+    const auto *world_context = GW::GetWorldContext();
 
     if (item_context && IsAtValeSpirits(player_data->pos) && stone_should_be_used &&
         UseInventoryItem(CANTHA_STONE_ID, 1, item_context->bags_array.size()))
@@ -869,9 +869,9 @@ RoutineState EmoRoutine::Routine()
     if (!is_in_dhuum_room)
         return RoutineState::FINISHED;
 
-    auto dhuum_hp = float{0.0F};
+    auto dhuum_hp = 0.0F;
     auto dhuum_max_hp = uint32_t{0U};
-    const auto dhuum_agent = GetDhuumAgent();
+    const auto *dhuum_agent = GetDhuumAgent();
     GetDhuumAgentData(dhuum_agent, dhuum_hp, dhuum_max_hp);
     if (dhuum_hp < 0.25F)
         return RoutineState::FINISHED;
@@ -967,32 +967,22 @@ bool EmoRoutine::BondLtAtStartRoutine() const
         return false;
     }
 
-    const auto tank = GW::Agents::GetAgentByID(tank_id);
+    const auto *tank = GW::Agents::GetAgentByID(tank_id);
     if (!tank)
-    {
         return false;
-    }
 
     const auto is_alive_ally = IsAliveAlly(tank);
     if (!is_alive_ally)
-    {
         return false;
-    }
 
     if (CastBondIfNotAvailable(skillbar->balth, tank_id, player_data))
-    {
         return true;
-    }
 
     if (CastBondIfNotAvailable(skillbar->prot, tank_id, player_data))
-    {
         return true;
-    }
 
     if (CastBondIfNotAvailable(skillbar->life, tank_id, player_data))
-    {
         return true;
-    }
 
     return false;
 }

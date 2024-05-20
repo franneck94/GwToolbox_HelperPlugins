@@ -34,36 +34,12 @@
 namespace
 {
 constexpr auto CTOS_ID_HERO_ACTION = 0xC;
+
 constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
-} // namespace
 
-DLLAPI ToolboxPlugin *ToolboxPluginInstance()
-{
-    static HeroWindow instance;
-    return &instance;
-}
-
-void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
-{
-    ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
-    GW::Initialize();
-
-    GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(
-        &MapLoaded_Entry,
-        [this](GW::HookStatus *, const GW::Packet::StoC::MapLoaded *) -> void { ResetData(); });
-
-    GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"HeroWindow");
-}
-
-void HeroWindow::SignalTerminate()
-{
-    ToolboxUIPlugin::SignalTerminate();
-    GW::DisableHooks();
-}
-
-static bool HasWaitedLongEnough(const long timer_threshold_ms)
+bool HasWaitedLongEnough(const long timer_threshold_ms)
 {
     static auto timer_last_cast_ms = clock();
 
@@ -75,9 +51,7 @@ static bool HasWaitedLongEnough(const long timer_threshold_ms)
     return true;
 }
 
-static void HeroUseSkill(const uint32_t hero_agent_id,
-                         const uint32_t target_agent_id,
-                         const GW::Constants::SkillID skill_id)
+void HeroUseSkill(const uint32_t hero_agent_id, const uint32_t target_agent_id, const GW::Constants::SkillID skill_id)
 {
     struct HeroUseSkill_s
     {
@@ -96,10 +70,10 @@ static void HeroUseSkill(const uint32_t hero_agent_id,
     GW::CtoS::SendPacket(&pak);
 }
 
-static bool HeroCastSkillIfAvailable(const GW::HeroPartyMember &hero,
-                                     const GW::AgentLiving *hero_living,
-                                     const uint32_t target_agent_id,
-                                     const GW::Constants::SkillID skill_id)
+bool HeroCastSkillIfAvailable(const GW::HeroPartyMember &hero,
+                              const GW::AgentLiving *hero_living,
+                              const uint32_t target_agent_id,
+                              const GW::Constants::SkillID skill_id)
 {
     if (!hero_living || (skill_id == GW::Constants::SkillID::No_Skill))
         return false;
@@ -133,6 +107,31 @@ static bool HeroCastSkillIfAvailable(const GW::HeroPartyMember &hero,
     }
 
     return false;
+}
+} // namespace
+
+DLLAPI ToolboxPlugin *ToolboxPluginInstance()
+{
+    static HeroWindow instance;
+    return &instance;
+}
+
+void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
+{
+    ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
+    GW::Initialize();
+
+    GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(
+        &MapLoaded_Entry,
+        [this](GW::HookStatus *, const GW::Packet::StoC::MapLoaded *) -> void { ResetData(); });
+
+    GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"HeroWindow");
+}
+
+void HeroWindow::SignalTerminate()
+{
+    ToolboxUIPlugin::SignalTerminate();
+    GW::DisableHooks();
 }
 
 uint32_t HeroWindow::GetNumPlayerHeroes()
@@ -202,9 +201,7 @@ void HeroWindow::UseBipOnPlayer()
     for (const auto effect : *effects)
     {
         if (effect.skill_id == GW::Constants::SkillID::Blood_is_Power && effect.agent_id == player_data.id)
-        {
             return;
-        }
     }
 
     if (player_data.living->energy_regen > 0.03F)
@@ -236,25 +233,20 @@ void HeroWindow::UseBipOnPlayer()
     }
 }
 
-bool HeroWindow::MesmerSpikeTarget(const GW::HeroPartyMember &hero)
+void HeroWindow::MesmerSpikeTarget(const GW::HeroPartyMember &hero) const
 {
     if (!IsMapReady() || !IsExplorable())
-        return false;
+        return;
 
     const auto *hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
     if (!hero_agent)
-        return false;
+        return;
     const auto *hero_living = hero_agent->GetAsAgentLiving();
     if (!hero_living)
-        return false;
+        return;
 
     if (hero_living->primary == static_cast<uint8_t>(GW::Constants::Profession::Mesmer))
-    {
-        if (HeroCastSkillIfAvailable(hero, hero_living, target_agent_id, GW::Constants::SkillID::Energy_Surge))
-            return true;
-    }
-
-    return false;
+        HeroCastSkillIfAvailable(hero, hero_living, target_agent_id, GW::Constants::SkillID::Energy_Surge);
 }
 
 void HeroWindow::UseFallback()
@@ -323,7 +315,7 @@ void HeroWindow::AttackTarget()
         {
             GW::CtoS::SendPacket(CTOS_ID_HERO_ACTION, GAME_CMSG_HERO_LOCK_TARGET, hero.agent_id, target_agent_id);
 
-            (void)MesmerSpikeTarget(hero);
+            MesmerSpikeTarget(hero);
         }
     }
 }
@@ -354,6 +346,8 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
                      GetWinFlags(ImGuiWindowFlags_NoResize)))
     {
         const auto width = ImGui::GetWindowWidth();
+        const auto im_button_size = ImVec2{width / 3.0F - 10.0F, 50.0F};
+
         auto added_color_follow = false;
         auto toggled_follow = false;
 
@@ -375,7 +369,7 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
             break;
         }
         }
-        if (ImGui::Button("Behaviour###toggleState", ImVec2{width / 3.0F - 10.0F, 50.0F}))
+        if (ImGui::Button("Behaviour###toggleState", im_button_size))
         {
             ToggleHeroBehaviour();
         }
@@ -386,7 +380,7 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
             added_color_follow = true;
         }
         ImGui::SameLine();
-        if (ImGui::Button("Follow###followPlayer", ImVec2{width / 3.0F - 10.0F, 50.0F}))
+        if (ImGui::Button("Follow###followPlayer", im_button_size))
         {
             following_active = !following_active;
             toggled_follow = true;
@@ -408,12 +402,15 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
         {
             UseBipOnPlayer();
         }
+
         if (added_color_follow)
         {
             ImGui::PopStyleColor();
         }
+
         ImGui::SameLine();
-        if (ImGui::Button("Attack###attackTarget", ImVec2{width / 3.0F - 10.0F, 50.0F}))
+
+        if (ImGui::Button("Attack###attackTarget", im_button_size))
         {
             if (IsExplorable())
             {
