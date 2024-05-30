@@ -832,6 +832,16 @@ RoutineState EmoRoutine::Routine()
     if (IsGoingToDhuum(player_data->pos) && DropBondsLT())
         return RoutineState::FINISHED;
 
+    return DhuumRoomRoutine();
+}
+
+RoutineState EmoRoutine::DhuumRoomRoutine()
+{
+    const auto is_in_dhuum_room = IsInDhuumRoom(player_data->pos);
+    const auto is_in_dhuum_fight = IsInDhuumFight(player_data->pos);
+    const auto *item_context = GW::GetItemContext();
+    const auto *world_context = GW::GetWorldContext();
+
     if (!is_in_dhuum_room)
         return RoutineState::FINISHED;
 

@@ -27,6 +27,7 @@ public:
         : DbActionABC(p, "DbRoutine", s), livings_data(a){};
 
     RoutineState Routine() override;
+    RoutineState DhuumRoomRoutine();
     void Update() override;
 
 private:

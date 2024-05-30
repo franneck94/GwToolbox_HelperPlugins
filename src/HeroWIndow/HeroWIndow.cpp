@@ -9,6 +9,7 @@
 #include <GWCA/Context/WorldContext.h>
 #include <GWCA/GWCA.h>
 #include <GWCA/GameEntities/Agent.h>
+#include <GWCA/GameEntities/Hero.h>
 #include <GWCA/GameEntities/Map.h>
 #include <GWCA/GameEntities/Party.h>
 #include <GWCA/GameEntities/Player.h>
@@ -23,7 +24,6 @@
 #include "Helper.h"
 #include "HelperAgents.h"
 #include "HelperMaps.h"
-#include "HelperPackets.h"
 #include "Logger.h"
 #include "Utils.h"
 
@@ -39,41 +39,39 @@ constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 
-bool HasWaitedLongEnough(const long timer_threshold_ms)
+void HeroUseSkill(const uint32_t hero_agent_id,
+                  const uint32_t target_agent_id,
+                  const uint32_t skill_idx,
+                  const uint32_t hero_idx)
 {
-    static auto timer_last_cast_ms = clock();
+    auto hero_action = GW::UI::ControlAction_Hero1Skill1;
+    if (hero_idx == 1)
+        hero_action = GW::UI::ControlAction_Hero1Skill1;
+    else if (hero_idx == 2)
+        hero_action = GW::UI::ControlAction_Hero2Skill1;
+    else if (hero_idx == 3)
+        hero_action = GW::UI::ControlAction_Hero3Skill1;
+    else if (hero_idx == 4)
+        hero_action = GW::UI::ControlAction_Hero4Skill1;
+    else if (hero_idx == 5)
+        hero_action = GW::UI::ControlAction_Hero5Skill1;
+    else if (hero_idx == 6)
+        hero_action = GW::UI::ControlAction_Hero6Skill1;
+    else if (hero_idx == 7)
+        hero_action = GW::UI::ControlAction_Hero7Skill1;
+    else
+        return;
 
-    const auto last_cast_diff_ms = TIMER_DIFF(timer_last_cast_ms);
-    if (last_cast_diff_ms < timer_threshold_ms)
-        return false;
-
-    timer_last_cast_ms = clock();
-    return true;
-}
-
-void HeroUseSkill(const uint32_t hero_agent_id, const uint32_t target_agent_id, const GW::Constants::SkillID skill_id)
-{
-    struct HeroUseSkill_s
-    {
-        uint32_t header;
-        uint32_t hero_agent_id;
-        uint32_t skill_id;
-        uint32_t call_target;
-        uint32_t target_id;
-    };
-    static HeroUseSkill_s pak;
-    pak.header = GAME_CMSG_HERO_USE_SKILL;
-    pak.hero_agent_id = hero_agent_id;
-    pak.skill_id = (uint32_t)(skill_id);
-    pak.call_target = 0U;
-    pak.target_id = target_agent_id;
-    GW::CtoS::SendPacket(&pak);
+    GW::GameThread::Enqueue([hero_action, skill_idx, target_agent_id] {
+        GW::UI::Keypress((GW::UI::ControlAction)(static_cast<uint32_t>(hero_action) + skill_idx));
+    });
 }
 
 bool HeroCastSkillIfAvailable(const GW::HeroPartyMember &hero,
                               const GW::AgentLiving *hero_living,
                               const uint32_t target_agent_id,
-                              const GW::Constants::SkillID skill_id)
+                              const GW::Constants::SkillID skill_id,
+                              const uint32_t hero_idx)
 {
     if (!hero_living || (skill_id == GW::Constants::SkillID::No_Skill))
         return false;
@@ -87,22 +85,32 @@ bool HeroCastSkillIfAvailable(const GW::HeroPartyMember &hero,
         if (skillbar.agent_id != hero_living->agent_id)
             continue;
 
+        auto skill_idx = 0U;
         for (const auto &skill : skillbar.skills)
         {
             const auto has_skill_in_skillbar = skill.skill_id == skill_id;
             if (!has_skill_in_skillbar)
+            {
+                ++skill_idx;
                 continue;
+            }
 
             const auto *skill_data = GW::SkillbarMgr::GetSkillConstantData(skill_id);
-            if (!skill_data)
+            if (!has_skill_in_skillbar)
+            {
+                ++skill_idx;
                 continue;
+            }
+
             const auto hero_energy = (static_cast<uint32_t>(hero_living->energy) * hero_living->max_energy);
 
             if (has_skill_in_skillbar && skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost())
             {
-                HeroUseSkill(hero.agent_id, target_agent_id, skill.skill_id);
+                HeroUseSkill(hero.agent_id, target_agent_id, skill_idx, hero_idx);
                 return true;
             }
+
+            ++skill_idx;
         }
     }
 
@@ -155,20 +163,17 @@ void HeroWindow::ToggleHeroBehaviour()
 
     Log::Info("Toggle hero hehaviour!");
 
-    if (current_hero_behaviour == HeroBehaviour::GUARD)
-        current_hero_behaviour = HeroBehaviour::AVOID_COMBAT;
-    else if (current_hero_behaviour == HeroBehaviour::ATTACK)
-        current_hero_behaviour = HeroBehaviour::GUARD;
-    else if (current_hero_behaviour == HeroBehaviour::AVOID_COMBAT)
-        current_hero_behaviour = HeroBehaviour::ATTACK;
+    if (current_hero_behaviour == GW::HeroBehavior::Guard)
+        current_hero_behaviour = GW::HeroBehavior::AvoidCombat;
+    else if (current_hero_behaviour == GW::HeroBehavior::Fight)
+        current_hero_behaviour = GW::HeroBehavior::Guard;
+    else if (current_hero_behaviour == GW::HeroBehavior::AvoidCombat)
+        current_hero_behaviour = GW::HeroBehavior::Fight;
 
     for (const auto &hero : *party_heros)
     {
         if (hero.owner_player_id == player_data.living->login_number)
-            GW::CtoS::SendPacket(CTOS_ID_HERO_ACTION,
-                                 GAME_CMSG_HERO_BEHAVIOR,
-                                 hero.agent_id,
-                                 static_cast<uint8_t>(current_hero_behaviour));
+            GW::PartyMgr::SetHeroBehavior(hero.agent_id, current_hero_behaviour);
     }
 }
 
@@ -188,7 +193,7 @@ void HeroWindow::UseBipOnPlayer()
     if (!IsMapReady() || !IsExplorable() || !party_heros)
         return;
 
-    if (!HasWaitedLongEnough(wait_time_ms))
+    if (!ActionABC::HasWaitedLongEnough(wait_time_ms))
         return;
 
     if (player_data.energy_perc > 0.30F)
@@ -207,33 +212,46 @@ void HeroWindow::UseBipOnPlayer()
     if (player_data.living->energy_regen > 0.03F)
         return;
 
+    auto hero_idx = 1U;
     for (const auto &hero : *party_heros)
     {
         if (hero.owner_player_id == player_data.living->login_number)
         {
             const auto *hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
             if (!hero_agent)
+            {
+                ++hero_idx;
                 continue;
+            }
             const auto *hero_living = hero_agent->GetAsAgentLiving();
             if (!hero_living)
+            {
+                ++hero_idx;
                 continue;
+            }
 
             const auto dist = GW::GetDistance(hero_living->pos, player_data.pos);
 
             if (hero_living->primary == static_cast<uint8_t>(GW::Constants::Profession::Necromancer) &&
                 dist < GW::Constants::Range::Spellcast && hero_living->hp > 0.80F)
             {
-                if (HeroCastSkillIfAvailable(hero, hero_living, player_data.id, GW::Constants::SkillID::Blood_is_Power))
+                if (HeroCastSkillIfAvailable(hero,
+                                             hero_living,
+                                             player_data.id,
+                                             GW::Constants::SkillID::Blood_is_Power,
+                                             hero_idx))
                 {
                     Log::Info("Casted BIP.");
                     return;
                 }
             }
+
+            ++hero_idx;
         }
     }
 }
 
-void HeroWindow::MesmerSpikeTarget(const GW::HeroPartyMember &hero) const
+void HeroWindow::MesmerSpikeTarget(const GW::HeroPartyMember &hero, const uint32_t hero_idx) const
 {
     if (!IsMapReady() || !IsExplorable())
         return;
@@ -246,7 +264,7 @@ void HeroWindow::MesmerSpikeTarget(const GW::HeroPartyMember &hero) const
         return;
 
     if (hero_living->primary == static_cast<uint8_t>(GW::Constants::Profession::Mesmer))
-        HeroCastSkillIfAvailable(hero, hero_living, target_agent_id, GW::Constants::SkillID::Energy_Surge);
+        HeroCastSkillIfAvailable(hero, hero_living, target_agent_id, GW::Constants::SkillID::Energy_Surge, hero_idx);
 }
 
 void HeroWindow::UseFallback()
@@ -256,7 +274,7 @@ void HeroWindow::UseFallback()
     if (!IsMapReady() || !IsExplorable() || !party_heros)
         return;
 
-    if (!HasWaitedLongEnough(wait_time_ms))
+    if (!ActionABC::HasWaitedLongEnough(wait_time_ms))
         return;
 
     const auto *effects = GetEffects(player_data.id);
@@ -269,25 +287,38 @@ void HeroWindow::UseFallback()
             return;
     }
 
+    auto hero_idx = 1U;
     for (const auto &hero : *party_heros)
     {
         if (hero.owner_player_id == player_data.living->login_number)
         {
             const auto *hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
             if (!hero_agent)
+            {
+                ++hero_idx;
                 continue;
+            }
             const auto *hero_living = hero_agent->GetAsAgentLiving();
             if (!hero_living)
+            {
+                ++hero_idx;
                 continue;
+            }
 
             if (hero_living->secondary == static_cast<uint8_t>(GW::Constants::Profession::Paragon))
             {
-                if (HeroCastSkillIfAvailable(hero, hero_living, target_agent_id, GW::Constants::SkillID::Fall_Back))
+                if (HeroCastSkillIfAvailable(hero,
+                                             hero_living,
+                                             target_agent_id,
+                                             GW::Constants::SkillID::Fall_Back,
+                                             hero_idx))
                 {
                     Log::Info("Used Fall Back.");
                     return;
                 }
             }
+
+            ++hero_idx;
         }
     }
 }
@@ -309,14 +340,17 @@ void HeroWindow::AttackTarget()
 
     Log::Info("Heroes will attack the players target!");
 
+    auto hero_idx = 1U;
     for (const auto &hero : *party_heros)
     {
         if (hero.owner_player_id == player_data.living->login_number)
         {
-            GW::CtoS::SendPacket(CTOS_ID_HERO_ACTION, GAME_CMSG_HERO_LOCK_TARGET, hero.agent_id, target_agent_id);
+            // GW::CtoS::SendPacket(CTOS_ID_HERO_ACTION, GAME_CMSG_HERO_LOCK_TARGET, hero.agent_id, target_agent_id);
 
-            MesmerSpikeTarget(hero);
+            MesmerSpikeTarget(hero, hero_idx);
         }
+
+        ++hero_idx;
     }
 }
 
@@ -353,17 +387,17 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
 
         switch (current_hero_behaviour)
         {
-        case HeroBehaviour::GUARD:
+        case GW::HeroBehavior::Guard:
         {
             ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_BLUE);
             break;
         }
-        case HeroBehaviour::AVOID_COMBAT:
+        case GW::HeroBehavior::AvoidCombat:
         {
             ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
             break;
         }
-        case HeroBehaviour::ATTACK:
+        case GW::HeroBehavior::Fight:
         {
             ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_RED);
             break;

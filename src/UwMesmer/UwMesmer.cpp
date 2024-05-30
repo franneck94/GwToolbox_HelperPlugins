@@ -101,19 +101,13 @@ RoutineState LtRoutine::Routine()
     static auto took_quest = false;
 
     if (!IsUw())
-    {
         return RoutineState::FINISHED;
-    }
 
     if (gone_to_npc)
-    {
         delay_ms = 475L;
-    }
 
     if (!ActionABC::HasWaitedLongEnough(delay_ms))
-    {
         return RoutineState::ACTIVE;
-    }
 
     if (starting_active)
     {
@@ -132,9 +126,7 @@ RoutineState LtRoutine::Routine()
             {
                 player_data->ChangeTarget(agent_id);
                 if (RoutineState::FINISHED == skillbar->ebon.Cast(player_data->energy, agent_id))
-                {
                     return RoutineState::FINISHED;
-                }
             }
         }
         else

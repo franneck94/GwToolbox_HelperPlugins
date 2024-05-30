@@ -34,6 +34,7 @@ public:
                const AgentLivingData *a);
 
     RoutineState Routine() override;
+    RoutineState DhuumRoomRoutine();
     void Update() override;
 
     void Initialize();

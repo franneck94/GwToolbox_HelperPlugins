@@ -1,9 +1,11 @@
 #include <cstdint>
 
 #include <GWCA/GameEntities/Player.h>
+#include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/CtoSMgr.h>
 #include <GWCA/Managers/MapMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
+#include <GWCA/Managers/UIMgr.h>
 #include <GWCA/Packets/Opcodes.h>
 
 #include "Helper.h"
@@ -27,14 +29,14 @@ bool HelperActivationConditions(const bool need_party_loaded)
 
 void CancelMovement()
 {
-    GW::CtoS::SendPacket(0x4, GAME_CMSG_CANCEL_MOVEMENT);
+    GW::UI::Keypress(GW::UI::ControlAction_CancelAction); // former: GAME_CMSG_CANCEL_MOVEMENT
 }
 
 void AttackAgent(const GW::Agent *agent)
 {
     if (!agent)
-    {
         return;
-    }
-    GW::CtoS::SendPacket(0xC, GAME_CMSG_ATTACK_AGENT, agent->agent_id, 0);
+
+    GW::Agents::ChangeTarget(agent->agent_id);
+    GW::UI::Keypress(GW::UI::ControlAction_Interact); // former: GAME_CMSG_ATTACK_AGENT
 }

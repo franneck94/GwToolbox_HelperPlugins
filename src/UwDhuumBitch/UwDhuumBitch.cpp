@@ -427,15 +427,22 @@ RoutineState DbRoutine::Routine()
     if (!is_in_dhuum_room)
         return RoutineState::FINISHED;
 
+    return DhuumRoomRoutine();
+}
+
+RoutineState DbRoutine::DhuumRoomRoutine()
+{
+    const auto is_in_dhuum_fight = IsInDhuumFight(player_data->pos);
+
     if (is_in_dhuum_fight && RoutineDhuumRecharge())
         return RoutineState::FINISHED;
 
-    const auto dhuum_agent = GetDhuumAgent();
+    const auto *dhuum_agent = GetDhuumAgent();
     if (!is_in_dhuum_fight || !dhuum_agent)
         return RoutineState::FINISHED;
 
-    const auto world_context = GW::GetWorldContext();
-    const auto item_context = GW::GetItemContext();
+    const auto *world_context = GW::GetWorldContext();
+    const auto *item_context = GW::GetItemContext();
     if (world_context && item_context)
     {
         static auto last_time_cookie = clock();
@@ -451,7 +458,7 @@ RoutineState DbRoutine::Routine()
     if (dhuum_dist > GW::Constants::Range::Spellcast)
         return RoutineState::FINISHED;
 
-    auto dhuum_hp = float{0.0F};
+    auto dhuum_hp = 0.0F;
     auto dhuum_max_hp = uint32_t{0U};
     GetDhuumAgentData(dhuum_agent, dhuum_hp, dhuum_max_hp);
     if (dhuum_hp < 0.20F)

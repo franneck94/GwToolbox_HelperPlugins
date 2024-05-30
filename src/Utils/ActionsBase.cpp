@@ -21,9 +21,7 @@ auto COLOR_MAPPING = std::map<uint32_t, ImVec4>{{static_cast<uint32_t>(ActionSta
 void ActionABC::Draw(const ImVec2 button_size, const bool allow_in_outpost)
 {
     if (!allow_in_outpost && !IsExplorable())
-    {
         action_state = ActionState::INACTIVE;
-    }
 
     const auto &color = COLOR_MAPPING[static_cast<uint32_t>(action_state)];
     DrawButton(action_state, color, text, button_size);
@@ -35,9 +33,7 @@ bool ActionABC::HasWaitedLongEnough(const long timer_threshold_ms)
 
     const auto last_cast_diff_ms = TIMER_DIFF(timer_last_cast_ms);
     if (last_cast_diff_ms < timer_threshold_ms)
-    {
         return false;
-    }
 
     timer_last_cast_ms = clock();
     return true;

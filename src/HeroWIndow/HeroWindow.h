@@ -6,17 +6,11 @@
 
 #include <GWCA/GameContainers/Array.h>
 #include <GWCA/GameEntities/Agent.h>
+#include <GWCA/GameEntities/Hero.h>
 #include <GWCA/GameEntities/Party.h>
 
 #include "ActionsBase.h"
 #include "DataPlayer.h"
-
-enum class HeroBehaviour : int
-{
-    AVOID_COMBAT = 2,
-    GUARD = 1,
-    ATTACK = 0,
-};
 
 class HeroWindow : public ToolboxUIPlugin
 {
@@ -49,14 +43,14 @@ private:
     void FollowPlayer();
     void UseBipOnPlayer();
     void UseFallback();
-    void MesmerSpikeTarget(const GW::HeroPartyMember &hero) const;
+    void MesmerSpikeTarget(const GW::HeroPartyMember &hero, const uint32_t hero_idx) const;
     void AttackTarget();
     void ResetData();
 
     DataPlayer player_data;
     const GW::Array<GW::HeroPartyMember> *party_heros = nullptr;
 
-    HeroBehaviour current_hero_behaviour = HeroBehaviour::GUARD;
+    GW::HeroBehavior current_hero_behaviour = GW::HeroBehavior::Guard;
     GW::GamePos follow_pos = {};
     uint32_t target_agent_id = 0;
     bool following_active = false;
