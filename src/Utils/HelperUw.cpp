@@ -433,10 +433,8 @@ bool CheckForAggroFree(const DataPlayer &player_data, const AgentLivingData *liv
 
     const auto rect = GameRectangle(player_data.pos, next_pos, GW::Constants::Range::Spellcast + 50.0F);
     const auto filtered_livings = GetEnemiesInGameRectangle(rect, livings_data->enemies);
-    Log::Info("Num enemies in  rect: %d", filtered_livings.size());
 
     const auto result_ids_rect = FilterAgentIDS(filtered_livings, filter_ids);
-    Log::Info("Num filtered enemies in rect: %d", result_ids_rect.size());
     return result_ids_rect.size() == 0;
 }
 

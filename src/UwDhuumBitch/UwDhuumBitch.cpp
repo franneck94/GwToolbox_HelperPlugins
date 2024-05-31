@@ -193,7 +193,9 @@ void UwDhuumBitch::Update(float)
         return;
     }
 
+    livings_data.Update();
     player_data.Update();
+
     db_routine.livings_data = &livings_data;
     db_routine.num_finished_objectives = uw_metadata.num_finished_objectives;
 
