@@ -62,8 +62,14 @@ void HeroUseSkill(const uint32_t hero_agent_id,
     else
         return;
 
-    GW::GameThread::Enqueue([hero_action, skill_idx, target_agent_id] {
+    const auto curr_target_id = GW::Agents::GetTargetId();
+
+    GW::GameThread::Enqueue([=] {
+        if (target_agent_id && target_agent_id != GW::Agents::GetTargetId())
+            GW::Agents::ChangeTarget(target_agent_id);
         GW::UI::Keypress((GW::UI::ControlAction)(static_cast<uint32_t>(hero_action) + skill_idx));
+        if (target_agent_id != curr_target_id)
+            GW::Agents::ChangeTarget(curr_target_id);
     });
 }
 
@@ -186,6 +192,21 @@ void HeroWindow::FollowPlayer()
     GW::PartyMgr::FlagAll(follow_pos);
 }
 
+bool HeroWindow::PlayerHasAlreadyBip()
+{
+    const auto *effects = GetEffects(player_data.id);
+    if (!effects)
+        return false;
+
+    for (const auto effect : *effects)
+    {
+        if (effect.skill_id == GW::Constants::SkillID::Blood_is_Power && effect.agent_id == player_data.id)
+            return true;
+    }
+
+    return false;
+}
+
 void HeroWindow::UseBipOnPlayer()
 {
     constexpr static auto wait_time_ms = 1000;
@@ -199,15 +220,8 @@ void HeroWindow::UseBipOnPlayer()
     if (player_data.energy_perc > 0.30F)
         return;
 
-    const auto *effects = GetEffects(player_data.id);
-    if (!effects)
+    if (PlayerHasAlreadyBip())
         return;
-
-    for (const auto effect : *effects)
-    {
-        if (effect.skill_id == GW::Constants::SkillID::Blood_is_Power && effect.agent_id == player_data.id)
-            return;
-    }
 
     if (player_data.living->energy_regen > 0.03F)
         return;
@@ -344,11 +358,7 @@ void HeroWindow::AttackTarget()
     for (const auto &hero : *party_heros)
     {
         if (hero.owner_player_id == player_data.living->login_number)
-        {
-            // GW::CtoS::SendPacket(CTOS_ID_HERO_ACTION, GAME_CMSG_HERO_LOCK_TARGET, hero.agent_id, target_agent_id);
-
             MesmerSpikeTarget(hero, hero_idx);
-        }
 
         ++hero_idx;
     }

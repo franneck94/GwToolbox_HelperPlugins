@@ -41,6 +41,7 @@ private:
     uint32_t GetNumPlayerHeroes();
     void ToggleHeroBehaviour();
     void FollowPlayer();
+    bool PlayerHasAlreadyBip();
     void UseBipOnPlayer();
     void UseFallback();
     void MesmerSpikeTarget(const GW::HeroPartyMember &hero, const uint32_t hero_idx) const;
