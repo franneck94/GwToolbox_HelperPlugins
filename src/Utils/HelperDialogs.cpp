@@ -1,13 +1,46 @@
-#include "HelperQuests.h"
+#include "HelperDialogs.h"
+
+namespace
+{
+enum class QuestDialogType
+{
+    ENQUIRE = 0x800003,
+    TAKE = 0x800001,
+    ENQUIRE_NEXT = 0x800004,
+    RECAP = 0x800005,
+    ENQUIRE_REWARD = 0x800006,
+    REWARD = 0x800007
+};
+}
+
+bool IsQuest(const uint32_t dialog_id)
+{
+    return (dialog_id & 0x800000) != 0;
+}
+
+uint32_t GetQuestID(const uint32_t dialog_id)
+{
+    return (dialog_id ^ 0x800000) >> 8;
+}
+
+uint32_t GetDialogIDForQuestDialogType(const uint32_t quest_id, QuestDialogType type)
+{
+    return quest_id << 8 | std::to_underlying(type);
+}
+
+QuestDialogType GetQuestDialogType(const uint32_t dialog_id)
+{
+    return static_cast<QuestDialogType>(dialog_id & 0xf0000f);
+}
 
 uint32_t QuestAcceptDialog(GW::Constants::QuestID quest)
 {
-    return static_cast<int>(quest) << 8 | 0x800001;
+    return static_cast<int>(quest) << 8 | static_cast<int>(QuestDialogType::TAKE);
 }
 
 uint32_t QuestRewardDialog(GW::Constants::QuestID quest)
 {
-    return static_cast<int>(quest) << 8 | 0x800007;
+    return static_cast<int>(quest) << 8 | static_cast<int>(QuestDialogType::REWARD);
 }
 
 GW::Constants::QuestID IndexToQuestID(const int index)
@@ -117,5 +150,22 @@ uint32_t IndexToDialogID(const int index)
         return GW::Constants::DialogID::NightfallMissionOutpost;
     default:
         return 0;
+    }
+}
+
+bool IsUWTele(const uint32_t dialog_id)
+{
+    switch (dialog_id)
+    {
+    case GW::Constants::DialogID::UwTeleLab:
+    case GW::Constants::DialogID::UwTeleVale:
+    case GW::Constants::DialogID::UwTelePits:
+    case GW::Constants::DialogID::UwTelePools:
+    case GW::Constants::DialogID::UwTelePlanes:
+    case GW::Constants::DialogID::UwTeleWastes:
+    case GW::Constants::DialogID::UwTeleMnt:
+        return true;
+    default:
+        return false;
     }
 }

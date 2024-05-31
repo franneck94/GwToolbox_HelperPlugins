@@ -19,7 +19,6 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif()
 
 # Settings
-add_definitions(-DGWCA_CTOS_ENABLED=1)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(GWTOOLBOXPP_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/build/_deps/gwtoolboxpp-src")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/bin/")

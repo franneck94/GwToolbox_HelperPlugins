@@ -105,11 +105,11 @@ bool OnChatMessagePlayerReady(GW::HookStatus *, GW::Packet::StoC::PacketBase *pa
     const auto trigger_id = GetUwTriggerRoleId(trigger_role);
     if (!trigger_id)
         return false;
-    const auto trigger_agent = GW::Agents::GetAgentByID(trigger_id);
+    const auto *trigger_agent = GW::Agents::GetAgentByID(trigger_id);
     if (!trigger_agent)
         return false;
 
-    const auto trigger_living = trigger_agent->GetAsAgentLiving();
+    const auto *trigger_living = trigger_agent->GetAsAgentLiving();
     if (!trigger_living || trigger_living->player_number != player_number)
         return false;
 

@@ -217,7 +217,7 @@ void UwEmo::UpdateUwEntry()
         emo_routine.used_canthas = false;
     }
 
-    if (uw_metadata.load_cb_triggered && !TankIsSoloLT())
+    if (uw_metadata.load_cb_triggered && TankIsFullteamLT())
     {
         uw_metadata.load_cb_triggered = false;
         emo_routine.action_state = ActionState::ACTIVE;
@@ -251,7 +251,9 @@ void UwEmo::Update(float)
     if (!player_data.ValidateData(HelperActivationConditions, true))
         return;
 
+    livings_data.Update();
     player_data.Update();
+
     emo_routine.livings_data = &livings_data;
     emo_routine.num_finished_objectives = uw_metadata.num_finished_objectives;
 
@@ -778,7 +780,7 @@ RoutineState EmoRoutine::Routine()
     if (IsUw() && IsOnSpawnPlateau(player_data->pos, 300.0F) && BondLtAtStartRoutine())
         return RoutineState::ACTIVE;
 
-    if (IsUw() && IsOnSpawnPlateau(player_data->pos, 300.0F) && !TankIsSoloLT())
+    if (IsUw() && IsOnSpawnPlateau(player_data->pos, 300.0F) && TankIsFullteamLT())
     {
         action_state = ActionState::INACTIVE;
         return RoutineState::FINISHED;
@@ -799,7 +801,7 @@ RoutineState EmoRoutine::Routine()
     if (!is_in_dhuum_room && RoutineDbBeforeDhuum())
         return RoutineState::FINISHED;
 
-    if (!TankIsSoloLT() && !is_in_dhuum_room)
+    if (TankIsFullteamLT() && !is_in_dhuum_room)
         return RoutineState::FINISHED;
 
     if ((IsInBasement(player_data->pos) || IsInVale(player_data->pos)) && RoutineEscortSpirits())
@@ -926,15 +928,11 @@ void EmoRoutine::Update()
     {
         const auto [lt_id, has_tank] = GetTankId();
         if (lt_id && has_tank)
-        {
             lt_agent = GW::Agents::GetAgentByID(lt_id);
-        }
 
         const auto db_id = GetDhuumBitchId();
         if (db_id)
-        {
             db_agent = GW::Agents::GetAgentByID(db_id);
-        }
     }
 
     party_members.clear();
@@ -964,7 +962,7 @@ void EmoRoutine::Update()
     if (player_data->living->GetIsMoving())
         not_moving_timer = clock();
 
-    if (!TankIsSoloLT() && TIMER_DIFF(not_moving_timer) < 1000 && action_state == ActionState::ACTIVE)
+    if (TankIsFullteamLT() && TIMER_DIFF(not_moving_timer) < 1000 && action_state == ActionState::ACTIVE)
         action_state = ActionState::ON_HOLD;
 
     if (action_state == ActionState::ACTIVE)

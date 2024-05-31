@@ -201,7 +201,7 @@ void LtRoutine::Update()
     }
 
 #ifdef _DEBUG
-    if (IsOnSpawnPlateau(player_data->pos) && !TankIsFullteamLT() && !player_data->target && load_cb_triggered)
+    if (IsOnSpawnPlateau(player_data->pos) && !TankIsFullteamLT() && !player_data->target) // && load_cb_triggered)
     {
         starting_active = true;
         action_state = ActionState::ACTIVE;

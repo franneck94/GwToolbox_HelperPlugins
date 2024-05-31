@@ -4,6 +4,7 @@
 
 #include <GWCA/Constants/Maps.h>
 #include <GWCA/Context/CharContext.h>
+#include <GWCA/Context/GameContext.h>
 #include <GWCA/GameContainers/Array.h>
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/MapMgr.h>
@@ -13,7 +14,7 @@
 #include "DataPlayer.h"
 #include "Helper.h"
 #include "HelperAgents.h"
-#include "HelperQuests.h"
+#include "HelperDialogs.h"
 #include "HelperUwPos.h"
 #include "UtilsMath.h"
 
@@ -415,35 +416,39 @@ bool CheckForAggroFree(const DataPlayer &player_data, const AgentLivingData *liv
     if (!livings_data)
         return true;
 
-    const auto filter_ids =
-        std::set<uint32_t>{GW::Constants::ModelID::UW::SkeletonOfDhuum1, GW::Constants::ModelID::UW::SkeletonOfDhuum2};
+    const auto filter_ids = std::set<uint32_t>{GW::Constants::ModelID::UW::SkeletonOfDhuum1,
+                                               GW::Constants::ModelID::UW::SkeletonOfDhuum2,
+                                               GW::Constants::ModelID::UW::TerrorwebDryder,
+                                               GW::Constants::ModelID::UW::GraspingDarkness,
+                                               GW::Constants::ModelID::UW::DyingNightmare};
 
-    const auto livings = FilterAgentsByRange(livings_data->enemies, player_data, GW::Constants::Range::Earshot);
-    const auto result_ids_Aggro = FilterAgentIDS(livings, filter_ids);
+    const auto livings = FilterAgentsByRange(livings_data->enemies, player_data, GW::Constants::Range::Spellcast);
+    const auto result_ids_aggro = FilterAgentIDS(livings, filter_ids);
 
     if (player_data.pos.x == next_pos.x && player_data.pos.y == next_pos.y)
-        return result_ids_Aggro.size() == 0;
+        return result_ids_aggro.size() == 0;
 
-    if (result_ids_Aggro.size() == 1)
+    if (result_ids_aggro.size() > 0)
         return false;
 
-    const auto rect = GameRectangle(player_data.pos, next_pos, GW::Constants::Range::Spellcast);
+    const auto rect = GameRectangle(player_data.pos, next_pos, GW::Constants::Range::Spellcast + 50.0F);
     const auto filtered_livings = GetEnemiesInGameRectangle(rect, livings_data->enemies);
+    Log::Info("Num enemies in  rect: %d", filtered_livings.size());
 
     const auto result_ids_rect = FilterAgentIDS(filtered_livings, filter_ids);
+    Log::Info("Num filtered enemies in rect: %d", result_ids_rect.size());
     return result_ids_rect.size() == 0;
 }
 
 float GetProgressValue()
 {
-    return 0.0F; // TODO
+    auto *game_context = GW::GetGameContext();
+    const auto *char_context = game_context->character;
 
-    // const auto* c = GW::CharContext::instance();
+    if (!char_context || !char_context->progress_bar)
+        return 0.0F;
 
-    // if (!c || !c->progress_bar)
-    //     return 0.0F;
-
-    // return c->progress_bar->progress;
+    return char_context->progress_bar->progress;
 }
 
 bool DhuumFightDone(const uint32_t num_objectives)

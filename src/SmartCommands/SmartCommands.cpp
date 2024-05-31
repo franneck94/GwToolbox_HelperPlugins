@@ -72,11 +72,9 @@ void SmartCommands::BaseUseSkill::CastSelectedSkill(const uint32_t current_energ
 {
     const auto lslot = slot - 1;
     const auto &skill = skillbar->skills[lslot];
-    const auto skilldata = GW::SkillbarMgr::GetSkillConstantData(skill.skill_id);
+    const auto *skilldata = GW::SkillbarMgr::GetSkillConstantData(skill.skill_id);
     if (!skilldata)
-    {
         return;
-    }
 
     const auto enough_energy = current_energy > skilldata->energy_cost;
     const auto enough_adrenaline =
@@ -85,13 +83,9 @@ void SmartCommands::BaseUseSkill::CastSelectedSkill(const uint32_t current_energ
     if (skill.GetRecharge() == 0 && enough_energy && enough_adrenaline)
     {
         if (target_id)
-        {
             GW::SkillbarMgr::UseSkill(lslot, target_id);
-        }
         else
-        {
             GW::SkillbarMgr::UseSkill(lslot, GW::Agents::GetTargetId());
-        }
 
         skill_usage_delay = skilldata->activation + skilldata->aftercast;
         skill_timer = clock();
@@ -101,41 +95,33 @@ void SmartCommands::BaseUseSkill::CastSelectedSkill(const uint32_t current_energ
 void SmartCommands::UseSkill::Update()
 {
     if (slot == 0 || ((clock() - skill_timer) / 1000.0f < skill_usage_delay))
-    {
         return;
-    }
 
-    const auto skillbar = GW::SkillbarMgr::GetPlayerSkillbar();
+    const auto *skillbar = GW::SkillbarMgr::GetPlayerSkillbar();
     if (!skillbar || !skillbar->IsValid())
     {
         slot = 0;
         return;
     }
 
-    const auto me = GW::Agents::GetPlayer();
+    const auto *me = GW::Agents::GetPlayer();
     if (!me)
-    {
         return;
-    }
 
-    const auto me_living = me->GetAsAgentLiving();
+    const auto *me_living = me->GetAsAgentLiving();
     if (!me_living)
-    {
         return;
-    }
 
-    const auto current_energy = static_cast<uint32_t>(me_living->energy * me_living->max_energy);
+    const auto current_energy = static_cast<uint32_t>(me_living->energy) * me_living->max_energy;
     CastSelectedSkill(current_energy, skillbar);
 }
 
 void SmartCommands::DhuumUseSkill::Update()
 {
     if (slot == 0)
-    {
         return;
-    }
 
-    const auto me_living = GetPlayerAsLiving();
+    const auto *me_living = GetPlayerAsLiving();
     if (!me_living || !IsUw() || !IsInDhuumRoom(me_living->pos))
     {
         slot = 0;
@@ -146,14 +132,11 @@ void SmartCommands::DhuumUseSkill::Update()
     auto target_id = uint32_t{0};
     const auto target = GetTargetAsLiving();
     if (target && target->allegiance == GW::Constants::Allegiance::Enemy && me_living && !me_living->GetIsAttacking())
-    {
         AttackAgent(target);
-    }
 
     if ((clock() - skill_timer) / 1000.0f < skill_usage_delay)
-    {
         return;
-    }
+
     const auto skillbar = GW::SkillbarMgr::GetPlayerSkillbar();
     if (!skillbar || !skillbar->IsValid())
     {
@@ -183,9 +166,7 @@ void SmartCommands::DhuumUseSkill::Update()
     {
         slot = 5;
         if (target)
-        {
             target_id = target->agent_id;
-        }
     }
     else
     {
@@ -194,15 +175,13 @@ void SmartCommands::DhuumUseSkill::Update()
     }
 
     if (!slot)
-    {
         return;
-    }
 
-    const auto current_energy = static_cast<uint32_t>((me_living->energy * me_living->max_energy));
+    const auto current_energy = static_cast<uint32_t>(me_living->energy) * me_living->max_energy;
     CastSelectedSkill(current_energy, skillbar, target_id);
 }
 
-void SmartCommands::CmdDhuumUseSkill(const wchar_t* cmd, const int argc, const LPWSTR* argv)
+void SmartCommands::CmdDhuumUseSkill(const wchar_t *cmd, const int argc, const LPWSTR *argv)
 {
     if (!IsMapReady() || !IsUw())
     {
@@ -228,7 +207,7 @@ void SmartCommands::CmdDhuumUseSkill(const wchar_t* cmd, const int argc, const L
     dhuum_useskill.slot = static_cast<uint32_t>(-1);
 }
 
-void SmartCommands::CmdUseSkill(const wchar_t* cmd, const int argc, const LPWSTR* argv)
+void SmartCommands::CmdUseSkill(const wchar_t *cmd, const int argc, const LPWSTR *argv)
 {
     if (!IsMapReady() || !IsExplorable())
     {

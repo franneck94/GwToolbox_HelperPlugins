@@ -95,6 +95,7 @@ bool Move_WaitABC::UpdateMoveState(const DataPlayer &player_data,
     const auto aggro_free = CheckForAggroFree(player_data, livings_data, pos);
     if (aggro_free)
     {
+        Log::Info("Aggro free, moving on");
         canceled_move = false;
         return true;
     }

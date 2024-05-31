@@ -121,10 +121,10 @@ GW::Item *GetBagItem(const uint32_t bag_idx, const uint32_t slot_idx)
     if (bag_idx < 1 || bag_idx > 5 || slot_idx < 1 || slot_idx > 25)
         return nullptr;
 
-    const auto bags = GW::Items::GetBagArray();
+    const auto *bags = GW::Items::GetBagArray();
     if (!bags)
         return nullptr;
-    const auto bag = bags[bag_idx];
+    const auto *bag = bags[bag_idx];
     if (!bag)
         return nullptr;
 
@@ -138,7 +138,7 @@ GW::Item *GetBagItem(const uint32_t bag_idx, const uint32_t slot_idx)
 
 bool EquipItem(const uint32_t bag_idx, const uint32_t slot_idx)
 {
-    const auto item = GetBagItem(bag_idx, slot_idx);
+    const auto *item = GetBagItem(bag_idx, slot_idx);
     if (!item)
         return false;
 
@@ -151,18 +151,18 @@ bool EquipItem(const uint32_t bag_idx, const uint32_t slot_idx)
     if (item->bag && item->bag->bag_type == GW::Constants::BagType::Equipped)
         return false;
 
-    const auto p = GW::Agents::GetCharacter();
-    if (!p || p->GetIsDead() || p->GetIsKnockedDown() || p->GetIsCasting())
+    const auto *character = GW::Agents::GetCharacter();
+    if (!character || character->GetIsDead() || character->GetIsKnockedDown() || character->GetIsCasting())
         return false;
 
-    if (p->GetIsIdle() || p->GetIsMoving())
+    if (character->GetIsIdle() || character->GetIsMoving())
     {
         GW::Items::EquipItem(item);
         return true;
     }
     else
     {
-        GW::Agents::Move(p->pos);
+        GW::Agents::Move(character->pos);
         return false;
     }
 }
@@ -172,7 +172,7 @@ bool ArmorSwap(const uint32_t bag_idx, const uint32_t start_slot_idx, const bool
     if (static_cast<uint32_t>(-1) == bag_idx || static_cast<uint32_t>(-1) == start_slot_idx)
         return true;
 
-    const auto first_item = GetBagItem(bag_idx, start_slot_idx);
+    const auto *first_item = GetBagItem(bag_idx, start_slot_idx);
     if (!first_item)
         return true;
 
@@ -182,7 +182,8 @@ bool ArmorSwap(const uint32_t bag_idx, const uint32_t start_slot_idx, const bool
 
         if (low_armor && armor_value >= 60U)
             return true;
-        else if (!low_armor && armor_value < 60U)
+
+        if (!low_armor && armor_value < 60U)
             return true;
     }
 
@@ -336,7 +337,7 @@ bool UseWeaponSlot(const uint32_t slot_idx)
 
 bool SwapToMeleeSet()
 {
-    const auto active_set = GetActiveWeaponSet();
+    const auto *active_set = GetActiveWeaponSet();
     if (WeaponSetIsMelee(*active_set))
         return true;
 
@@ -352,7 +353,7 @@ bool SwapToMeleeSet()
 
 bool SwapToRangeSet()
 {
-    const auto active_set = GetActiveWeaponSet();
+    const auto *active_set = GetActiveWeaponSet();
     if (WeaponSetIsRange(*active_set))
         return true;
 
@@ -370,7 +371,7 @@ GW::ItemModifier *GetModifier(const GW::Item *const item, const uint32_t identif
 {
     for (size_t i = 0; i < item->mod_struct_size; i++)
     {
-        GW::ItemModifier *mod = &item->mod_struct[i];
+        auto *mod = &item->mod_struct[i];
         if (mod->identifier() == identifier)
             return mod;
     }
