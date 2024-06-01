@@ -27,9 +27,10 @@ public:
     bool HasEffect(const GW::Constants::SkillID effect_skill_id) const;
     float GetRemainingEffectDuration(const GW::Constants::SkillID effect_skill_id) const;
     uint32_t GetNumberOfPartyBonds() const;
-
     bool CastEffectIfNotAvailable(const DataSkill &skill_data);
     bool CastEffect(const DataSkill &skill_data);
+    bool AnyTeamMemberHasEffect(const GW::Constants::SkillID effect_id);
+    bool PlayerHasEffect(const GW::Constants::SkillID effect_id);
 
     void ChangeTarget(const uint32_t target_id);
 

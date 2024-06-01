@@ -12,7 +12,8 @@ struct AgentLivingData
     ~AgentLivingData(){};
 
     void Update();
-    void UpdateType(std::vector<GW::AgentLiving *> &filtered_agents, const GW::Constants::Allegiance type);
+
+    static void UpdateType(std::vector<GW::AgentLiving *> &filtered_agents, const GW::Constants::Allegiance type);
 
     std::vector<GW::AgentLiving *> allies;
     std::vector<GW::AgentLiving *> neutrals;

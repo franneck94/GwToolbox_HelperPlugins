@@ -70,8 +70,8 @@ void SmartCommands::BaseUseSkill::CastSelectedSkill(const uint32_t current_energ
                                                     const GW::Skillbar *skillbar,
                                                     const uint32_t target_id)
 {
-    const auto lslot = slot - 1;
-    const auto &skill = skillbar->skills[lslot];
+    const auto skill_slot_w_offset = slot - 1;
+    const auto &skill = skillbar->skills[skill_slot_w_offset];
     const auto *skilldata = GW::SkillbarMgr::GetSkillConstantData(skill.skill_id);
     if (!skilldata)
         return;
@@ -83,9 +83,9 @@ void SmartCommands::BaseUseSkill::CastSelectedSkill(const uint32_t current_energ
     if (skill.GetRecharge() == 0 && enough_energy && enough_adrenaline)
     {
         if (target_id)
-            GW::SkillbarMgr::UseSkill(lslot, target_id);
+            GW::SkillbarMgr::UseSkill(skill_slot_w_offset, target_id);
         else
-            GW::SkillbarMgr::UseSkill(lslot, GW::Agents::GetTargetId());
+            GW::SkillbarMgr::UseSkill(skill_slot_w_offset, GW::Agents::GetTargetId());
 
         skill_usage_delay = skilldata->activation + skilldata->aftercast;
         skill_timer = clock();
@@ -145,7 +145,17 @@ void SmartCommands::DhuumUseSkill::Update()
     }
 
     const auto progress_perc = GetProgressValue();
-    if (uw_metadata.num_finished_objectives <= 10 && progress_perc > 0.0F && progress_perc < 1.0F)
+    const auto dhuum_not_done = uw_metadata.num_finished_objectives <= 10;
+    const auto dhuum_fight_not_done = progress_perc > 0.0F && progress_perc < 1.0F;
+
+#ifdef _DEBUG
+    const auto is_in_test_scenatio = true;
+
+    if (is_in_test_scenatio || (dhuum_not_done && dhuum_fight_not_done))
+
+#else
+    if (dhuum_not_done && dhuum_fight_not_done)
+#endif
     {
         slot = 1;
 

@@ -25,7 +25,7 @@ bool HelperActivationConditions(const bool need_party_loaded)
 
 void CancelMovement()
 {
-    GW::UI::Keypress(GW::UI::ControlAction_MoveBackward); // former: GAME_CMSG_CANCEL_MOVEMENT
+    GW::UI::Keypress(GW::UI::ControlAction_MoveBackward); // TODO - former: GAME_CMSG_CANCEL_MOVEMENT
 }
 
 void AttackAgent(const GW::Agent *agent)
@@ -34,5 +34,5 @@ void AttackAgent(const GW::Agent *agent)
         return;
 
     GW::Agents::ChangeTarget(agent->agent_id);
-    GW::UI::Keypress(GW::UI::ControlAction_Interact); // former: GAME_CMSG_ATTACK_AGENT
+    GW::UI::Keypress(GW::UI::ControlAction_Interact);
 }

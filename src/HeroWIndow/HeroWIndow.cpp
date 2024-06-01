@@ -68,7 +68,7 @@ void HeroUseSkill(const uint32_t hero_agent_id,
         if (target_agent_id && target_agent_id != GW::Agents::GetTargetId())
             GW::Agents::ChangeTarget(target_agent_id);
         GW::UI::Keypress((GW::UI::ControlAction)(static_cast<uint32_t>(hero_action) + skill_idx));
-        if (target_agent_id != curr_target_id)
+        if (curr_target_id && target_agent_id != curr_target_id)
             GW::Agents::ChangeTarget(curr_target_id);
     });
 }
@@ -137,36 +137,6 @@ bool HeroCastSkillIfAvailable(const GW::HeroPartyMember &hero,
 //         status->blocked = true;
 //     }
 // }
-
-bool AnyTeamMemberHasEffect(const DataPlayer &player_data, const GW::Constants::SkillID effect_id)
-{
-    const auto *effects = GetEffects(player_data.id);
-    if (!effects)
-        return false;
-
-    for (const auto effect : *effects)
-    {
-        if (effect.skill_id == effect_id)
-            return true;
-    }
-
-    return false;
-}
-
-bool PlayerHasEffect(const DataPlayer &player_data, const GW::Constants::SkillID effect_id)
-{
-    const auto *effects = GetEffects(player_data.id);
-    if (!effects)
-        return false;
-
-    for (const auto effect : *effects)
-    {
-        if (effect.skill_id == effect_id && effect.agent_id == player_data.id)
-            return true;
-    }
-
-    return false;
-}
 } // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -261,7 +231,7 @@ void HeroWindow::UseBipOnPlayer()
     if (player_data.energy_perc > 0.30F)
         return;
 
-    if (PlayerHasEffect(player_data, GW::Constants::SkillID::Blood_is_Power))
+    if (player_data.PlayerHasEffect(GW::Constants::SkillID::Blood_is_Power))
         return;
 
     if (player_data.living->energy_regen > 0.03F)
@@ -332,7 +302,7 @@ void HeroWindow::UseFallback()
     if (!ActionABC::HasWaitedLongEnough(wait_time_ms))
         return;
 
-    if (AnyTeamMemberHasEffect(player_data, GW::Constants::SkillID::Fall_Back))
+    if (player_data.AnyTeamMemberHasEffect(GW::Constants::SkillID::Fall_Back))
         return;
 
     auto hero_idx = 1U;
@@ -355,10 +325,6 @@ void HeroWindow::UseFallback()
 
             if (hero_living->secondary == static_cast<uint8_t>(GW::Constants::Profession::Paragon))
             {
-#ifdef _DEBUG
-                Log::Info("Need Fall Back.");
-#endif
-
                 if (HeroCastSkillIfAvailable(hero,
                                              hero_living,
                                              target_agent_id,

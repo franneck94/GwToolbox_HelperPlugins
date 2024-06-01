@@ -162,7 +162,13 @@ bool IsInPits(const GW::GamePos &player_pos, const float range)
 
 bool IsInDhuumRoom(const GW::GamePos &player_pos, const float range)
 {
+#ifdef _DEBUG
+    return IsNearToGamePos(player_pos, GW::GamePos{-16105.50F, 17284.84F, 0}, range) ||
+           IsNearToGamePos(player_pos, GW::GamePos{-6106.25F, -2654.32F, 0}, 5000.0F); // IsleOfNameless Spawn
+#else
     return IsNearToGamePos(player_pos, GW::GamePos{-16105.50F, 17284.84F, 0}, range);
+
+#endif
 }
 
 bool IsGoingToDhuum(const GW::GamePos &player_pos)

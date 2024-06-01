@@ -1,0 +1,34 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Attach Debugger",
+            "type": "cppvsdbg",
+            "request": "attach",
+            "program": "C:/Program Files/GUILD WARS/Gw.exe",
+            "processId": "${command:pickProcess}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": []
+        },
+        {
+            "name": "C/C++ Runner: Debug Session",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "args": [],
+            "stopAtEntry": false,
+            "console": "externalTerminal",
+            "cwd": "c:/Users/Jan/Documents/_LocalCoding/HelperBox",
+            "program": "c:/Users/Jan/Documents/_LocalCoding/HelperBox/build/Debug/outDebug"
+        }
+    ]
+}

@@ -228,3 +228,33 @@ bool DataPlayer::SkillStoppedCallback(const GW::Packet::StoC::GenericValue *cons
 
     return false;
 }
+
+bool DataPlayer::AnyTeamMemberHasEffect(const GW::Constants::SkillID effect_id)
+{
+    const auto *effects = GetEffects(id);
+    if (!effects)
+        return false;
+
+    for (const auto effect : *effects)
+    {
+        if (effect.skill_id == effect_id)
+            return true;
+    }
+
+    return false;
+}
+
+bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id)
+{
+    const auto *effects = GetEffects(id);
+    if (!effects)
+        return false;
+
+    for (const auto effect : *effects)
+    {
+        if (effect.skill_id == effect_id && effect.agent_id == id)
+            return true;
+    }
+
+    return false;
+}

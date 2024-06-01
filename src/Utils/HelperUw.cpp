@@ -323,7 +323,7 @@ bool TalkReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &n
     if (!agent)
         return true;
 
-    GW::Agents::InteractAgent(agent, 0U); // Former GoNPC?
+    GW::Agents::InteractAgent(agent, 0U);
 
     return true;
 }
