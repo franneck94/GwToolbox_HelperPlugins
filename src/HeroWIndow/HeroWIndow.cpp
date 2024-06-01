@@ -122,6 +122,51 @@ bool HeroCastSkillIfAvailable(const GW::HeroPartyMember &hero,
 
     return false;
 }
+
+// void OnSkillActivaiton2(GW::HookStatus *status, const GW::UI::UIMessage message_id, void *wParam, void *lParam)
+// {
+//     const struct Payload
+//     {
+//         uint32_t agent_id;
+//         GW::Constants::SkillID skill_id;
+//     } *payload = static_cast<Payload *>(wParam);
+
+//     if (payload->agent_id == GW::Agents::GetPlayerId())
+//     {
+//         int i = 2;
+//         status->blocked = true;
+//     }
+// }
+
+bool AnyTeamMemberHasEffect(const DataPlayer &player_data, const GW::Constants::SkillID effect_id)
+{
+    const auto *effects = GetEffects(player_data.id);
+    if (!effects)
+        return false;
+
+    for (const auto effect : *effects)
+    {
+        if (effect.skill_id == effect_id)
+            return true;
+    }
+
+    return false;
+}
+
+bool PlayerHasEffect(const DataPlayer &player_data, const GW::Constants::SkillID effect_id)
+{
+    const auto *effects = GetEffects(player_data.id);
+    if (!effects)
+        return false;
+
+    for (const auto effect : *effects)
+    {
+        if (effect.skill_id == effect_id && effect.agent_id == player_data.id)
+            return true;
+    }
+
+    return false;
+}
 } // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -138,6 +183,16 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(
         &MapLoaded_Entry,
         [this](GW::HookStatus *, const GW::Packet::StoC::MapLoaded *) -> void { ResetData(); });
+
+    // GW::StoC::RegisterPacketCallback<GW::Packet::StoC::GenericValueTarget>(
+    //     &OnSkillActivated_Entry,
+    //     [this](GW::HookStatus *status, GW::Packet::StoC::GenericValueTarget *packet) -> void {
+    //         OnSkillActivaiton(status, packet);
+    //     });
+
+    // GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry,
+    //                                   GW::UI::UIMessage::kSkillActivated,
+    //                                   OnSkillActivaiton2);
 
     GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"HeroWindow");
 }
@@ -159,6 +214,7 @@ uint32_t HeroWindow::GetNumPlayerHeroes()
         if (hero.owner_player_id == player_data.living->login_number)
             ++num;
     }
+
     return num;
 }
 
@@ -192,21 +248,6 @@ void HeroWindow::FollowPlayer()
     GW::PartyMgr::FlagAll(follow_pos);
 }
 
-bool HeroWindow::PlayerHasAlreadyBip()
-{
-    const auto *effects = GetEffects(player_data.id);
-    if (!effects)
-        return false;
-
-    for (const auto effect : *effects)
-    {
-        if (effect.skill_id == GW::Constants::SkillID::Blood_is_Power && effect.agent_id == player_data.id)
-            return true;
-    }
-
-    return false;
-}
-
 void HeroWindow::UseBipOnPlayer()
 {
     constexpr static auto wait_time_ms = 1000;
@@ -220,7 +261,7 @@ void HeroWindow::UseBipOnPlayer()
     if (player_data.energy_perc > 0.30F)
         return;
 
-    if (PlayerHasAlreadyBip())
+    if (PlayerHasEffect(player_data, GW::Constants::SkillID::Blood_is_Power))
         return;
 
     if (player_data.living->energy_regen > 0.03F)
@@ -291,15 +332,8 @@ void HeroWindow::UseFallback()
     if (!ActionABC::HasWaitedLongEnough(wait_time_ms))
         return;
 
-    const auto *effects = GetEffects(player_data.id);
-    if (!effects)
+    if (AnyTeamMemberHasEffect(player_data, GW::Constants::SkillID::Fall_Back))
         return;
-
-    for (const auto effect : *effects)
-    {
-        if (effect.skill_id == GW::Constants::SkillID::Fall_Back)
-            return;
-    }
 
     auto hero_idx = 1U;
     for (const auto &hero : *party_heros)
@@ -321,6 +355,10 @@ void HeroWindow::UseFallback()
 
             if (hero_living->secondary == static_cast<uint8_t>(GW::Constants::Profession::Paragon))
             {
+#ifdef _DEBUG
+                Log::Info("Need Fall Back.");
+#endif
+
                 if (HeroCastSkillIfAvailable(hero,
                                              hero_living,
                                              target_agent_id,
@@ -372,6 +410,54 @@ void HeroWindow::ResetData()
     following_active = false;
 }
 
+void SkillCallback(const uint32_t value_id,
+                   const uint32_t caster_id,
+                   const uint32_t target_id,
+                   const uint32_t value,
+                   const bool no_target,
+                   GW::HookStatus *status)
+{
+    static constexpr auto sin_first_combo_skill = GW::Constants::SkillID::Fox_Fangs;
+    const auto activated_skill_id = static_cast<GW::Constants::SkillID>(value);
+
+    switch (value_id)
+    {
+    case GW::Packet::StoC::GenericValueID::effect_on_target:
+    case GW::Packet::StoC::GenericValueID::attack_started:
+    case GW::Packet::StoC::GenericValueID::attack_skill_activated:
+    case GW::Packet::StoC::GenericValueID::skill_activated:
+    {
+        break;
+    }
+    default:
+    {
+        return;
+    }
+    }
+
+    if (activated_skill_id == sin_first_combo_skill)
+    {
+        GW::UI::Keypress(GW::UI::ControlAction_CancelAction);
+        GW::UI::Keypress(GW::UI::ControlAction_CancelAction);
+
+        Log::Info("Casting of the skill has been blocked.");
+    }
+}
+
+// void HeroWindow::OnSkillActivaiton(GW::HookStatus *status, GW::Packet::StoC::GenericValueTarget *packet) const
+// {
+//     const uint32_t value_id = packet->Value_id;
+//     const uint32_t caster_id = packet->caster;
+//     const uint32_t target_id = packet->target;
+//     const uint32_t value = packet->value;
+//     constexpr bool no_target = false;
+
+//     if (target_id != player_data.id || (GW::Constants::SkillID)value == GW::Constants::SkillID::No_Skill)
+//         return;
+
+//     SkillCallback(value_id, caster_id, target_id, value, no_target, status);
+// }
+
 void HeroWindow::Draw(IDirect3DDevice9 *)
 {
     static auto last_follow_trigger_ms = clock();
@@ -413,17 +499,20 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
             break;
         }
         }
+
         if (ImGui::Button("Behaviour###toggleState", im_button_size))
-        {
             ToggleHeroBehaviour();
-        }
+
         ImGui::PopStyleColor();
+
         if (following_active)
         {
             ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
             added_color_follow = true;
         }
+
         ImGui::SameLine();
+
         if (ImGui::Button("Follow###followPlayer", im_button_size))
         {
             following_active = !following_active;
@@ -448,18 +537,14 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
         }
 
         if (added_color_follow)
-        {
             ImGui::PopStyleColor();
-        }
 
         ImGui::SameLine();
 
         if (ImGui::Button("Attack###attackTarget", im_button_size))
         {
             if (IsExplorable())
-            {
                 AttackTarget();
-            }
         }
     }
     ImGui::End();

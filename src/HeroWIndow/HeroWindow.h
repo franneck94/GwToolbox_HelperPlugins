@@ -41,12 +41,12 @@ private:
     uint32_t GetNumPlayerHeroes();
     void ToggleHeroBehaviour();
     void FollowPlayer();
-    bool PlayerHasAlreadyBip();
     void UseBipOnPlayer();
     void UseFallback();
     void MesmerSpikeTarget(const GW::HeroPartyMember &hero, const uint32_t hero_idx) const;
     void AttackTarget();
     void ResetData();
+    // void OnSkillActivaiton(GW::HookStatus *status, GW::Packet::StoC::GenericValueTarget *packet) const;
 
     DataPlayer player_data;
     const GW::Array<GW::HeroPartyMember> *party_heros = nullptr;
@@ -58,4 +58,6 @@ private:
 
     GW::HookEntry MapLoaded_Entry;
     bool load_cb_triggered = false;
+
+    // GW::HookEntry OnSkillActivated_Entry;
 };
