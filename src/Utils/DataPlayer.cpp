@@ -18,6 +18,19 @@
 
 #include "DataPlayer.h"
 
+namespace
+{
+DWORD GetTimeElapsed(const DWORD timestamp)
+{
+    return GW::MemoryMgr::GetSkillTimer() - timestamp;
+}
+
+float GetTimeRemaining(const float duration, const DWORD timestamp)
+{
+    return static_cast<float>(duration * 1000.f) - static_cast<float>(GetTimeElapsed(timestamp));
+}
+} // namespace
+
 bool DataPlayer::ValidateData(std::function<bool(bool)> cb_fn, const bool need_party_loaded) const
 {
     if (!cb_fn(need_party_loaded))
@@ -26,10 +39,7 @@ bool DataPlayer::ValidateData(std::function<bool(bool)> cb_fn, const bool need_p
     const auto *const me_agent = GW::Agents::GetPlayer();
     const auto *const me_living = GW::Agents::GetPlayerAsAgentLiving();
 
-    if (me_agent == nullptr || me_living == nullptr)
-        return false;
-
-    return true;
+    return (me_agent != nullptr && me_living != nullptr);
 }
 
 void DataPlayer::Update()
@@ -150,16 +160,6 @@ uint32_t DataPlayer::GetNumberOfPartyBonds() const
     return num_bonds;
 }
 
-static DWORD GetTimeElapsed(const DWORD timestamp)
-{
-    return GW::MemoryMgr::GetSkillTimer() - timestamp;
-}
-
-static float GetTimeRemaining(const float duration, const DWORD timestamp)
-{
-    return static_cast<float>(duration * 1000.f) - static_cast<float>(GetTimeElapsed(timestamp));
-}
-
 float DataPlayer::GetRemainingEffectDuration(const GW::Constants::SkillID effect_skill_id) const
 {
     const auto *me_effects = GW::Effects::GetPlayerEffectsArray();
@@ -183,7 +183,7 @@ float DataPlayer::GetRemainingEffectDuration(const GW::Constants::SkillID effect
     return 0.0F;
 }
 
-bool DataPlayer::CastEffectIfNotAvailable(const DataSkill &skill_data)
+bool DataPlayer::CastEffectIfNotAvailable(const DataSkill &skill_data) const
 {
     const auto has_bond = HasEffect(static_cast<GW::Constants::SkillID>(skill_data.id));
     const auto bond_avail = skill_data.CanBeCasted(energy);
@@ -197,7 +197,7 @@ bool DataPlayer::CastEffectIfNotAvailable(const DataSkill &skill_data)
     return false;
 }
 
-bool DataPlayer::CastEffect(const DataSkill &skill_data)
+bool DataPlayer::CastEffect(const DataSkill &skill_data) const
 {
     if (skill_data.CanBeCasted(energy))
     {

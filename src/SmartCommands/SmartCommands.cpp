@@ -191,7 +191,7 @@ void SmartCommands::DhuumUseSkill::Update()
     CastSelectedSkill(current_energy, skillbar, target_id);
 }
 
-void SmartCommands::CmdDhuumUseSkill(const wchar_t *cmd, const int argc, const LPWSTR *argv)
+void SmartCommands::CmdDhuumUseSkill(const wchar_t *, const int argc, const LPWSTR *argv)
 {
     if (!IsMapReady() || !IsUw())
     {
@@ -217,7 +217,7 @@ void SmartCommands::CmdDhuumUseSkill(const wchar_t *cmd, const int argc, const L
     dhuum_useskill.slot = static_cast<uint32_t>(-1);
 }
 
-void SmartCommands::CmdUseSkill(const wchar_t *cmd, const int argc, const LPWSTR *argv)
+void SmartCommands::CmdUseSkill(const wchar_t *, const int argc, const LPWSTR *argv)
 {
     if (!IsMapReady() || !IsExplorable())
     {

@@ -39,10 +39,7 @@ constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 
-void HeroUseSkill(const uint32_t hero_agent_id,
-                  const uint32_t target_agent_id,
-                  const uint32_t skill_idx,
-                  const uint32_t hero_idx_zero_based)
+void HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, const uint32_t hero_idx_zero_based)
 {
     auto hero_action = GW::UI::ControlAction_Hero1Skill1;
     if (hero_idx_zero_based == 0)
@@ -110,8 +107,7 @@ bool HeroCastSkillIfAvailable(const HeroData &hero_data,
 
         if (has_skill_in_skillbar && skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost())
         {
-            HeroUseSkill(hero_data.hero_living->agent_id,
-                         use_player_target ? player_data.target->agent_id : player_data.id,
+            HeroUseSkill(use_player_target ? player_data.target->agent_id : player_data.id,
                          skill_idx,
                          hero_data.hero_idx_zero_based);
             return true;
@@ -136,6 +132,9 @@ void OnSkillActivaiton(GW::HookStatus *status, const GW::UI::UIMessage message_i
     {
         status->blocked = true;
     }
+
+    (void)message_id;
+    (void)lParam;
 }
 } // namespace
 
@@ -263,8 +262,6 @@ void HeroWindow::UseSplinterOnPlayer()
                                                          });
 
         return num_enemies_at_player >= 1;
-
-        return true;
     };
 
     if (!HeroSkill_StartConditions(skill_id, player_conditions, 1000UL))
@@ -340,7 +337,7 @@ void HeroWindow::UseFallback()
     const auto skill_id = GW::Constants::SkillID::Fall_Back;
     const auto skill_class = GW::Constants::Profession::Paragon;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) { return true; };
+    auto player_conditions = [](const DataPlayer &, const AgentLivingData &) { return true; };
 
     if (!HeroSkill_StartConditions(skill_id, player_conditions))
         return;
@@ -349,7 +346,7 @@ void HeroWindow::UseFallback()
     if (hero_idxs_zero_based.size() == 0)
         return;
 
-    auto hero_conditions = [](const DataPlayer &player_data, const HeroData &hero_data) {
+    auto hero_conditions = [](const DataPlayer &, const HeroData &) {
         return true; // TODO: Check if any hero has fall back
     };
 
@@ -370,7 +367,7 @@ void HeroWindow::MesmerSpikeTarget(const HeroData &hero_data) const
     const auto skill_id = GW::Constants::SkillID::Energy_Surge;
     const auto skill_class = GW::Constants::Profession::Mesmer;
 
-    auto hero_conditions = [](const DataPlayer &player_data, const HeroData &hero_data) { return true; };
+    auto hero_conditions = [](const DataPlayer &, const HeroData &) { return true; };
 
     if (hero_data.hero_living->primary == static_cast<uint8_t>(skill_class))
         HeroCastSkillIfAvailable(hero_data, player_data, skill_id, hero_conditions, true);
