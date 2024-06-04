@@ -77,6 +77,11 @@ bool DataPlayer::CanAttack() const
     return true;
 }
 
+bool DataPlayer::IsAttacking() const
+{
+    return living->GetIsAttacking();
+}
+
 bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id) const
 {
     const auto *const me_buffs = GW::Effects::GetPlayerBuffs();

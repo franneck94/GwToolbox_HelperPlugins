@@ -131,7 +131,8 @@ void OnSkillActivaiton(GW::HookStatus *status, const GW::UI::UIMessage message_i
         GW::Constants::SkillID skill_id;
     } *payload = static_cast<Payload *>(wParam);
 
-    if (payload->agent_id == GW::Agents::GetPlayerId() && skill_id == 0U) // TODO
+    if (payload->agent_id == GW::Agents::GetPlayerId() &&
+        payload->skill_id == static_cast<GW::Constants::SkillID>(0U)) // TODO
     {
         status->blocked = true;
     }
@@ -154,9 +155,7 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
         [this](GW::HookStatus *, const GW::Packet::StoC::MapLoaded *) -> void { ResetData(); });
 
 
-    GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry,
-                                      GW::UI::UIMessage::kSkillActivated,
-                                      skill_id);
+    GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivaiton);
 
     GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"HeroWindow");
 }
@@ -165,6 +164,12 @@ void HeroWindow::SignalTerminate()
 {
     ToolboxUIPlugin::SignalTerminate();
     GW::DisableHooks();
+}
+
+void HeroWindow::StopFollowing()
+{
+    following_active = false;
+    GW::PartyMgr::UnflagAll();
 }
 
 uint32_t HeroWindow::GetNumPlayerHeroes()
@@ -452,7 +457,10 @@ void HeroWindow::HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &tog
         following_active = !following_active;
         toggled_follow = true;
 
-        Log::Info("Heroes will follow the player!");
+        if (following_active)
+            Log::Info("Heroes will follow the player!");
+        else
+            Log::Info("Heroes stopped following the player!");
     }
 
     if (IsExplorable() && following_active && TIMER_DIFF(last_follow_trigger_ms) > 800 + time_dist(gen))
@@ -477,6 +485,8 @@ void HeroWindow::HeroSpike_DrawAndLogic(const ImVec2 &im_button_size)
 
     if (ImGui::Button("Attack###attackTarget", im_button_size))
     {
+        StopFollowing();
+
         if (IsExplorable())
             AttackTarget();
     }
@@ -513,6 +523,19 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
         HeroFollow_DrawAndLogic(im_button_size, toggled_follow);
         HeroSpike_DrawAndLogic(im_button_size);
         HeroSmarterSkills_Logic();
+
+        if (ms_with_no_pos_change >= 8000 && following_active)
+        {
+            Log::Info("Players seesm to be afk. Stopping hero following.");
+            StopFollowing();
+            ms_with_no_pos_change = 0U;
+        }
+
+        if (player_data.IsAttacking() && following_active)
+        {
+            Log::Info("Player attacks enemies. Stopping hero following.");
+            StopFollowing();
+        }
     }
     ImGui::End();
 }
@@ -538,13 +561,21 @@ void HeroWindow::Update(float)
         return;
     }
 
-    follow_pos = player_data.pos;
-    if (player_data.target)
+    auto time_at_last_pos_change = 0;
+
+    if (player_data.pos == follow_pos && following_active)
     {
-        target_agent_id = player_data.target->agent_id;
+        ms_with_no_pos_change = TIMER_DIFF(time_at_last_pos_change);
     }
     else
     {
-        target_agent_id = 0U;
+        ms_with_no_pos_change = 0U;
+        time_at_last_pos_change = TIMER_INIT();
     }
+    follow_pos = player_data.pos;
+
+    if (player_data.target)
+        target_agent_id = player_data.target->agent_id;
+    else
+        target_agent_id = 0U;
 }

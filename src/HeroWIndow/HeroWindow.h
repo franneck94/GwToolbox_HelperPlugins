@@ -42,6 +42,8 @@ public:
     void HeroSpike_DrawAndLogic(const ImVec2 &im_button_size);
     void HeroSmarterSkills_Logic();
 
+    void StopFollowing();
+
 private:
     uint32_t GetNumPlayerHeroes();
     void ToggleHeroBehaviour();
@@ -57,6 +59,7 @@ private:
 
     GW::HeroBehavior current_hero_behaviour = GW::HeroBehavior::Guard;
     GW::GamePos follow_pos = {};
+    long ms_with_no_pos_change = 0;
     uint32_t target_agent_id = 0;
     bool following_active = false;
 
