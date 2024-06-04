@@ -13,6 +13,7 @@
 #include <GWCA/GameEntities/Party.h>
 
 #include "ActionsBase.h"
+#include "DataLivings.h"
 #include "DataPlayer.h"
 
 struct HeroData
@@ -58,9 +59,9 @@ private:
     void HeroFollow_StopConditions();
     void StopFollowing();
 
-    uint32_t HeroSkill_GetHeroIndexWithCertainClass(const GW::Constants::Profession &skill_class);
+    std::vector<uint32_t> HeroSkill_GetHeroIndexWithCertainClass(const GW::Constants::Profession &skill_class);
     bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
-                                   std::function<bool(const DataPlayer &)> cb_fn,
+                                   std::function<bool(const DataPlayer &, const AgentLivingData &livings_data)> cb_fn,
                                    const long wait_time_ms = 0UL);
     void HeroSmarterSkills_Logic();
     void UseBipOnPlayer();
@@ -74,6 +75,8 @@ private:
     void ResetData();
 
     DataPlayer player_data;
+    AgentLivingData livings_data;
+    std::vector<HeroData> hero_data_vec;
 
     GW::HeroBehavior current_hero_behaviour = GW::HeroBehavior::Guard;
     GW::GamePos follow_pos = {};
@@ -85,6 +88,4 @@ private:
     bool load_cb_triggered = false;
 
     GW::HookEntry OnSkillActivated_Entry;
-
-    std::vector<HeroData> hero_data_vec;
 };

@@ -74,12 +74,19 @@ void HeroUseSkill(const uint32_t hero_agent_id,
 }
 
 bool HeroCastSkillIfAvailable(const HeroData &hero_data,
-                              const uint32_t target_agent_id,
+                              const DataPlayer &player_data,
                               const GW::Constants::SkillID skill_id,
-                              std::function<bool(const DataPlayer &, const HeroData &)> cb_fn)
+                              std::function<bool(const DataPlayer &, const HeroData &)> cb_fn,
+                              const bool use_player_target)
 {
     if (!hero_data.hero_living || !hero_data.hero_living->agent_id)
         return false;
+
+    if (!cb_fn(player_data, hero_data))
+    {
+        Log::Info("Cast cb fn  returned false");
+        return false;
+    }
 
     auto skill_idx = 0U;
     for (const auto &skill : hero_data.skills)
@@ -103,7 +110,10 @@ bool HeroCastSkillIfAvailable(const HeroData &hero_data,
 
         if (has_skill_in_skillbar && skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost())
         {
-            HeroUseSkill(hero_data.hero_living->agent_id, target_agent_id, skill_idx, hero_data.hero_idx_zero_based);
+            HeroUseSkill(hero_data.hero_living->agent_id,
+                         use_player_target ? player_data.target->agent_id : 0,
+                         skill_idx,
+                         hero_data.hero_idx_zero_based);
             return true;
         }
 
@@ -195,9 +205,10 @@ void HeroWindow::FollowPlayer()
     GW::PartyMgr::FlagAll(follow_pos);
 }
 
-bool HeroWindow::HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
-                                           std::function<bool(const DataPlayer &)> cb_fn,
-                                           const long wait_time_ms)
+bool HeroWindow::HeroSkill_StartConditions(
+    const GW::Constants::SkillID skill_id,
+    std::function<bool(const DataPlayer &, const AgentLivingData &livings_data)> cb_fn,
+    const long wait_time_ms)
 {
     if (!IsMapReady() || !IsExplorable() || hero_data_vec.size() == 0)
         return false;
@@ -208,14 +219,19 @@ bool HeroWindow::HeroSkill_StartConditions(const GW::Constants::SkillID skill_id
     if (skill_id != GW::Constants::SkillID::No_Skill && player_data.PlayerHasEffect(skill_id))
         return false;
 
-    if (!cb_fn(player_data))
+    if (!cb_fn(player_data, livings_data))
+    {
+        Log::Info("Player cond fn returned false");
         return false;
+    }
 
     return true;
 }
 
-uint32_t HeroWindow::HeroSkill_GetHeroIndexWithCertainClass(const GW::Constants::Profession &skill_class)
+std::vector<uint32_t> HeroWindow::HeroSkill_GetHeroIndexWithCertainClass(const GW::Constants::Profession &skill_class)
 {
+    auto hero_idxs_with_certain_class = std::vector<uint32_t>{};
+
     auto hero_idx_zero_based = 0U;
     for (const auto &hero_data : hero_data_vec)
     {
@@ -223,14 +239,12 @@ uint32_t HeroWindow::HeroSkill_GetHeroIndexWithCertainClass(const GW::Constants:
                                       hero_data.hero_living->secondary == static_cast<uint8_t>(skill_class));
 
         if (has_skill_class)
-        {
-            return hero_idx_zero_based;
-        }
+            hero_idxs_with_certain_class.push_back(hero_idx_zero_based);
 
         ++hero_idx_zero_based;
     }
 
-    return static_cast<uint32_t>(-1);
+    return hero_idxs_with_certain_class;
 }
 
 void HeroWindow::UseSplinterOnPlayer()
@@ -238,18 +252,25 @@ void HeroWindow::UseSplinterOnPlayer()
     const auto skill_id = GW::Constants::SkillID::Splinter_Weapon;
     const auto skill_class = GW::Constants::Profession::Ritualist;
 
-    auto player_conditions = [&](const DataPlayer &player_data) {
-        return false;
-    }; // TODO: Check if player has splinter and is attacking at least 3 enemies
+    auto player_conditions = [&skill_id](const DataPlayer &player_data, const AgentLivingData &livings_data) {
+        const auto num_enemies_at_player = std::count_if(livings_data.enemies.begin(),
+                                                         livings_data.enemies.end(),
+                                                         [&player_data](const GW::AgentLiving *enemy_living) {
+                                                             const auto dist =
+                                                                 GW::GetDistance(enemy_living->pos, player_data.pos);
+
+                                                             return dist < GW::Constants::Range::Nearby;
+                                                         });
+
+        return num_enemies_at_player >= 1;
+    };
 
     if (!HeroSkill_StartConditions(skill_id, player_conditions, 1000UL))
         return;
 
-    auto hero_idx_zero_based = HeroSkill_GetHeroIndexWithCertainClass(skill_class);
-    if (static_cast<uint32_t>(-1) == hero_idx_zero_based)
+    auto hero_idxs_zero_based = HeroSkill_GetHeroIndexWithCertainClass(skill_class);
+    if (hero_idxs_zero_based.size() == 0)
         return;
-
-    const auto &hero_data = hero_data_vec[hero_idx_zero_based];
 
     auto hero_conditions = [](const DataPlayer &player_data, const HeroData &hero_data) {
         const auto dist = GW::GetDistance(hero_data.hero_living->pos, player_data.pos);
@@ -257,10 +278,15 @@ void HeroWindow::UseSplinterOnPlayer()
         return dist < GW::Constants::Range::Spellcast;
     };
 
-    if (HeroCastSkillIfAvailable(hero_data, player_data.id, skill_id, hero_conditions))
+    for (const auto hero_idx_zero_based : hero_idxs_zero_based)
     {
-        Log::Info("Casted Splinter.");
-        return;
+        const auto &hero_data = hero_data_vec[hero_idx_zero_based];
+
+        if (HeroCastSkillIfAvailable(hero_data, player_data, skill_id, hero_conditions, false))
+        {
+            Log::Info("Casted Splinter.");
+            return;
+        }
     }
 }
 
@@ -269,7 +295,7 @@ void HeroWindow::UseBipOnPlayer()
     const auto skill_id = GW::Constants::SkillID::Blood_is_Power;
     const auto skill_class = GW::Constants::Profession::Necromancer;
 
-    auto player_conditions = [](const DataPlayer &player_data) {
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
         if (player_data.energy_perc > 0.30F)
             return false;
 
@@ -282,11 +308,9 @@ void HeroWindow::UseBipOnPlayer()
     if (!HeroSkill_StartConditions(skill_id, player_conditions, 1000UL))
         return;
 
-    auto hero_idx_zero_based = HeroSkill_GetHeroIndexWithCertainClass(skill_class);
-    if (static_cast<uint32_t>(-1) == hero_idx_zero_based)
+    auto hero_idxs_zero_based = HeroSkill_GetHeroIndexWithCertainClass(skill_class);
+    if (hero_idxs_zero_based.size() == 0)
         return;
-
-    const auto &hero_data = hero_data_vec[hero_idx_zero_based];
 
     auto hero_conditions = [](const DataPlayer &player_data, const HeroData &hero_data) {
         const auto dist = GW::GetDistance(hero_data.hero_living->pos, player_data.pos);
@@ -294,10 +318,15 @@ void HeroWindow::UseBipOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero_data.hero_living->hp > 0.80F;
     };
 
-    if (HeroCastSkillIfAvailable(hero_data, player_data.id, skill_id, hero_conditions))
+    for (const auto hero_idx_zero_based : hero_idxs_zero_based)
     {
-        Log::Info("Casted BIP.");
-        return;
+        const auto &hero_data = hero_data_vec[hero_idx_zero_based];
+
+        if (HeroCastSkillIfAvailable(hero_data, player_data, skill_id, hero_conditions, false))
+        {
+            Log::Info("Casted BIP.");
+            return;
+        }
     }
 }
 
@@ -306,26 +335,28 @@ void HeroWindow::UseFallback()
     const auto skill_id = GW::Constants::SkillID::Fall_Back;
     const auto skill_class = GW::Constants::Profession::Paragon;
 
-    auto player_conditions = [](const DataPlayer &player_data) { return true; };
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) { return true; };
 
     if (!HeroSkill_StartConditions(skill_id, player_conditions))
         return;
 
-    auto hero_idx_zero_based = HeroSkill_GetHeroIndexWithCertainClass(skill_class);
-
-    if (static_cast<uint32_t>(-1) == hero_idx_zero_based)
+    auto hero_idxs_zero_based = HeroSkill_GetHeroIndexWithCertainClass(skill_class);
+    if (hero_idxs_zero_based.size() == 0)
         return;
-
-    const auto &hero_data = hero_data_vec[hero_idx_zero_based];
 
     auto hero_conditions = [](const DataPlayer &player_data, const HeroData &hero_data) {
         return true; // TODO: Check if any hero has fall back
     };
 
-    if (HeroCastSkillIfAvailable(hero_data, target_agent_id, skill_id, hero_conditions))
+    for (const auto hero_idx_zero_based : hero_idxs_zero_based)
     {
-        Log::Info("Used Fall Back.");
-        return;
+        const auto &hero_data = hero_data_vec[hero_idx_zero_based];
+
+        if (HeroCastSkillIfAvailable(hero_data, player_data, skill_id, hero_conditions, false))
+        {
+            Log::Info("Used Fall Back.");
+            return;
+        }
     }
 }
 
@@ -337,12 +368,12 @@ void HeroWindow::MesmerSpikeTarget(const HeroData &hero_data) const
     auto hero_conditions = [](const DataPlayer &player_data, const HeroData &hero_data) { return true; };
 
     if (hero_data.hero_living->primary == static_cast<uint8_t>(skill_class))
-        HeroCastSkillIfAvailable(hero_data, target_agent_id, skill_id, hero_conditions);
+        HeroCastSkillIfAvailable(hero_data, player_data, skill_id, hero_conditions, true);
 }
 
 void HeroWindow::AttackTarget()
 {
-    auto player_conditions = [](const DataPlayer &player_data) {
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
         const auto *target_living = player_data.target->GetAsAgentLiving();
         if (!target_living)
             return false;
@@ -576,6 +607,7 @@ void HeroWindow::Update(float)
     }
 
     player_data.Update();
+    livings_data.Update();
     UpdateHeroData();
 
     auto time_at_last_pos_change = 0;
