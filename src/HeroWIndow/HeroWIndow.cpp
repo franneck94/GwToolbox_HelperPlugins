@@ -111,7 +111,7 @@ bool HeroCastSkillIfAvailable(const HeroData &hero_data,
         if (has_skill_in_skillbar && skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost())
         {
             HeroUseSkill(hero_data.hero_living->agent_id,
-                         use_player_target ? player_data.target->agent_id : 0,
+                         use_player_target ? player_data.target->agent_id : player_data.id,
                          skill_idx,
                          hero_data.hero_idx_zero_based);
             return true;
@@ -252,7 +252,7 @@ void HeroWindow::UseSplinterOnPlayer()
     const auto skill_id = GW::Constants::SkillID::Splinter_Weapon;
     const auto skill_class = GW::Constants::Profession::Ritualist;
 
-    auto player_conditions = [&skill_id](const DataPlayer &player_data, const AgentLivingData &livings_data) {
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
         const auto num_enemies_at_player = std::count_if(livings_data.enemies.begin(),
                                                          livings_data.enemies.end(),
                                                          [&player_data](const GW::AgentLiving *enemy_living) {
@@ -263,6 +263,8 @@ void HeroWindow::UseSplinterOnPlayer()
                                                          });
 
         return num_enemies_at_player >= 1;
+
+        return true;
     };
 
     if (!HeroSkill_StartConditions(skill_id, player_conditions, 1000UL))
@@ -272,7 +274,7 @@ void HeroWindow::UseSplinterOnPlayer()
     if (hero_idxs_zero_based.size() == 0)
         return;
 
-    auto hero_conditions = [](const DataPlayer &player_data, const HeroData &hero_data) {
+    const auto hero_conditions = [](const DataPlayer &player_data, const HeroData &hero_data) {
         const auto dist = GW::GetDistance(hero_data.hero_living->pos, player_data.pos);
 
         return dist < GW::Constants::Range::Spellcast;
@@ -313,6 +315,9 @@ void HeroWindow::UseBipOnPlayer()
         return;
 
     auto hero_conditions = [](const DataPlayer &player_data, const HeroData &hero_data) {
+        if (!hero_data.hero_living)
+            return false;
+
         const auto dist = GW::GetDistance(hero_data.hero_living->pos, player_data.pos);
 
         return dist < GW::Constants::Range::Spellcast && hero_data.hero_living->hp > 0.80F;
@@ -494,8 +499,8 @@ void HeroWindow::HeroSmarterSkills_Logic()
     if (following_active || !IsExplorable())
         return;
 
-    UseBipOnPlayer();
     UseSplinterOnPlayer();
+    UseBipOnPlayer();
 }
 
 void HeroWindow::HeroFollow_StopConditions()
@@ -558,7 +563,7 @@ bool HeroWindow::UpdateHeroData()
     if (!party_info)
         return false;
 
-    for (auto &hero : *&party_info->heroes)
+    for (const auto &hero : *&party_info->heroes)
     {
         auto *hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
         if (!hero_agent)
@@ -575,7 +580,10 @@ bool HeroWindow::UpdateHeroData()
 
         const auto *skillbar_array = GW::SkillbarMgr::GetSkillbarArray();
         if (!skillbar_array)
+        {
+            ++hero_idx_zero_based;
             continue;
+        }
 
         for (const auto &skillbar : *skillbar_array)
         {

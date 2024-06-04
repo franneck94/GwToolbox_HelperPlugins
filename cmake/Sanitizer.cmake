@@ -1,0 +1,16 @@
+function(add_sanitizer_flags)
+  if(NOT ENABLE_SANITIZE_ADDR AND NOT ENABLE_SANITIZE_UNDEF)
+    return()
+  endif()
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    if(ENABLE_SANITIZE_ADDR)
+      message(STATUS "Activating Address Sanitizer")
+      add_compile_options("/fsanitize=address")
+    endif()
+
+  else()
+    message(WARNING "This sanitizer not supported in this environment")
+    return()
+  endif()
+endfunction(add_sanitizer_flags)
