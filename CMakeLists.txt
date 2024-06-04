@@ -34,15 +34,9 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 include(FetchContent)
 include(ConfigSafeGuards)
 include(Warnings)
-include(Tools)
 
 if(ENABLE_WARNINGS)
   include(Warnings)
-endif()
-
-if(ENABLE_SANITIZE_ADDR)
-  include(Sanitizer)
-  add_sanitizer_flags()
 endif()
 
 # Third Party Libs

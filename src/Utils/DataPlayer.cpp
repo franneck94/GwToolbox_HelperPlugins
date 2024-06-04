@@ -27,7 +27,7 @@ DWORD GetTimeElapsed(const DWORD timestamp)
 
 float GetTimeRemaining(const float duration, const DWORD timestamp)
 {
-    return static_cast<float>(duration * 1000.f) - static_cast<float>(GetTimeElapsed(timestamp));
+    return duration * 1000.0F - static_cast<float>(GetTimeElapsed(timestamp));
 }
 } // namespace
 

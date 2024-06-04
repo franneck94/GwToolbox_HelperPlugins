@@ -152,7 +152,6 @@ void SmartCommands::DhuumUseSkill::Update()
     const auto is_in_test_scenatio = true;
 
     if (is_in_test_scenatio || (dhuum_not_done && dhuum_fight_not_done))
-
 #else
     if (dhuum_not_done && dhuum_fight_not_done)
 #endif

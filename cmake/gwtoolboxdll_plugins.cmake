@@ -40,8 +40,4 @@ macro(add_tb_plugin PLUGIN)
     target_set_warnings(TARGET ${PLUGIN} ENABLE ${ENABLE_WARNINGS} AS_ERRORS
                         ${ENABLE_WARNINGS_AS_ERRORS})
   endif()
-
-  if(${ENABLE_CLANG_TIDY})
-    add_clang_tidy_to_target(${PLUGIN})
-  endif()
 endmacro()

@@ -816,7 +816,6 @@ RoutineState EmoRoutine::Routine()
                           (GW::PartyMgr::GetPartySize() == 5 && GW::Map::GetInstanceTime() < EIGHT_MINS_IN_MS));
 
     const auto *item_context = GW::GetItemContext();
-    const auto *world_context = GW::GetWorldContext();
 
     if (item_context && IsAtValeSpirits(player_data->pos) && stone_should_be_used &&
         UseInventoryItem(CANTHA_STONE_ID, 1, item_context->bags_array.size()))

@@ -141,7 +141,7 @@ RoutineState LtRoutine::Routine()
             }
             if (gone_to_npc && !took_quest)
             {
-                const auto took_chamber = TakeChamber();
+                TakeChamber();
                 took_quest = true;
                 return RoutineState::ACTIVE;
             }
