@@ -37,6 +37,11 @@ public:
     }
     void Update(float delta) override;
 
+    void HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size);
+    void HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &toggled_follow);
+    void HeroSpike_DrawAndLogic(const ImVec2 &im_button_size);
+    void HeroSmarterSkills_Logic();
+
 private:
     uint32_t GetNumPlayerHeroes();
     void ToggleHeroBehaviour();
@@ -46,7 +51,6 @@ private:
     void MesmerSpikeTarget(const GW::HeroPartyMember &hero, const uint32_t hero_idx) const;
     void AttackTarget();
     void ResetData();
-    // void OnSkillActivaiton(GW::HookStatus *status, GW::Packet::StoC::GenericValueTarget *packet) const;
 
     DataPlayer player_data;
     const GW::Array<GW::HeroPartyMember> *party_heros = nullptr;
@@ -59,5 +63,5 @@ private:
     GW::HookEntry MapLoaded_Entry;
     bool load_cb_triggered = false;
 
-    // GW::HookEntry OnSkillActivated_Entry;
+    GW::HookEntry OnSkillActivated_Entry;
 };

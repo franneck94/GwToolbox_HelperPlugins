@@ -710,7 +710,7 @@ bool EmoRoutine::DropBondsLT() const
     if (!lt_living)
         return false;
 
-    if (DropBondsOnLiving(lt_living))
+    if (DropEmoBondsOnLiving(lt_living))
         return true;
 
     return false;

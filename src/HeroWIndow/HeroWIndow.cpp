@@ -123,20 +123,19 @@ bool HeroCastSkillIfAvailable(const GW::HeroPartyMember &hero,
     return false;
 }
 
-// void OnSkillActivaiton2(GW::HookStatus *status, const GW::UI::UIMessage message_id, void *wParam, void *lParam)
-// {
-//     const struct Payload
-//     {
-//         uint32_t agent_id;
-//         GW::Constants::SkillID skill_id;
-//     } *payload = static_cast<Payload *>(wParam);
+void OnSkillActivaiton(GW::HookStatus *status, const GW::UI::UIMessage message_id, void *wParam, void *lParam)
+{
+    const struct Payload
+    {
+        uint32_t agent_id;
+        GW::Constants::SkillID skill_id;
+    } *payload = static_cast<Payload *>(wParam);
 
-//     if (payload->agent_id == GW::Agents::GetPlayerId())
-//     {
-//         int i = 2;
-//         status->blocked = true;
-//     }
-// }
+    if (payload->agent_id == GW::Agents::GetPlayerId() && skill_id == 0U) // TODO
+    {
+        status->blocked = true;
+    }
+}
 } // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -154,15 +153,10 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
         &MapLoaded_Entry,
         [this](GW::HookStatus *, const GW::Packet::StoC::MapLoaded *) -> void { ResetData(); });
 
-    // GW::StoC::RegisterPacketCallback<GW::Packet::StoC::GenericValueTarget>(
-    //     &OnSkillActivated_Entry,
-    //     [this](GW::HookStatus *status, GW::Packet::StoC::GenericValueTarget *packet) -> void {
-    //         OnSkillActivaiton(status, packet);
-    //     });
 
-    // GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry,
-    //                                   GW::UI::UIMessage::kSkillActivated,
-    //                                   OnSkillActivaiton2);
+    GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry,
+                                      GW::UI::UIMessage::kSkillActivated,
+                                      skill_id);
 
     GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"HeroWindow");
 }
@@ -410,25 +404,94 @@ void SkillCallback(const uint32_t value_id,
     }
 }
 
-// void HeroWindow::OnSkillActivaiton(GW::HookStatus *status, GW::Packet::StoC::GenericValueTarget *packet) const
-// {
-//     const uint32_t value_id = packet->Value_id;
-//     const uint32_t caster_id = packet->caster;
-//     const uint32_t target_id = packet->target;
-//     const uint32_t value = packet->value;
-//     constexpr bool no_target = false;
+void HeroWindow::HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size)
+{
+    switch (current_hero_behaviour)
+    {
+    case GW::HeroBehavior::Guard:
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_BLUE);
+        break;
+    }
+    case GW::HeroBehavior::AvoidCombat:
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
+        break;
+    }
+    case GW::HeroBehavior::Fight:
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_RED);
+        break;
+    }
+    }
 
-//     if (target_id != player_data.id || (GW::Constants::SkillID)value == GW::Constants::SkillID::No_Skill)
-//         return;
+    if (ImGui::Button("Behaviour###toggleState", im_button_size))
+        ToggleHeroBehaviour();
 
-//     SkillCallback(value_id, caster_id, target_id, value, no_target, status);
-// }
+    ImGui::PopStyleColor();
+}
 
-void HeroWindow::Draw(IDirect3DDevice9 *)
+void HeroWindow::HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &toggled_follow)
 {
     static auto last_follow_trigger_ms = clock();
     static auto gen = std::mt19937{};
     static auto time_dist = std::uniform_int_distribution<long>(-10, 10);
+
+    auto added_color_follow = false;
+
+    if (following_active)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
+        added_color_follow = true;
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Follow###followPlayer", im_button_size))
+    {
+        following_active = !following_active;
+        toggled_follow = true;
+
+        Log::Info("Heroes will follow the player!");
+    }
+
+    if (IsExplorable() && following_active && TIMER_DIFF(last_follow_trigger_ms) > 800 + time_dist(gen))
+    {
+        FollowPlayer();
+        last_follow_trigger_ms = clock();
+
+        UseFallback();
+    }
+    else if (IsMapReady() && IsExplorable() && toggled_follow)
+    {
+        GW::PartyMgr::UnflagAll();
+    }
+
+    if (added_color_follow)
+        ImGui::PopStyleColor();
+}
+
+void HeroWindow::HeroSpike_DrawAndLogic(const ImVec2 &im_button_size)
+{
+    ImGui::SameLine();
+
+    if (ImGui::Button("Attack###attackTarget", im_button_size))
+    {
+        if (IsExplorable())
+            AttackTarget();
+    }
+}
+
+void HeroWindow::HeroSmarterSkills_Logic()
+{
+    if (following_active || !IsExplorable())
+        return;
+
+    UseBipOnPlayer();
+}
+
+void HeroWindow::Draw(IDirect3DDevice9 *)
+{
 
     if (!player_data.ValidateData(HelperActivationConditions, true) || !party_heros || party_heros->size() == 0 ||
         GetNumPlayerHeroes() == 0 || (*GetVisiblePtr()) == false)
@@ -444,74 +507,12 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
         const auto width = ImGui::GetWindowWidth();
         const auto im_button_size = ImVec2{width / 3.0F - 10.0F, 50.0F};
 
-        auto added_color_follow = false;
         auto toggled_follow = false;
 
-        switch (current_hero_behaviour)
-        {
-        case GW::HeroBehavior::Guard:
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_BLUE);
-            break;
-        }
-        case GW::HeroBehavior::AvoidCombat:
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
-            break;
-        }
-        case GW::HeroBehavior::Fight:
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_RED);
-            break;
-        }
-        }
-
-        if (ImGui::Button("Behaviour###toggleState", im_button_size))
-            ToggleHeroBehaviour();
-
-        ImGui::PopStyleColor();
-
-        if (following_active)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
-            added_color_follow = true;
-        }
-
-        ImGui::SameLine();
-
-        if (ImGui::Button("Follow###followPlayer", im_button_size))
-        {
-            following_active = !following_active;
-            toggled_follow = true;
-
-            Log::Info("Heroes will follow the player!");
-        }
-        if (IsExplorable() && following_active && TIMER_DIFF(last_follow_trigger_ms) > 800 + time_dist(gen))
-        {
-            FollowPlayer();
-            last_follow_trigger_ms = clock();
-
-            UseFallback();
-        }
-        else if (IsMapReady() && IsExplorable() && toggled_follow)
-        {
-            GW::PartyMgr::UnflagAll();
-        }
-        else if (IsExplorable() && !following_active)
-        {
-            UseBipOnPlayer();
-        }
-
-        if (added_color_follow)
-            ImGui::PopStyleColor();
-
-        ImGui::SameLine();
-
-        if (ImGui::Button("Attack###attackTarget", im_button_size))
-        {
-            if (IsExplorable())
-                AttackTarget();
-        }
+        HeroBehaviour_DrawAndLogic(im_button_size);
+        HeroFollow_DrawAndLogic(im_button_size, toggled_follow);
+        HeroSpike_DrawAndLogic(im_button_size);
+        HeroSmarterSkills_Logic();
     }
     ImGui::End();
 }

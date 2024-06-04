@@ -120,7 +120,7 @@ std::set<uint32_t> FilterAgentIDS(const std::vector<GW::AgentLiving *> &filtered
 
 uint32_t GetPartyIdxByID(const uint32_t id);
 
-bool DropBondsOnLiving(const GW::AgentLiving *living);
+bool DropEmoBondsOnLiving(const GW::AgentLiving *living);
 
 const GW::AgentLiving *GetPlayerAsLiving();
 

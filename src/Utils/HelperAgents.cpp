@@ -78,11 +78,11 @@ bool TargetNearest(const GW::GamePos &player_pos,
         if (!living)
             continue;
 
-        const auto newDistance = GW::GetDistance(player_pos, living->pos);
-        if (newDistance < distance)
+        const auto new_distance = GW::GetDistance(player_pos, living->pos);
+        if (new_distance < distance)
         {
             closest = living->agent_id;
-            distance = newDistance;
+            distance = new_distance;
         }
     }
 
@@ -477,7 +477,7 @@ std::set<uint32_t> FilterAgentIDS(const std::vector<GW::AgentLiving *> &filtered
     return result_ids;
 }
 
-bool DropBondsOnLiving(const GW::AgentLiving *living)
+bool DropEmoBondsOnLiving(const GW::AgentLiving *living)
 {
     auto dropped_smth = false;
 
@@ -506,6 +506,7 @@ const GW::AgentLiving *GetPlayerAsLiving()
     const auto me = GW::Agents::GetPlayer();
     if (!me)
         return nullptr;
+
     return me->GetAsAgentLiving();
 }
 
@@ -514,6 +515,7 @@ const GW::AgentLiving *GetTargetAsLiving()
     const auto me = GW::Agents::GetTarget();
     if (!me)
         return nullptr;
+
     return me->GetAsAgentLiving();
 }
 

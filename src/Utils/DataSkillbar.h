@@ -50,6 +50,7 @@ public:
         const auto internal_skillbar = GW::SkillbarMgr::GetPlayerSkillbar();
         if (!internal_skillbar)
             return;
+
         const auto skillbar_skills = internal_skillbar->skills;
         LoadInternal(skillbar_skills);
     }
@@ -63,6 +64,7 @@ public:
         {
             if (!skill)
                 continue;
+
             skill->idx = static_cast<uint32_t>(-1);
 
             for (uint32_t idx = 0; idx < 8U; ++idx)
@@ -81,6 +83,7 @@ public:
         const auto internal_skillbar = GW::SkillbarMgr::GetPlayerSkillbar();
         if (!internal_skillbar)
             return;
+
         const auto skillbar_skills = internal_skillbar->skills;
         UpdateInternal(skillbar_skills);
 
