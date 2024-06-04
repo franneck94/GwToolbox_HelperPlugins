@@ -1,6 +1,9 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
+#include <functional>
+#include <map>
 
 #include <ToolboxUIPlugin.h>
 
@@ -11,6 +14,13 @@
 
 #include "ActionsBase.h"
 #include "DataPlayer.h"
+
+struct HeroData
+{
+    const GW::AgentLiving *hero_living;
+    const uint32_t hero_idx_zero_based;
+    const std::array<GW::SkillbarSkill, 8U> skills;
+};
 
 class HeroWindow : public ToolboxUIPlugin
 {
@@ -37,25 +47,33 @@ public:
     }
     void Update(float delta) override;
 
-    void HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size);
-    void HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &toggled_follow);
-    void HeroSpike_DrawAndLogic(const ImVec2 &im_button_size);
-    void HeroSmarterSkills_Logic();
+private:
+    bool UpdateHeroData();
 
+    void HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size);
+
+    void HeroSpike_DrawAndLogic(const ImVec2 &im_button_size);
+
+    void HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &toggled_follow);
+    void HeroFollow_StopConditions();
     void StopFollowing();
 
-private:
-    uint32_t GetNumPlayerHeroes();
+    uint32_t HeroSkill_GetHeroIndexWithCertainClass(const GW::Constants::Profession &skill_class);
+    bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
+                                   std::function<bool(const DataPlayer &)> cb_fn,
+                                   const long wait_time_ms = 0UL);
+    void HeroSmarterSkills_Logic();
+    void UseBipOnPlayer();
+    void UseSplinterOnPlayer();
+
     void ToggleHeroBehaviour();
     void FollowPlayer();
-    void UseBipOnPlayer();
     void UseFallback();
-    void MesmerSpikeTarget(const GW::HeroPartyMember &hero, const uint32_t hero_idx) const;
+    void MesmerSpikeTarget(const HeroData &hero_data) const;
     void AttackTarget();
     void ResetData();
 
     DataPlayer player_data;
-    const GW::Array<GW::HeroPartyMember> *party_heros = nullptr;
 
     GW::HeroBehavior current_hero_behaviour = GW::HeroBehavior::Guard;
     GW::GamePos follow_pos = {};
@@ -67,4 +85,6 @@ private:
     bool load_cb_triggered = false;
 
     GW::HookEntry OnSkillActivated_Entry;
+
+    std::vector<HeroData> hero_data_vec;
 };
