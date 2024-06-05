@@ -33,8 +33,6 @@
 
 namespace
 {
-constexpr auto CTOS_ID_HERO_ACTION = 0xC;
-
 constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
@@ -153,7 +151,7 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
         &MapLoaded_Entry,
         [this](GW::HookStatus *, const GW::Packet::StoC::MapLoaded *) -> void { ResetData(); });
 
-    GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivaiton);
+    // GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivaiton);
 
     GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"HeroWindow");
 }
@@ -173,10 +171,7 @@ void HeroWindow::StopFollowing()
 void HeroWindow::ToggleHeroBehaviour()
 {
     const auto *const party_info = GW::PartyMgr::GetPartyInfo();
-    if (!party_info)
-        return;
-
-    if (!IsMapReady())
+    if (!party_info || !player_data.living || !IsMapReady())
         return;
 
     Log::Info("Toggle hero hehaviour!");
@@ -197,7 +192,7 @@ void HeroWindow::ToggleHeroBehaviour()
 
 void HeroWindow::FollowPlayer()
 {
-    if (!IsMapReady() || !IsExplorable() || (follow_pos.x == 0.0F && follow_pos.y == 0.0F) ||
+    if (!IsMapReady() || !IsExplorable() || !player_data.living || (follow_pos.x == 0.0F && follow_pos.y == 0.0F) ||
         !GW::PartyMgr::GetIsPartyLoaded() || GW::PartyMgr::GetIsPartyDefeated())
         return;
 
@@ -218,11 +213,8 @@ bool HeroWindow::HeroSkill_StartConditions(
     if (skill_id != GW::Constants::SkillID::No_Skill && player_data.PlayerHasEffect(skill_id))
         return false;
 
-    if (!cb_fn(player_data, livings_data))
-    {
-        Log::Info("Player cond fn returned false");
-        return false;
-    }
+    // if (!cb_fn(player_data, livings_data))
+    //     return false;
 
     return true;
 }
@@ -234,6 +226,9 @@ std::vector<uint32_t> HeroWindow::HeroSkill_GetHeroIndexWithCertainClass(const G
     auto hero_idx_zero_based = 0U;
     for (const auto &hero_data : hero_data_vec)
     {
+        if (!hero_data.hero_living)
+            continue;
+
         const auto has_skill_class = (hero_data.hero_living->primary == static_cast<uint8_t>(skill_class) ||
                                       hero_data.hero_living->secondary == static_cast<uint8_t>(skill_class));
 
@@ -246,25 +241,32 @@ std::vector<uint32_t> HeroWindow::HeroSkill_GetHeroIndexWithCertainClass(const G
     return hero_idxs_with_certain_class;
 }
 
+bool player_conditions_splinter(const DataPlayer &player_data, const AgentLivingData &livings_data)
+{
+    const auto num_enemies_at_player = std::count_if(livings_data.enemies.begin(),
+                                                     livings_data.enemies.end(),
+                                                     [&player_data](const GW::AgentLiving *enemy_living) {
+                                                         if (!enemy_living)
+                                                             return false;
+
+                                                         const auto dist =
+                                                             GW::GetDistance(enemy_living->pos, player_data.pos);
+
+                                                         return dist < GW::Constants::Range::Nearby;
+                                                     });
+
+    return num_enemies_at_player >= 2; // TODO: Check if player has melee weapon
+};
+
 void HeroWindow::UseSplinterOnPlayer()
 {
-    const auto skill_id = GW::Constants::SkillID::Splinter_Weapon;
-    const auto skill_class = GW::Constants::Profession::Ritualist;
+    constexpr static auto skill_id = GW::Constants::SkillID::Splinter_Weapon;
+    constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
-        const auto num_enemies_at_player = std::count_if(livings_data.enemies.begin(),
-                                                         livings_data.enemies.end(),
-                                                         [&player_data](const GW::AgentLiving *enemy_living) {
-                                                             const auto dist =
-                                                                 GW::GetDistance(enemy_living->pos, player_data.pos);
+    if (!player_conditions_splinter(player_data, livings_data))
+        return;
 
-                                                             return dist < GW::Constants::Range::Nearby;
-                                                         });
-
-        return num_enemies_at_player >= 1;
-    };
-
-    if (!HeroSkill_StartConditions(skill_id, player_conditions, 1000UL))
+    if (!HeroSkill_StartConditions(skill_id, player_conditions_splinter, 100UL))
         return;
 
     auto hero_idxs_zero_based = HeroSkill_GetHeroIndexWithCertainClass(skill_class);
@@ -272,6 +274,9 @@ void HeroWindow::UseSplinterOnPlayer()
         return;
 
     const auto hero_conditions = [](const DataPlayer &player_data, const HeroData &hero_data) {
+        if (!hero_data.hero_living)
+            return false;
+
         const auto dist = GW::GetDistance(hero_data.hero_living->pos, player_data.pos);
 
         return dist < GW::Constants::Range::Spellcast;
@@ -289,22 +294,29 @@ void HeroWindow::UseSplinterOnPlayer()
     }
 }
 
+bool player_conditions_bip(const DataPlayer &player_data, const AgentLivingData &)
+{
+    if (!player_data.living)
+        return false;
+
+    if (player_data.energy_perc > 0.30F)
+        return false;
+
+    if (player_data.living->energy_regen > 0.03F)
+        return false;
+
+    return true;
+}
+
 void HeroWindow::UseBipOnPlayer()
 {
-    const auto skill_id = GW::Constants::SkillID::Blood_is_Power;
-    const auto skill_class = GW::Constants::Profession::Necromancer;
+    constexpr static auto skill_id = GW::Constants::SkillID::Blood_is_Power;
+    constexpr static auto skill_class = GW::Constants::Profession::Necromancer;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
-        if (player_data.energy_perc > 0.30F)
-            return false;
+    if (!player_conditions_bip(player_data, livings_data))
+        return;
 
-        if (player_data.living->energy_regen > 0.03F)
-            return false;
-
-        return true;
-    };
-
-    if (!HeroSkill_StartConditions(skill_id, player_conditions, 1000UL))
+    if (!HeroSkill_StartConditions(skill_id, player_conditions_bip, 100UL))
         return;
 
     auto hero_idxs_zero_based = HeroSkill_GetHeroIndexWithCertainClass(skill_class);
@@ -334,8 +346,8 @@ void HeroWindow::UseBipOnPlayer()
 
 void HeroWindow::UseFallback()
 {
-    const auto skill_id = GW::Constants::SkillID::Fall_Back;
-    const auto skill_class = GW::Constants::Profession::Paragon;
+    constexpr static auto skill_id = GW::Constants::SkillID::Fall_Back;
+    constexpr static auto skill_class = GW::Constants::Profession::Paragon;
 
     auto player_conditions = [](const DataPlayer &, const AgentLivingData &) { return true; };
 
@@ -364,8 +376,11 @@ void HeroWindow::UseFallback()
 
 void HeroWindow::MesmerSpikeTarget(const HeroData &hero_data) const
 {
-    const auto skill_id = GW::Constants::SkillID::Energy_Surge;
-    const auto skill_class = GW::Constants::Profession::Mesmer;
+    constexpr static auto skill_id = GW::Constants::SkillID::Energy_Surge;
+    constexpr static auto skill_class = GW::Constants::Profession::Mesmer;
+
+    if (!hero_data.hero_living)
+        return;
 
     auto hero_conditions = [](const DataPlayer &, const HeroData &) { return true; };
 
@@ -376,6 +391,9 @@ void HeroWindow::MesmerSpikeTarget(const HeroData &hero_data) const
 void HeroWindow::AttackTarget()
 {
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+        if (!player_data.target)
+            return false;
+
         const auto *target_living = player_data.target->GetAsAgentLiving();
         if (!target_living)
             return false;
@@ -496,8 +514,8 @@ void HeroWindow::HeroSmarterSkills_Logic()
     if (following_active || !IsExplorable())
         return;
 
-    UseSplinterOnPlayer();
     UseBipOnPlayer();
+    UseSplinterOnPlayer();
 }
 
 void HeroWindow::HeroFollow_StopConditions()
@@ -543,7 +561,7 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
         HeroBehaviour_DrawAndLogic(im_button_size);
         HeroFollow_DrawAndLogic(im_button_size, toggled_follow);
         HeroSpike_DrawAndLogic(im_button_size);
-        HeroSmarterSkills_Logic();
+
         HeroFollow_StopConditions();
     }
     ImGui::End();
@@ -554,14 +572,20 @@ bool HeroWindow::UpdateHeroData()
     hero_data_vec.clear();
 
     const auto *const party_info = GW::PartyMgr::GetPartyInfo();
-    auto hero_idx_zero_based = 0U;
-    auto skills = std::array<GW::SkillbarSkill, 8U>{};
-
     if (!party_info)
         return false;
 
-    for (const auto &hero : *&party_info->heroes)
+    auto hero_idx_zero_based = 0U;
+    auto skills = std::array<GW::SkillbarSkill, 8U>{};
+
+    for (const auto &hero : party_info->heroes)
     {
+        if (!hero.agent_id)
+        {
+            ++hero_idx_zero_based;
+            continue;
+        }
+
         auto *hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
         if (!hero_agent)
         {
@@ -584,12 +608,14 @@ bool HeroWindow::UpdateHeroData()
 
         for (const auto &skillbar : *skillbar_array)
         {
-            if (skillbar.agent_id != hero_living->agent_id)
-                continue;
-
-            for (uint32_t i = 0; i < 8; i++)
+            if (skillbar.agent_id == hero_living->agent_id)
             {
-                skills[i] = skillbar.skills[i];
+                for (uint32_t i = 0; i < 8; i++)
+                {
+                    skills[i] = skillbar.skills[i];
+                }
+
+                break;
             }
         }
 
@@ -632,4 +658,7 @@ void HeroWindow::Update(float)
         target_agent_id = player_data.target->agent_id;
     else
         target_agent_id = 0U;
+
+    UseBipOnPlayer();
+    UseSplinterOnPlayer();
 }
