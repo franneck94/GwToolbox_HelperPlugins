@@ -266,7 +266,7 @@ bool DataPlayer::AnyTeamMemberHasEffect(const GW::Constants::SkillID effect_id) 
 bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id) const
 {
     const auto *effects = GetEffects(id);
-    if (!effects || effects->size() == 0)
+    if (!effects)
         return false;
 
     for (const auto effect : *effects)

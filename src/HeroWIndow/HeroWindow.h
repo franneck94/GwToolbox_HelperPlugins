@@ -60,13 +60,14 @@ private:
     void StopFollowing();
 
     std::vector<uint32_t> HeroSkill_GetHeroIndexWithCertainClass(const GW::Constants::Profession &skill_class);
-    bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
-                                   std::function<bool(const DataPlayer &, const AgentLivingData &livings_data)> cb_fn,
-                                   const long wait_time_ms = 0UL);
+    bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id, const long wait_time_ms = 0UL);
     void HeroSmarterSkills_Logic();
     void UseBipOnPlayer();
     void UseSplinterOnPlayer();
     void UseHonorOnPlayer();
+    void UseShelterAtFightEnter();
+    void UseUnionAtFightEnter();
+    void UseSosAtFightEnter();
 
     void ToggleHeroBehaviour();
     void FollowPlayer();
