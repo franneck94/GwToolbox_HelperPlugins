@@ -7,6 +7,7 @@
 #include <GWCA/GameContainers/GamePos.h>
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/GameEntities/Skill.h>
+#include <GWCA/Managers/ItemMgr.h>
 #include <GWCA/Managers/StoCMgr.h>
 #include <GWCA/Packets/StoC.h>
 
@@ -37,7 +38,6 @@ public:
 
     bool SkillStoppedCallback(const GW::Packet::StoC::GenericValue *const packet) const noexcept;
 
-
 public:
     uint32_t id = UINT32_MAX;
 
@@ -56,6 +56,10 @@ public:
 
     GW::Constants::Profession primary = GW::Constants::Profession::None;
     GW::Constants::Profession secondary = GW::Constants::Profession::None;
+
+    GW::Item *weapon_main_hand = nullptr;
+    bool holds_melee_weapon = false;
+    bool holds_caster_weapon = false;
 
     bool dead = false;
 };

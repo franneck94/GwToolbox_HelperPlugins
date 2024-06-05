@@ -66,6 +66,7 @@ private:
     void HeroSmarterSkills_Logic();
     void UseBipOnPlayer();
     void UseSplinterOnPlayer();
+    void UseHonorOnPlayer();
 
     void ToggleHeroBehaviour();
     void FollowPlayer();

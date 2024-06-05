@@ -1,6 +1,7 @@
 #include <utility>
 
 #include <GWCA/Constants/Constants.h>
+#include <GWCA/Context/ItemContext.h>
 #include <GWCA/GameContainers/Array.h>
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/GameEntities/Map.h>
@@ -69,6 +70,19 @@ void DataPlayer::Update()
 
     primary = static_cast<GW::Constants::Profession>(living->primary);
     secondary = static_cast<GW::Constants::Profession>(living->secondary);
+
+    const auto equipped_items_bag = GW::Items::GetBag(GW::Constants::Bag::Equipped_Items);
+    if (!equipped_items_bag)
+        return;
+    weapon_main_hand = GW::Items::GetItemBySlot(equipped_items_bag, 1);
+
+    holds_melee_weapon = weapon_main_hand && (weapon_main_hand->type == GW::Constants::ItemType::Axe ||
+                                              weapon_main_hand->type == GW::Constants::ItemType::Hammer ||
+                                              weapon_main_hand->type == GW::Constants::ItemType::Sword ||
+                                              weapon_main_hand->type == GW::Constants::ItemType::Daggers ||
+                                              weapon_main_hand->type == GW::Constants::ItemType::Scythe ||
+                                              weapon_main_hand->type == GW::Constants::ItemType::Spear);
+    holds_caster_weapon = !holds_melee_weapon;
 }
 
 bool DataPlayer::CanCast() const

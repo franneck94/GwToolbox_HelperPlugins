@@ -255,7 +255,10 @@ bool player_conditions_splinter(const DataPlayer &player_data, const AgentLiving
                                                          return dist < GW::Constants::Range::Nearby;
                                                      });
 
-    return num_enemies_at_player >= 2; // TODO: Check if player has melee weapon
+
+    const auto player_is_melee_attacking = player_data.IsAttacking() && player_data.holds_melee_weapon;
+
+    return num_enemies_at_player >= 2 && player_is_melee_attacking;
 };
 
 void HeroWindow::UseSplinterOnPlayer()
@@ -279,7 +282,7 @@ void HeroWindow::UseSplinterOnPlayer()
 
         const auto dist = GW::GetDistance(hero_data.hero_living->pos, player_data.pos);
 
-        return dist < GW::Constants::Range::Spellcast;
+        return dist < GW::Constants::Range::Spellcast && hero_data.hero_living->energy > 0.50F;
     };
 
     for (const auto hero_idx_zero_based : hero_idxs_zero_based)
@@ -289,6 +292,62 @@ void HeroWindow::UseSplinterOnPlayer()
         if (HeroCastSkillIfAvailable(hero_data, player_data, skill_id, hero_conditions, false))
         {
             Log::Info("Casted Splinter.");
+            return;
+        }
+    }
+}
+
+bool player_conditions_honor(const DataPlayer &player_data, const AgentLivingData &livings_data)
+{
+    const auto num_enemies_at_player = std::count_if(livings_data.enemies.begin(),
+                                                     livings_data.enemies.end(),
+                                                     [&player_data](const GW::AgentLiving *enemy_living) {
+                                                         if (!enemy_living)
+                                                             return false;
+
+                                                         const auto dist =
+                                                             GW::GetDistance(enemy_living->pos, player_data.pos);
+
+                                                         return dist < GW::Constants::Range::Nearby;
+                                                     });
+
+
+    const auto player_is_melee_attacking = player_data.IsAttacking() && player_data.holds_melee_weapon;
+
+    return num_enemies_at_player >= 2 && player_is_melee_attacking;
+};
+
+void HeroWindow::UseHonorOnPlayer()
+{
+    constexpr static auto skill_id = GW::Constants::SkillID::Strength_of_Honor;
+    constexpr static auto skill_class = GW::Constants::Profession::Monk;
+
+    if (!player_conditions_honor(player_data, livings_data))
+        return;
+
+    if (!HeroSkill_StartConditions(skill_id, player_conditions_splinter, 100UL))
+        return;
+
+    auto hero_idxs_zero_based = HeroSkill_GetHeroIndexWithCertainClass(skill_class);
+    if (hero_idxs_zero_based.size() == 0)
+        return;
+
+    const auto hero_conditions = [](const DataPlayer &player_data, const HeroData &hero_data) {
+        if (!hero_data.hero_living)
+            return false;
+
+        const auto dist = GW::GetDistance(hero_data.hero_living->pos, player_data.pos);
+
+        return dist < GW::Constants::Range::Spellcast && hero_data.hero_living->energy > 0.25F;
+    };
+
+    for (const auto hero_idx_zero_based : hero_idxs_zero_based)
+    {
+        const auto &hero_data = hero_data_vec[hero_idx_zero_based];
+
+        if (HeroCastSkillIfAvailable(hero_data, player_data, skill_id, hero_conditions, false))
+        {
+            Log::Info("Casted Honor.");
             return;
         }
     }
@@ -516,6 +575,7 @@ void HeroWindow::HeroSmarterSkills_Logic()
 
     UseBipOnPlayer();
     UseSplinterOnPlayer();
+    UseHonorOnPlayer();
 }
 
 void HeroWindow::HeroFollow_StopConditions()
@@ -659,6 +719,5 @@ void HeroWindow::Update(float)
     else
         target_agent_id = 0U;
 
-    UseBipOnPlayer();
-    UseSplinterOnPlayer();
+    HeroSmarterSkills_Logic();
 }
