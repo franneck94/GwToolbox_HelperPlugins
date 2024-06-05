@@ -16,7 +16,6 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 option(ENABLE_WARNINGS "Enable to add warnings to a target." ON)
 option(ENABLE_WARNINGS_AS_ERRORS "Enable to treat warnings as errors." OFF)
 option(ENABLE_CLANG_TIDY "Enable to add clang tidy." ON)
-option(ENABLE_SANITIZE_ADDR "Enable address sanitize." ON)
 
 # Sanity Check
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)

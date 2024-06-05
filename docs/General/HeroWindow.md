@@ -25,4 +25,9 @@ Also, for all mesmer heroes, they will cast ESurge on that target.
 
 ## General
 
-Your BIP hero will BIP you regardless of your current weapon set, whenever you are below 30% of your energy and the heroe's HP is above 80%.
+Smart features are:
+
+- BiP the player regardless of the weapon
+- Use Shelter and Union at fight entry if not present
+- Use SoS in fight if not all three spirits are present
+- Use splinter weapon and honor on player if he is melee attacker
