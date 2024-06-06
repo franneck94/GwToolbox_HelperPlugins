@@ -38,10 +38,6 @@ constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 
-constexpr auto SOS1_AGENT_ID = uint32_t{4229};
-constexpr auto SOS2_AGENT_ID = uint32_t{4230};
-constexpr auto SOS3_AGENT_ID = uint32_t{4231};
-
 void OnSkillActivaiton(GW::HookStatus *status, const GW::UI::UIMessage message_id, void *wParam, void *lParam)
 {
     const struct Payload
@@ -106,6 +102,8 @@ void HeroWindow::ToggleHeroBehaviour()
         current_hero_behaviour = GW::HeroBehavior::Guard;
     else if (current_hero_behaviour == GW::HeroBehavior::AvoidCombat)
         current_hero_behaviour = GW::HeroBehavior::Fight;
+    else
+        return;
 
     for (const auto &hero : party_info->heroes)
     {
@@ -173,7 +171,6 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
 
 void HeroWindow::ShatterImportantHexes()
 {
-    constexpr static auto skill_id = GW::Constants::SkillID::Shatter_Hex;
     constexpr static auto to_remove_skill_ids_melee = std::array<GW::Constants::SkillID, 4>{
         GW::Constants::SkillID::Wandering_Eye,
         GW::Constants::SkillID::Ineptitude,
@@ -190,6 +187,8 @@ void HeroWindow::ShatterImportantHexes()
     constexpr static auto to_remove_skill_ids_all = std::array<GW::Constants::SkillID, 1>{
         GW::Constants::SkillID::Diversion,
     };
+
+    constexpr static auto skill_id = GW::Constants::SkillID::Shatter_Hex;
     constexpr static auto skill_class = GW::Constants::Profession::Mesmer;
     constexpr static auto wait_ms = 1000UL;
     constexpr static auto use_target = false;
@@ -238,6 +237,35 @@ void HeroWindow::ShatterImportantHexes()
     };
 
     return SmartUseSkill(skill_id, skill_class, "ShatterHex", wait_ms, use_target, player_conditions, hero_conditions);
+}
+
+void HeroWindow::RemoveBlindness()
+{
+    constexpr static auto skill_id = GW::Constants::SkillID::Mend_Body_and_Soul;
+    constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
+    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto use_target = false;
+
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
+        const auto num_enemies_at_player =
+            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Nearby);
+
+        const auto player_is_melee_attacking = player_data.IsAttacking() && player_data.holds_melee_weapon;
+        const auto player_is_blinded = false;
+
+        return num_enemies_at_player >= 1 && player_is_melee_attacking && player_is_blinded;
+    };
+
+    const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
+        if (!hero.hero_living)
+            return false;
+
+        const auto dist = GW::GetDistance(hero.hero_living->pos, player_data.pos);
+
+        return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
+    };
+
+    return SmartUseSkill(skill_id, skill_class, "Mend", wait_ms, use_target, player_conditions, hero_conditions);
 }
 
 void HeroWindow::UseSplinterOnPlayer()
@@ -293,7 +321,7 @@ void HeroWindow::UseHonorOnPlayer()
     return SmartUseSkill(skill_id, skill_class, "Honor", wait_ms, use_target, player_conditions, hero_conditions);
 }
 
-void HeroWindow::UseShelterAtFightEnter()
+void HeroWindow::UseShelterInFight()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Shelter;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
@@ -323,7 +351,7 @@ void HeroWindow::UseShelterAtFightEnter()
     return SmartUseSkill(skill_id, skill_class, "Shelter", wait_ms, use_target, player_conditions, hero_conditions);
 }
 
-void HeroWindow::UseUnionAtFightEnter()
+void HeroWindow::UseUnionInFight()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Union;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
@@ -353,8 +381,12 @@ void HeroWindow::UseUnionAtFightEnter()
     return SmartUseSkill(skill_id, skill_class, "Union", wait_ms, use_target, player_conditions, hero_conditions);
 }
 
-void HeroWindow::UseSosAtFightEnter()
+void HeroWindow::UseSosInFight()
 {
+    constexpr static auto SOS1_AGENT_ID = uint32_t{4229};
+    constexpr static auto SOS2_AGENT_ID = uint32_t{4230};
+    constexpr static auto SOS3_AGENT_ID = uint32_t{4231};
+
     constexpr static auto skill_id = GW::Constants::SkillID::Signet_of_Spirits;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
     constexpr static auto wait_ms = 1000UL;
@@ -581,10 +613,11 @@ void HeroWindow::HeroSmarterSkills_Logic()
     UseSplinterOnPlayer();
     UseBipOnPlayer();
     UseHonorOnPlayer();
-    UseShelterAtFightEnter();
-    UseUnionAtFightEnter();
-    UseSosAtFightEnter();
+    UseShelterInFight();
+    UseUnionInFight();
+    UseSosInFight();
     ShatterImportantHexes();
+    RemoveBlindness();
 }
 
 void HeroWindow::HeroFollow_StopConditions()
@@ -611,6 +644,31 @@ void HeroWindow::HeroFollow_StopConditions()
         ms_with_no_pos_change = 0U;
         time_at_last_pos_change = TIMER_INIT();
     }
+}
+
+void HeroWindow::UpdateInternalData()
+{
+    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+    if (party_info)
+        hero_data.Update(party_info->heroes);
+    else
+        hero_data.hero_vec.clear();
+
+    if (player_data.pos == follow_pos && following_active)
+    {
+        ms_with_no_pos_change = TIMER_DIFF(time_at_last_pos_change);
+    }
+    else
+    {
+        ms_with_no_pos_change = 0U;
+        time_at_last_pos_change = TIMER_INIT();
+    }
+    follow_pos = player_data.pos;
+
+    if (player_data.target)
+        target_agent_id = player_data.target->agent_id;
+    else
+        target_agent_id = 0U;
 }
 
 void HeroWindow::Draw(IDirect3DDevice9 *)
@@ -651,27 +709,7 @@ void HeroWindow::Update(float)
     player_data.Update();
     livings_data.Update();
 
-    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
-    if (party_info)
-        hero_data.Update(party_info->heroes);
-    else
-        hero_data.hero_vec.clear();
-
-    if (player_data.pos == follow_pos && following_active)
-    {
-        ms_with_no_pos_change = TIMER_DIFF(time_at_last_pos_change);
-    }
-    else
-    {
-        ms_with_no_pos_change = 0U;
-        time_at_last_pos_change = TIMER_INIT();
-    }
-    follow_pos = player_data.pos;
-
-    if (player_data.target)
-        target_agent_id = player_data.target->agent_id;
-    else
-        target_agent_id = 0U;
+    UpdateInternalData();
 
     HeroSmarterSkills_Logic();
     HeroFollow_StopConditions();

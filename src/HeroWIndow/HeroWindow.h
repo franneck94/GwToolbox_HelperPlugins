@@ -43,7 +43,7 @@ public:
     void Update(float delta) override;
 
 private:
-    bool UpdateHeroData();
+    void UpdateInternalData();
 
     void HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size);
 
@@ -65,10 +65,11 @@ private:
     void UseBipOnPlayer();
     void UseSplinterOnPlayer();
     void UseHonorOnPlayer();
-    void UseShelterAtFightEnter();
-    void UseUnionAtFightEnter();
-    void UseSosAtFightEnter();
+    void UseShelterInFight();
+    void UseUnionInFight();
+    void UseSosInFight();
     void ShatterImportantHexes();
+    void RemoveBlindness();
 
     void ToggleHeroBehaviour();
     void FollowPlayer();
