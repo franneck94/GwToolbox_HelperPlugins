@@ -25,6 +25,7 @@
 #include "HelperAgents.h"
 #include "HelperHero.h"
 #include "HelperMaps.h"
+#include "HelperSkill.h"
 #include "HeroWindow.h"
 #include "Logger.h"
 #include "Utils.h"
@@ -49,8 +50,7 @@ void OnSkillActivaiton(GW::HookStatus *status, const GW::UI::UIMessage message_i
         GW::Constants::SkillID skill_id;
     } *payload = static_cast<Payload *>(wParam);
 
-    if (payload->agent_id == GW::Agents::GetPlayerId() &&
-        payload->skill_id == static_cast<GW::Constants::SkillID>(0U)) // TODO
+    if (payload->agent_id == GW::Agents::GetPlayerId() && payload->skill_id == static_cast<GW::Constants::SkillID>(0U))
     {
         status->blocked = true;
     }
@@ -163,17 +163,88 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
         {
 #ifdef _DEBUG
             Log::Info("Casted %s.", skill_name);
+#else
+            (void)skill_name;
 #endif
             return;
         }
     }
 }
 
+void HeroWindow::ShatterImportantHexes()
+{
+    constexpr static auto skill_id = GW::Constants::SkillID::Shatter_Hex;
+    constexpr static auto to_remove_skill_ids_melee = std::array<GW::Constants::SkillID, 4>{
+        GW::Constants::SkillID::Wandering_Eye,
+        GW::Constants::SkillID::Ineptitude,
+        GW::Constants::SkillID::Empathy,
+        GW::Constants::SkillID::Spiteful_Spirit,
+    };
+    constexpr static auto to_remove_skill_ids_caster = std::array<GW::Constants::SkillID, 5>{
+        GW::Constants::SkillID::Wandering_Eye,
+        GW::Constants::SkillID::Panic,
+        GW::Constants::SkillID::Backfire,
+        GW::Constants::SkillID::Mistrust,
+        GW::Constants::SkillID::Spiteful_Spirit,
+    };
+    constexpr static auto to_remove_skill_ids_all = std::array<GW::Constants::SkillID, 1>{
+        GW::Constants::SkillID::Diversion,
+    };
+    constexpr static auto skill_class = GW::Constants::Profession::Mesmer;
+    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto use_target = false;
+
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+        if (!player_data.living->GetIsHexed())
+            return false;
+
+        const auto *const effects = GW::Effects::GetPlayerEffects();
+        if (!effects || !effects->valid())
+            return false;
+
+        for (const auto effect : *effects)
+        {
+            if (effect.agent_id != 0)
+                continue;
+
+            if (player_data.holds_melee_weapon)
+            {
+                if (std::find(to_remove_skill_ids_melee.begin(), to_remove_skill_ids_melee.end(), effect.skill_id) !=
+                    to_remove_skill_ids_melee.end())
+                    return true;
+            }
+            else
+            {
+                if (std::find(to_remove_skill_ids_caster.begin(), to_remove_skill_ids_caster.end(), effect.skill_id) !=
+                    to_remove_skill_ids_caster.end())
+                    return true;
+            }
+
+            if (std::find(to_remove_skill_ids_all.begin(), to_remove_skill_ids_all.end(), effect.skill_id) !=
+                to_remove_skill_ids_all.end())
+                return true;
+        }
+
+        return false;
+    };
+
+    const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
+        if (!hero.hero_living)
+            return false;
+
+        const auto spellcast_range = GW::Constants::Range::Spellcast;
+        const auto distance = GW::GetDistance(player_data.living->pos, hero.hero_living->pos);
+        return distance <= spellcast_range;
+    };
+
+    return SmartUseSkill(skill_id, skill_class, "ShatterHex", wait_ms, use_target, player_conditions, hero_conditions);
+}
+
 void HeroWindow::UseSplinterOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Splinter_Weapon;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
-    constexpr static auto wait_ms = 100UL;
+    constexpr static auto wait_ms = 1000UL;
     constexpr static auto use_target = false;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
@@ -211,13 +282,13 @@ void HeroWindow::UseHonorOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Strength_of_Honor;
     constexpr static auto skill_class = GW::Constants::Profession::Monk;
-    constexpr static auto wait_ms = 100UL;
+    constexpr static auto wait_ms = 1000UL;
     constexpr static auto use_target = false;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
         const auto player_is_melee_attacking = player_data.holds_melee_weapon;
 
-        return player_is_melee_attacking; // TODO: And has Sin,Ranger,War,Derv,Para as class
+        return player_is_melee_attacking && player_data.IsAttacking();
     };
 
     const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
@@ -236,25 +307,27 @@ void HeroWindow::UseShelterAtFightEnter()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Shelter;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
-    constexpr static auto wait_ms = 100UL;
+    constexpr static auto wait_ms = 1000UL;
     constexpr static auto use_target = false;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
-        const auto num_enemies_at_player = std::count_if(livings_data.enemies.begin(),
-                                                         livings_data.enemies.end(),
-                                                         [&player_data](const GW::AgentLiving *enemy_living) {
-                                                             if (!enemy_living)
-                                                                 return false;
+        const auto num_enemies_in_aggro_of_player =
+            std::count_if(livings_data.enemies.begin(),
+                          livings_data.enemies.end(),
+                          [&player_data](const GW::AgentLiving *enemy_living) {
+                              if (!enemy_living)
+                                  return false;
 
-                                                             const auto dist =
-                                                                 GW::GetDistance(enemy_living->pos, player_data.pos);
+                              const auto dist = GW::GetDistance(enemy_living->pos, player_data.pos);
 
-                                                             return dist < GW::Constants::Range::Spellcast;
-                                                         });
+                              return dist < GW::Constants::Range::Spellcast;
+                          });
 
-        const auto player_started_fight = num_enemies_at_player >= 4 && player_data.IsAttacking();
+        const auto player_started_fight =
+            num_enemies_in_aggro_of_player >= 5 || (player_data.IsAttacking() || player_data.IsCasting());
+        const auto has_skill_already = player_data.PlayerHasEffect(GW::Constants::SkillID::Shelter);
 
-        return !player_data.PlayerHasEffect(GW::Constants::SkillID::Shelter) && player_started_fight;
+        return !has_skill_already && player_started_fight;
     };
 
     const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
@@ -273,25 +346,27 @@ void HeroWindow::UseUnionAtFightEnter()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Union;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
-    constexpr static auto wait_ms = 100UL;
+    constexpr static auto wait_ms = 1000UL;
     constexpr static auto use_target = false;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
-        const auto num_enemies_at_player = std::count_if(livings_data.enemies.begin(),
-                                                         livings_data.enemies.end(),
-                                                         [&player_data](const GW::AgentLiving *enemy_living) {
-                                                             if (!enemy_living)
-                                                                 return false;
+        const auto num_enemies_in_aggro_of_player =
+            std::count_if(livings_data.enemies.begin(),
+                          livings_data.enemies.end(),
+                          [&player_data](const GW::AgentLiving *enemy_living) {
+                              if (!enemy_living)
+                                  return false;
 
-                                                             const auto dist =
-                                                                 GW::GetDistance(enemy_living->pos, player_data.pos);
+                              const auto dist = GW::GetDistance(enemy_living->pos, player_data.pos);
 
-                                                             return dist < GW::Constants::Range::Spellcast;
-                                                         });
+                              return dist < GW::Constants::Range::Spellcast;
+                          });
 
-        const auto player_started_fight = num_enemies_at_player >= 4 && player_data.IsAttacking();
+        const auto player_started_fight =
+            num_enemies_in_aggro_of_player >= 5 || (player_data.IsAttacking() || player_data.IsCasting());
+        const auto has_skill_already = player_data.PlayerHasEffect(GW::Constants::SkillID::Union);
 
-        return !player_data.PlayerHasEffect(GW::Constants::SkillID::Union) && player_started_fight;
+        return !has_skill_already && player_started_fight;
     };
 
     const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
@@ -310,23 +385,24 @@ void HeroWindow::UseSosAtFightEnter()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Signet_of_Spirits;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
-    constexpr static auto wait_ms = 100UL;
+    constexpr static auto wait_ms = 1000UL;
     constexpr static auto use_target = false;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
-        const auto num_enemies_at_player = std::count_if(livings_data.enemies.begin(),
-                                                         livings_data.enemies.end(),
-                                                         [&player_data](const GW::AgentLiving *enemy_living) {
-                                                             if (!enemy_living)
-                                                                 return false;
+        const auto num_enemies_in_aggro_of_player =
+            std::count_if(livings_data.enemies.begin(),
+                          livings_data.enemies.end(),
+                          [&player_data](const GW::AgentLiving *enemy_living) {
+                              if (!enemy_living)
+                                  return false;
 
-                                                             const auto dist =
-                                                                 GW::GetDistance(enemy_living->pos, player_data.pos);
+                              const auto dist = GW::GetDistance(enemy_living->pos, player_data.pos);
 
-                                                             return dist < GW::Constants::Range::Spellcast;
-                                                         });
+                              return dist < GW::Constants::Range::Spellcast;
+                          });
 
-        const auto player_started_fight = num_enemies_at_player >= 4 && player_data.IsAttacking();
+        const auto player_started_fight =
+            num_enemies_in_aggro_of_player >= 3 && (player_data.IsAttacking() || player_data.IsCasting());
 
         const auto sos_spirits_in_range = FoundSpirit(player_data, livings_data.spirits, SOS1_AGENT_ID) &&
                                           FoundSpirit(player_data, livings_data.spirits, SOS2_AGENT_ID) &&
@@ -351,7 +427,7 @@ void HeroWindow::UseFallback()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Fall_Back;
     constexpr static auto skill_class = GW::Constants::Profession::Paragon;
-    constexpr static auto wait_ms = 100UL;
+    constexpr static auto wait_ms = 250UL;
     constexpr static auto use_target = false;
 
     auto player_conditions = [](const DataPlayer &, const AgentLivingData &) { return true; };
@@ -367,7 +443,7 @@ void HeroWindow::UseBipOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Blood_is_Power;
     constexpr static auto skill_class = GW::Constants::Profession::Necromancer;
-    constexpr static auto wait_ms = 100UL;
+    constexpr static auto wait_ms = 1000UL;
     constexpr static auto use_target = false;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
@@ -545,18 +621,24 @@ void HeroWindow::HeroSmarterSkills_Logic()
     UseShelterAtFightEnter();
     UseUnionAtFightEnter();
     UseSosAtFightEnter();
+    ShatterImportantHexes();
 }
 
 void HeroWindow::HeroFollow_StopConditions()
 {
     if (!IsExplorable() || !following_active)
+    {
+        ms_with_no_pos_change = 0U;
+        time_at_last_pos_change = TIMER_INIT();
         return;
+    }
 
-    if (ms_with_no_pos_change >= 20'000 && following_active)
+    if (ms_with_no_pos_change >= 10'000)
     {
         Log::Info("Players seesm to be afk. Stopping hero following.");
         StopFollowing();
         ms_with_no_pos_change = 0U;
+        time_at_last_pos_change = TIMER_INIT();
     }
 
     if (player_data.IsAttacking() && following_active)
@@ -564,6 +646,7 @@ void HeroWindow::HeroFollow_StopConditions()
         Log::Info("Player attacks enemies. Stopping hero following.");
         StopFollowing();
         ms_with_no_pos_change = 0U;
+        time_at_last_pos_change = TIMER_INIT();
     }
 }
 
@@ -590,8 +673,6 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
         HeroBehaviour_DrawAndLogic(im_button_size);
         HeroFollow_DrawAndLogic(im_button_size, toggled_follow);
         HeroSpike_DrawAndLogic(im_button_size);
-
-        HeroFollow_StopConditions();
     }
     ImGui::End();
 }
@@ -613,8 +694,6 @@ void HeroWindow::Update(float)
     else
         hero_data.hero_vec.clear();
 
-    auto time_at_last_pos_change = 0;
-
     if (player_data.pos == follow_pos && following_active)
     {
         ms_with_no_pos_change = TIMER_DIFF(time_at_last_pos_change);
@@ -632,4 +711,5 @@ void HeroWindow::Update(float)
         target_agent_id = 0U;
 
     HeroSmarterSkills_Logic();
+    HeroFollow_StopConditions();
 }

@@ -68,6 +68,7 @@ private:
     void UseShelterAtFightEnter();
     void UseUnionAtFightEnter();
     void UseSosAtFightEnter();
+    void ShatterImportantHexes();
 
     void ToggleHeroBehaviour();
     void FollowPlayer();
@@ -83,6 +84,7 @@ private:
     GW::HeroBehavior current_hero_behaviour = GW::HeroBehavior::Guard;
     GW::GamePos follow_pos = {};
     long ms_with_no_pos_change = 0;
+    long time_at_last_pos_change;
     uint32_t target_agent_id = 0;
     bool following_active = false;
 

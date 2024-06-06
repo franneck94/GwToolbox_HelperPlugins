@@ -23,6 +23,7 @@ public:
 
     bool CanCast() const;
     bool CanAttack() const;
+    bool IsCasting() const;
     bool IsAttacking() const;
 
     bool HasBuff(const GW::Constants::SkillID buff_skill_id) const;

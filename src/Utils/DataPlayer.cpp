@@ -87,6 +87,9 @@ void DataPlayer::Update()
 
 bool DataPlayer::CanCast() const
 {
+    if (!living)
+        return false;
+
     if (living->GetIsDead() || living->GetIsKnockedDown() || living->GetIsCasting() || living->GetIsMoving())
         return false;
 
@@ -95,6 +98,9 @@ bool DataPlayer::CanCast() const
 
 bool DataPlayer::CanAttack() const
 {
+    if (!living)
+        return false;
+
     if (living->GetIsDead() || living->GetIsKnockedDown() || living->GetIsCasting() || living->GetIsMoving())
         return false;
 
@@ -103,8 +109,20 @@ bool DataPlayer::CanAttack() const
 
 bool DataPlayer::IsAttacking() const
 {
+    if (!living)
+        return false;
+
     return living->GetIsAttacking();
 }
+
+bool DataPlayer::IsCasting() const
+{
+    if (!living)
+        return false;
+
+    return living->GetIsCasting();
+}
+
 
 bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id) const
 {
