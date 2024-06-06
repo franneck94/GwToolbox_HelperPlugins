@@ -13,9 +13,9 @@
 #include <GWCA/GameEntities/Party.h>
 
 #include "ActionsBase.h"
+#include "DataHero.h"
 #include "DataLivings.h"
 #include "DataPlayer.h"
-#include "DataHero.h"
 
 class HeroWindow : public ToolboxUIPlugin
 {
@@ -53,6 +53,13 @@ private:
     void HeroFollow_StopConditions();
     void StopFollowing();
 
+    void SmartUseSkill(const GW::Constants::SkillID skill_id,
+                       const GW::Constants::Profession skill_class,
+                       const std::string_view skill_name,
+                       const long wait_time_ms,
+                       const bool use_player_target,
+                       std::function<bool(const DataPlayer &, const AgentLivingData &)> player_conditions,
+                       std::function<bool(const DataPlayer &, const Hero &)> hero_conditions);
     bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id, const long wait_time_ms = 0UL);
     void HeroSmarterSkills_Logic();
     void UseBipOnPlayer();
