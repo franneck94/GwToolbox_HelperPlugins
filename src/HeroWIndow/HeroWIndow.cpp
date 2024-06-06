@@ -450,7 +450,7 @@ void HeroWindow::UseBipOnPlayer()
         if (!player_data.living)
             return false;
 
-        if (player_data.energy_perc > 0.30F)
+        if (player_data.energy_perc > 0.30F && player_data.energy > 15)
             return false;
 
         if (player_data.living->energy_regen > 0.03F)

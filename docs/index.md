@@ -10,7 +10,7 @@ There are features for UWSC and for your Heroes in a PvE context.
 For a detailed description:
 
 - Smart Chat Commands see [here](./General/ChatCommands.md)
-- Hero Window see [here](./General/HeroWindow.md)
+- Hero Window for PvE Gwamm'ing content see [here](./General/HeroWindow.md)
 
 ### UW Helper
 

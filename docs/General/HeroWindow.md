@@ -27,7 +27,8 @@ Also, for all mesmer heroes, they will cast ESurge on that target.
 
 Smart features are:
 
-- BiP the player regardless of the weapon
-- Use Shelter and Union at fight entry if not present
-- Use SoS in fight if not all three spirits are present
-- Use splinter weapon and honor on player if he is melee attacker
+- BiP the player regardless of the weapon when he is on low energy (below 30% or below 15 energy)
+- ST: Use Shelter and Union when in fight if not already present
+- Use SoS when in fight if not all three spirits are already present
+- Use splinter weapon and honor of strngth on the player if he is melee attacker
+- Immediatly shatter important hexes on the player like empathy for melee, and backfire for casters
