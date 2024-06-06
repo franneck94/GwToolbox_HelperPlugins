@@ -263,7 +263,7 @@ bool DataPlayer::AnyTeamMemberHasEffect(const GW::Constants::SkillID effect_id) 
     return false;
 }
 
-bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id) const
+bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id) const
 {
     const auto *effects = GetEffects(id);
     if (!effects)
@@ -271,7 +271,7 @@ bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id) const
 
     for (const auto effect : *effects)
     {
-        if (effect.skill_id == effect_id && (effect.agent_id == id || effect.agent_id == 0))
+        if (effect.skill_id == effect_id && (ignore_id || (effect.agent_id == id || effect.agent_id == 0)))
             return true;
     }
 

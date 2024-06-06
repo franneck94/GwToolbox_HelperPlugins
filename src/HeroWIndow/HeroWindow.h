@@ -15,13 +15,7 @@
 #include "ActionsBase.h"
 #include "DataLivings.h"
 #include "DataPlayer.h"
-
-struct HeroData
-{
-    const GW::AgentLiving *hero_living;
-    const uint32_t hero_idx_zero_based;
-    const std::array<GW::SkillbarSkill, 8U> skills;
-};
+#include "DataHero.h"
 
 class HeroWindow : public ToolboxUIPlugin
 {
@@ -59,7 +53,6 @@ private:
     void HeroFollow_StopConditions();
     void StopFollowing();
 
-    std::vector<uint32_t> HeroSkill_GetHeroIndexWithCertainClass(const GW::Constants::Profession &skill_class);
     bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id, const long wait_time_ms = 0UL);
     void HeroSmarterSkills_Logic();
     void UseBipOnPlayer();
@@ -72,13 +65,13 @@ private:
     void ToggleHeroBehaviour();
     void FollowPlayer();
     void UseFallback();
-    void MesmerSpikeTarget(const HeroData &hero_data) const;
+    void MesmerSpikeTarget(const Hero &hero_data) const;
     void AttackTarget();
     void ResetData();
 
     DataPlayer player_data;
     AgentLivingData livings_data;
-    std::vector<HeroData> hero_data_vec;
+    HeroData hero_data;
 
     GW::HeroBehavior current_hero_behaviour = GW::HeroBehavior::Guard;
     GW::GamePos follow_pos = {};
