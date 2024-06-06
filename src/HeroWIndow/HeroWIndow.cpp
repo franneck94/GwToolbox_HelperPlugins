@@ -248,18 +248,8 @@ void HeroWindow::UseSplinterOnPlayer()
     constexpr static auto use_target = false;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
-        const auto num_enemies_at_player = std::count_if(livings_data.enemies.begin(),
-                                                         livings_data.enemies.end(),
-                                                         [&player_data](const GW::AgentLiving *enemy_living) {
-                                                             if (!enemy_living)
-                                                                 return false;
-
-                                                             const auto dist =
-                                                                 GW::GetDistance(enemy_living->pos, player_data.pos);
-
-                                                             return dist < GW::Constants::Range::Nearby;
-                                                         });
-
+        const auto num_enemies_at_player =
+            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Nearby);
 
         const auto player_is_melee_attacking = player_data.IsAttacking() && player_data.holds_melee_weapon;
 
@@ -312,16 +302,7 @@ void HeroWindow::UseShelterAtFightEnter()
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
         const auto num_enemies_in_aggro_of_player =
-            std::count_if(livings_data.enemies.begin(),
-                          livings_data.enemies.end(),
-                          [&player_data](const GW::AgentLiving *enemy_living) {
-                              if (!enemy_living)
-                                  return false;
-
-                              const auto dist = GW::GetDistance(enemy_living->pos, player_data.pos);
-
-                              return dist < GW::Constants::Range::Spellcast;
-                          });
+            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Spellcast);
 
         const auto player_started_fight =
             num_enemies_in_aggro_of_player >= 5 || (player_data.IsAttacking() || player_data.IsCasting());
@@ -351,16 +332,7 @@ void HeroWindow::UseUnionAtFightEnter()
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
         const auto num_enemies_in_aggro_of_player =
-            std::count_if(livings_data.enemies.begin(),
-                          livings_data.enemies.end(),
-                          [&player_data](const GW::AgentLiving *enemy_living) {
-                              if (!enemy_living)
-                                  return false;
-
-                              const auto dist = GW::GetDistance(enemy_living->pos, player_data.pos);
-
-                              return dist < GW::Constants::Range::Spellcast;
-                          });
+            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Spellcast);
 
         const auto player_started_fight =
             num_enemies_in_aggro_of_player >= 5 || (player_data.IsAttacking() || player_data.IsCasting());
@@ -390,16 +362,7 @@ void HeroWindow::UseSosAtFightEnter()
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
         const auto num_enemies_in_aggro_of_player =
-            std::count_if(livings_data.enemies.begin(),
-                          livings_data.enemies.end(),
-                          [&player_data](const GW::AgentLiving *enemy_living) {
-                              if (!enemy_living)
-                                  return false;
-
-                              const auto dist = GW::GetDistance(enemy_living->pos, player_data.pos);
-
-                              return dist < GW::Constants::Range::Spellcast;
-                          });
+            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Spellcast);
 
         const auto player_started_fight =
             num_enemies_in_aggro_of_player >= 3 && (player_data.IsAttacking() || player_data.IsCasting());

@@ -1,5 +1,8 @@
 #include <vector>
 
+#include <GWCA/Constants/Constants.h>
+#include <GWCA/GameContainers/GamePos.h>
+#include <GWCA/GameEntities/Agent.h>
 #include <GWCA/GameEntities/Map.h>
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/MapMgr.h>
@@ -41,4 +44,16 @@ void AgentLivingData::UpdateType(std::vector<GW::AgentLiving *> &filtered_agents
 
         filtered_agents.push_back(living);
     }
+}
+
+size_t AgentLivingData::NumEnemiesInRange(const GW::GamePos &player_pos, const float range) const
+{
+    return std::count_if(enemies.begin(), enemies.end(), [=](const GW::AgentLiving *enemy_living) {
+        if (!enemy_living)
+            return false;
+
+        const auto dist = GW::GetDistance(enemy_living->pos, player_pos);
+
+        return dist < range;
+    });
 }

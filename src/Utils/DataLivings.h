@@ -4,6 +4,7 @@
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/GameContainers/Array.h>
+#include <GWCA/GameContainers/GamePos.h>
 #include <GWCA/GameEntities/Agent.h>
 
 struct AgentLivingData
@@ -14,6 +15,8 @@ struct AgentLivingData
     void Update();
 
     static void UpdateType(std::vector<GW::AgentLiving *> &filtered_agents, const GW::Constants::Allegiance type);
+
+    size_t NumEnemiesInRange(const GW::GamePos &player_pos, const float range) const;
 
     std::vector<GW::AgentLiving *> allies;
     std::vector<GW::AgentLiving *> neutrals;
