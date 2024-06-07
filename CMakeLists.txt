@@ -4,7 +4,7 @@ set(CMAKE_GENERATOR_PLATFORM win32)
 
 project(
   "GWToolbox_HelperPlugins"
-  VERSION 0.8.0
+  VERSION 0.8.1
   LANGUAGES C CXX)
 
 # Global CMake variables are set here

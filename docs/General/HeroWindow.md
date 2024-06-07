@@ -31,4 +31,9 @@ Smart features are:
 - ST: Use Shelter and Union when in fight if not already present
 - Use SoS when in fight if not all three spirits are already present
 - Use splinter weapon and honor of strngth on the player if he is melee attacker
-- Immediatly shatter important hexes on the player like empathy for melee, and backfire for casters
+- Immediatly shatter important hexes on the player
+  - For melee: Empathy etc.
+  - For caster: Backfire etc.
+- Immediatly remove important conditions on the player
+  - For melee: blindness
+  - For caster: Dazed
