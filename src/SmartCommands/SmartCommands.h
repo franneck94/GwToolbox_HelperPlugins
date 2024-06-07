@@ -50,13 +50,13 @@ public:
 
     void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
     void SignalTerminate() override;
-    void Draw(IDirect3DDevice9 *) override{};
+    void Draw(IDirect3DDevice9 *) override {};
     bool HasSettings() const override
     {
         return false;
     }
     void Update(float delta) override;
 
-    static void CmdDhuumUseSkill(const wchar_t* cmd, const int argc, const LPWSTR* argv);
-    static void CmdUseSkill(const wchar_t* cmd, const int argc, const LPWSTR* argv);
+    static void CmdDhuumUseSkill(const wchar_t *cmd, const int argc, const LPWSTR *argv);
+    static void CmdUseSkill(const wchar_t *cmd, const int argc, const LPWSTR *argv);
 };

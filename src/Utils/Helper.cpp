@@ -9,8 +9,8 @@
 #include <GWCA/Packets/Opcodes.h>
 
 #include "Helper.h"
-#include "HelperMaps.h"
 #include "HelperDialogs.h"
+#include "HelperMaps.h"
 
 bool HelperActivationConditions(const bool need_party_loaded)
 {

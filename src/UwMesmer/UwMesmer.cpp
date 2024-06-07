@@ -238,7 +238,9 @@ void UwMesmer::SignalTerminate()
     GW::DisableHooks();
 }
 
-void UwMesmer::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings, const ImVec4 color, std::string_view label)
+void UwMesmer::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
+                                  const ImVec4 color,
+                                  std::string_view label)
 {
     auto idx = uint32_t{0};
 
