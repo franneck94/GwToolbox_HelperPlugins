@@ -7,10 +7,15 @@
 #include <GWCA/GameContainers/GamePos.h>
 #include <GWCA/GameEntities/Agent.h>
 
+#include "Logger.h"
+
 struct AgentLivingData
 {
     AgentLivingData() : allies({}), neutrals({}), enemies({}), spirits({}), minions({}), npcs({}){};
-    ~AgentLivingData(){};
+    ~AgentLivingData()
+    {
+        Log::Info("Destroyed Living Data");
+    };
 
     void Update();
 

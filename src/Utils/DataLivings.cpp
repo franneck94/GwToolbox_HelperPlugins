@@ -49,7 +49,7 @@ void AgentLivingData::UpdateType(std::vector<const GW::AgentLiving *> &filtered_
 
 size_t AgentLivingData::NumEnemiesInRange(const GW::GamePos &player_pos, const float range) const
 {
-    return std::count_if(enemies.begin(), enemies.end(), [=](const GW::AgentLiving *enemy_living) {
+    return std::count_if(enemies.begin(), enemies.end(), [=](const auto *enemy_living) {
         if (!enemy_living)
             return false;
 

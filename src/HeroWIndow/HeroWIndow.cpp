@@ -40,22 +40,22 @@ constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 
-void OnSkillActivaiton(GW::HookStatus *status, const GW::UI::UIMessage message_id, void *wParam, void *lParam)
-{
-    const struct Payload
-    {
-        uint32_t agent_id;
-        GW::Constants::SkillID skill_id;
-    } *payload = static_cast<Payload *>(wParam);
+// void OnSkillActivaiton(GW::HookStatus *status, const GW::UI::UIMessage message_id, void *wParam, void *lParam)
+// {
+//     const struct Payload
+//     {
+//         uint32_t agent_id;
+//         GW::Constants::SkillID skill_id;
+//     } *payload = static_cast<Payload *>(wParam);
 
-    if (payload->agent_id == GW::Agents::GetPlayerId() && payload->skill_id == static_cast<GW::Constants::SkillID>(0U))
-    {
-        status->blocked = true;
-    }
+//     if (payload->agent_id == GW::Agents::GetPlayerId() && payload->skill_id == static_cast<GW::Constants::SkillID>(0U))
+//     {
+//         status->blocked = true;
+//     }
 
-    (void)message_id;
-    (void)lParam;
-}
+//     (void)message_id;
+//     (void)lParam;
+// }
 } // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -67,7 +67,8 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
-    GW::Initialize();
+    if (!GW::Initialize())
+        SignalTerminate();
 
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(
         &MapLoaded_Entry,
@@ -151,13 +152,13 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
     if (!HeroSkill_StartConditions(skill_id, wait_ms))
         return;
 
-    auto hero_idxs_zero_based = hero_data.hero_class_idx_map[skill_class];
+    auto hero_idxs_zero_based = hero_data.hero_class_idx_map.at(skill_class);
     if (hero_idxs_zero_based.size() == 0)
         return;
 
     for (const auto hero_idx_zero_based : hero_idxs_zero_based)
     {
-        const auto &hero = hero_data.hero_vec[hero_idx_zero_based];
+        const auto &hero = hero_data.hero_vec.at(hero_idx_zero_based);
 
         if (HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, use_player_target))
         {
@@ -686,10 +687,10 @@ void HeroWindow::HeroSmarterSkills_Logic()
     UseUnionInFight();
     UseSosInFight();
     UseSplinterOnPlayer();
-    UseBipOnPlayer();
-    UseHonorOnPlayer();
     ShatterImportantHexes();
     RemoveImportantConditions();
+    UseBipOnPlayer();
+    UseHonorOnPlayer();
 }
 
 void HeroWindow::HeroFollow_StopConditions()
@@ -780,7 +781,6 @@ void HeroWindow::Update(float)
 
     player_data.Update();
     livings_data.Update();
-
     UpdateInternalData();
 
     HeroSmarterSkills_Logic();

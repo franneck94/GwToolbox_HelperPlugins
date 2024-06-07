@@ -12,11 +12,16 @@
 #include <GWCA/Packets/StoC.h>
 
 #include "DataSkillbar.h"
+#include "Logger.h"
 
 class DataPlayer
 {
 public:
     DataPlayer(const uint32_t agent_id = UINT32_MAX) noexcept : id(agent_id), pos(GW::GamePos{0.0F, 0.0F, 0}){};
+    ~DataPlayer()
+    {
+        Log::Info("Destroyed Living Data");
+    };
 
     bool ValidateData(std::function<bool(bool)> cb_fn, const bool need_party_loaded) const;
     void Update();

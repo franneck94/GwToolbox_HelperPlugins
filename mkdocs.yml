@@ -1,6 +1,5 @@
 site_name: GwToolbox Helper Plugins
 
-
 repo_url: https://github.com/franneck94/GwToolbox_HelperPlugins
 repo_name: franneck94/GwToolbox_HelperPlugins
 
@@ -32,7 +31,6 @@ nav:
   - "Index": index.md
   - "Chat": General/ChatCommands.md
   - "Hero": General/HeroWindow.md
-  - "Hotkeys": General/Hotkeys.md
   - "UW EMO": Uw/Emo.md
   - "UW Mesmer": Uw/Mesmer.md
   - "UW Ranger": Uw/Ranger.md
