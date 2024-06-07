@@ -49,11 +49,11 @@ bool TankIsSoloLT();
 
 bool TargetIsReaper(DataPlayer &player_data);
 
-bool TargetReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs);
+bool TargetReaper(DataPlayer &player_data, const std::vector<const GW::AgentLiving *> &npcs);
 
-bool TalkReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs);
+bool TalkReaper(DataPlayer &player_data, const std::vector<const GW::AgentLiving *> &npcs);
 
-bool TargetClosestKeeper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> enemies);
+bool TargetClosestKeeper(DataPlayer &player_data, const std::vector<const GW::AgentLiving *> enemies);
 
 bool TakeChamber();
 
@@ -141,7 +141,7 @@ void UpdateUwInfo(const std::map<std::string, uint32_t> &reaper_moves,
     last_pos = curr_pos;
 }
 
-bool FoundKeeperAtPos(const std::vector<GW::AgentLiving *> &keeper_livings, const GW::GamePos &keeper_pos);
+bool FoundKeeperAtPos(const std::vector<const GW::AgentLiving *> &keeper_livings, const GW::GamePos &keeper_pos);
 
 bool DhuumIsCastingJudgement(const GW::Agent *dhuum_agent);
 

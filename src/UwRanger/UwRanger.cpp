@@ -120,7 +120,7 @@ void UwRanger::SaveSettings(const wchar_t *folder)
     PLUGIN_ASSERT(ini.SaveFile(GetSettingFile(folder).c_str()) == SI_OK);
 }
 
-void UwRanger::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
+void UwRanger::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
                                   const ImVec4 color,
                                   std::string_view label,
                                   const bool draw_time)

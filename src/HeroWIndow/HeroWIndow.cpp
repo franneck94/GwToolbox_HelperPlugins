@@ -2,6 +2,8 @@
 #include <cmath>
 #include <cstdint>
 #include <random>
+#include <tuple>
+#include <vector>
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/Constants/Maps.h>
@@ -172,13 +174,13 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
 void HeroWindow::ShatterImportantHexes()
 {
     constexpr static auto to_remove_skill_ids_melee = std::array<GW::Constants::SkillID, 4>{
-        GW::Constants::SkillID::Wandering_Eye,
+        GW::Constants::SkillID::Wandering_Eye, // Test Case
         GW::Constants::SkillID::Ineptitude,
         GW::Constants::SkillID::Empathy,
         GW::Constants::SkillID::Spiteful_Spirit,
     };
     constexpr static auto to_remove_skill_ids_caster = std::array<GW::Constants::SkillID, 5>{
-        GW::Constants::SkillID::Wandering_Eye,
+        GW::Constants::SkillID::Wandering_Eye, // Test Case
         GW::Constants::SkillID::Panic,
         GW::Constants::SkillID::Backfire,
         GW::Constants::SkillID::Mistrust,
@@ -188,18 +190,25 @@ void HeroWindow::ShatterImportantHexes()
         GW::Constants::SkillID::Diversion,
     };
 
-    constexpr static auto skill_id = GW::Constants::SkillID::Shatter_Hex;
-    constexpr static auto skill_class = GW::Constants::Profession::Mesmer;
+    const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
+        {GW::Constants::SkillID::Shatter_Hex, GW::Constants::Profession::Mesmer},
+        {GW::Constants::SkillID::Remove_Hex, GW::Constants::Profession::Monk},
+        {GW::Constants::SkillID::Smite_Hex, GW::Constants::Profession::Monk},
+    };
     constexpr static auto wait_ms = 1000UL;
     constexpr static auto use_target = false;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
-        if (!player_data.living->GetIsHexed())
+        if (!player_data.living || !player_data.living->GetIsHexed())
             return false;
 
         const auto *const effects = GW::Effects::GetPlayerEffects();
         if (!effects || !effects->valid())
             return false;
+
+        auto found_hex = [](const auto &hex_array, const GW::Effect &curr_hex) {
+            return std::find(hex_array.begin(), hex_array.end(), curr_hex.skill_id) != hex_array.end();
+        };
 
         for (const auto effect : *effects)
         {
@@ -208,19 +217,16 @@ void HeroWindow::ShatterImportantHexes()
 
             if (player_data.holds_melee_weapon)
             {
-                if (std::find(to_remove_skill_ids_melee.begin(), to_remove_skill_ids_melee.end(), effect.skill_id) !=
-                    to_remove_skill_ids_melee.end())
+                if (found_hex(to_remove_skill_ids_melee, effect))
                     return true;
             }
             else
             {
-                if (std::find(to_remove_skill_ids_caster.begin(), to_remove_skill_ids_caster.end(), effect.skill_id) !=
-                    to_remove_skill_ids_caster.end())
+                if (found_hex(to_remove_skill_ids_caster, effect))
                     return true;
             }
 
-            if (std::find(to_remove_skill_ids_all.begin(), to_remove_skill_ids_all.end(), effect.skill_id) !=
-                to_remove_skill_ids_all.end())
+            if (found_hex(to_remove_skill_ids_all, effect))
                 return true;
         }
 
@@ -228,7 +234,7 @@ void HeroWindow::ShatterImportantHexes()
     };
 
     const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
-        if (!hero.hero_living)
+        if (!player_data.living || !hero.hero_living)
             return false;
 
         const auto spellcast_range = GW::Constants::Range::Spellcast;
@@ -236,36 +242,76 @@ void HeroWindow::ShatterImportantHexes()
         return distance <= spellcast_range;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "ShatterHex", wait_ms, use_target, player_conditions, hero_conditions);
+    for (const auto &[skill_id, skill_class] : skill_class_pairs)
+    {
+        SmartUseSkill(skill_id, skill_class, "Remove Hex", wait_ms, use_target, player_conditions, hero_conditions);
+    }
 }
 
-void HeroWindow::RemoveBlindness()
+void HeroWindow::RemoveImportantConditions()
 {
-    constexpr static auto skill_id = GW::Constants::SkillID::Mend_Body_and_Soul;
-    constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
+    constexpr static auto to_remove_skill_ids_melee = std::array<GW::Constants::SkillID, 4>{
+        GW::Constants::SkillID::Blind,
+    };
+    constexpr static auto to_remove_skill_ids_caster = std::array<GW::Constants::SkillID, 5>{
+        GW::Constants::SkillID::Dazed,
+    };
+
+    const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
+        {GW::Constants::SkillID::Mend_Body_and_Soul, GW::Constants::Profession::Ritualist},
+        {GW::Constants::SkillID::Dismiss_Condition, GW::Constants::Profession::Monk},
+        {GW::Constants::SkillID::Mend_Condition, GW::Constants::Profession::Monk},
+        {GW::Constants::SkillID::Smite_Condition, GW::Constants::Profession::Monk},
+        {GW::Constants::SkillID::Purge_Conditions, GW::Constants::Profession::Monk},
+    };
     constexpr static auto wait_ms = 1000UL;
     constexpr static auto use_target = false;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
-        const auto num_enemies_at_player =
-            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Nearby);
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+        if (!player_data.living || !player_data.living->GetIsHexed())
+            return false;
 
-        const auto player_is_melee_attacking = player_data.IsAttacking() && player_data.holds_melee_weapon;
-        const auto player_is_blinded = false;
+        const auto *const effects = GW::Effects::GetPlayerEffects();
+        if (!effects || !effects->valid())
+            return false;
 
-        return num_enemies_at_player >= 1 && player_is_melee_attacking && player_is_blinded;
+        auto found_cond = [](const auto &cond_array, const GW::Effect &curr_cond) {
+            return std::find(cond_array.begin(), cond_array.end(), curr_cond.skill_id) != cond_array.end();
+        };
+
+        for (const auto effect : *effects)
+        {
+            if (effect.agent_id != 0)
+                continue;
+
+            if (player_data.holds_melee_weapon)
+            {
+                if (found_cond(to_remove_skill_ids_melee, effect))
+                    return true;
+            }
+            else
+            {
+                if (found_cond(to_remove_skill_ids_caster, effect))
+                    return true;
+            }
+        }
+
+        return false;
     };
 
     const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
-        if (!hero.hero_living)
+        if (!player_data.living || !hero.hero_living)
             return false;
 
-        const auto dist = GW::GetDistance(hero.hero_living->pos, player_data.pos);
-
-        return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
+        const auto spellcast_range = GW::Constants::Range::Spellcast;
+        const auto distance = GW::GetDistance(player_data.living->pos, hero.hero_living->pos);
+        return distance <= spellcast_range;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "Mend", wait_ms, use_target, player_conditions, hero_conditions);
+    for (const auto &[skill_id, skill_class] : skill_class_pairs)
+    {
+        SmartUseSkill(skill_id, skill_class, "Remove Coond", wait_ms, use_target, player_conditions, hero_conditions);
+    }
 }
 
 void HeroWindow::UseSplinterOnPlayer()
@@ -279,9 +325,10 @@ void HeroWindow::UseSplinterOnPlayer()
         const auto num_enemies_at_player =
             livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Nearby);
 
-        const auto player_is_melee_attacking = player_data.IsAttacking() && player_data.holds_melee_weapon;
+        const auto player_is_melee_attacking = player_data.holds_melee_weapon;
+        const auto player_is_melee_class = player_data.is_melee_class;
 
-        return num_enemies_at_player >= 2 && player_is_melee_attacking;
+        return num_enemies_at_player >= 2 && player_is_melee_attacking && player_is_melee_class;
     };
 
     const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
@@ -290,7 +337,7 @@ void HeroWindow::UseSplinterOnPlayer()
 
         const auto dist = GW::GetDistance(hero.hero_living->pos, player_data.pos);
 
-        return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.50F;
+        return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
     };
 
     return SmartUseSkill(skill_id, skill_class, "Splinter", wait_ms, use_target, player_conditions, hero_conditions);
@@ -305,8 +352,9 @@ void HeroWindow::UseHonorOnPlayer()
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
         const auto player_is_melee_attacking = player_data.holds_melee_weapon;
+        const auto player_is_melee_class = player_data.is_melee_class;
 
-        return player_is_melee_attacking && player_data.IsAttacking();
+        return player_is_melee_attacking && player_is_melee_class;
     };
 
     const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
@@ -330,10 +378,9 @@ void HeroWindow::UseShelterInFight()
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
         const auto num_enemies_in_aggro_of_player =
-            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Spellcast);
+            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Spellcast + 200.0F);
 
-        const auto player_started_fight =
-            num_enemies_in_aggro_of_player >= 5 || (player_data.IsAttacking() || player_data.IsCasting());
+        const auto player_started_fight = num_enemies_in_aggro_of_player >= 3 && player_data.IsFighting();
         const auto has_skill_already = player_data.PlayerHasEffect(GW::Constants::SkillID::Shelter);
 
         return !has_skill_already && player_started_fight;
@@ -360,10 +407,9 @@ void HeroWindow::UseUnionInFight()
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
         const auto num_enemies_in_aggro_of_player =
-            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Spellcast);
+            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Spellcast + 200.0F);
 
-        const auto player_started_fight =
-            num_enemies_in_aggro_of_player >= 5 || (player_data.IsAttacking() || player_data.IsCasting());
+        const auto player_started_fight = num_enemies_in_aggro_of_player >= 3 && player_data.IsFighting();
         const auto has_skill_already = player_data.PlayerHasEffect(GW::Constants::SkillID::Union);
 
         return !has_skill_already && player_started_fight;
@@ -396,8 +442,10 @@ void HeroWindow::UseSosInFight()
         const auto num_enemies_in_aggro_of_player =
             livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Spellcast);
 
-        const auto player_started_fight =
-            num_enemies_in_aggro_of_player >= 3 && (player_data.IsAttacking() || player_data.IsCasting());
+        const auto player_started_fight = num_enemies_in_aggro_of_player >= 3 && player_data.IsFighting();
+
+        if (!player_started_fight)
+            return false;
 
         const auto sos_spirits_in_range = FoundSpirit(player_data, livings_data.spirits, SOS1_AGENT_ID) &&
                                           FoundSpirit(player_data, livings_data.spirits, SOS2_AGENT_ID) &&
@@ -460,7 +508,7 @@ void HeroWindow::UseBipOnPlayer()
 
         const auto dist = GW::GetDistance(hero.hero_living->pos, player_data.pos);
 
-        return dist < GW::Constants::Range::Spellcast && hero.hero_living->hp > 0.80F;
+        return dist < GW::Constants::Range::Spellcast && hero.hero_living->hp > 0.60F;
     };
 
     return SmartUseSkill(skill_id, skill_class, "BiP", wait_ms, use_target, player_conditions, hero_conditions);
@@ -601,7 +649,31 @@ void HeroWindow::HeroSpike_DrawAndLogic(const ImVec2 &im_button_size)
         StopFollowing();
 
         if (IsExplorable())
+        {
+            if (!player_data.target)
+                return;
+
+            const auto target_distance = GW::GetDistance(player_data.pos, player_data.target->pos);
+
+            const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+            if (party_info)
+            {
+                for (const auto &hero : party_info->heroes)
+                {
+                    const auto *hero_living = GW::Agents::GetAgentByID(hero.agent_id);
+                    if (!hero_living)
+                        continue;
+
+                    if (GW::GetDistance(player_data.pos, hero_living->pos) > 800.0F || target_distance > 800.0F)
+                    {
+                        UseFallback();
+                        break;
+                    }
+                }
+            }
+
             AttackTarget();
+        }
     }
 }
 
@@ -610,14 +682,14 @@ void HeroWindow::HeroSmarterSkills_Logic()
     if (following_active || !IsExplorable())
         return;
 
-    UseSplinterOnPlayer();
-    UseBipOnPlayer();
-    UseHonorOnPlayer();
     UseShelterInFight();
     UseUnionInFight();
     UseSosInFight();
+    UseSplinterOnPlayer();
+    UseBipOnPlayer();
+    UseHonorOnPlayer();
     ShatterImportantHexes();
-    RemoveBlindness();
+    RemoveImportantConditions();
 }
 
 void HeroWindow::HeroFollow_StopConditions()
@@ -665,7 +737,7 @@ void HeroWindow::UpdateInternalData()
     }
     follow_pos = player_data.pos;
 
-    if (player_data.target)
+    if (player_data.target && player_data.target->agent_id)
         target_agent_id = player_data.target->agent_id;
     else
         target_agent_id = 0U;

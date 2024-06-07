@@ -23,7 +23,7 @@ public:
     RoutineState Routine() override;
     void Update() override;
 
-    std::vector<GW::AgentLiving *> *behemoth_livings = nullptr;
+    std::vector<const GW::AgentLiving *> *behemoth_livings = nullptr;
 };
 
 class UwRanger : public ToolboxUIPlugin
@@ -63,7 +63,7 @@ public:
     void Update(float delta) override;
 
 private:
-    void DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
+    void DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
                             const ImVec4 color,
                             std::string_view label,
                             const bool draw_time = true);
@@ -74,12 +74,12 @@ private:
     DataPlayer player_data;
     std::map<uint32_t, clock_t> last_casted_times_ms;
 
-    std::vector<GW::AgentLiving *> filtered_livings;
-    std::vector<GW::AgentLiving *> coldfire_livings;
-    std::vector<GW::AgentLiving *> behemoth_livings;
-    std::vector<GW::AgentLiving *> dryder_livings;
-    std::vector<GW::AgentLiving *> skele_livings;
-    std::vector<GW::AgentLiving *> horseman_livings;
+    std::vector<const GW::AgentLiving *> filtered_livings;
+    std::vector<const GW::AgentLiving *> coldfire_livings;
+    std::vector<const GW::AgentLiving *> behemoth_livings;
+    std::vector<const GW::AgentLiving *> dryder_livings;
+    std::vector<const GW::AgentLiving *> skele_livings;
+    std::vector<const GW::AgentLiving *> horseman_livings;
 
     AutoTargetAction auto_target;
 

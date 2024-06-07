@@ -13,11 +13,11 @@
 #include <GWCA/Managers/PartyMgr.h>
 
 #include "ActionsBase.h"
+#include "DataPlayer.h"
 #include "DataSkillbar.h"
 #include "Helper.h"
 #include "HelperAgents.h"
-
-#include "DataPlayer.h"
+#include "Utils.h"
 
 namespace
 {
@@ -40,13 +40,16 @@ bool DataPlayer::ValidateData(std::function<bool(bool)> cb_fn, const bool need_p
     const auto *const me_agent = GW::Agents::GetPlayer();
     const auto *const me_living = GW::Agents::GetPlayerAsAgentLiving();
 
-    return (me_agent != nullptr && me_living != nullptr);
+    return (me_agent != nullptr && me_living != nullptr && me_agent->agent_id != 0 && me_living->agent_id != 0);
 }
 
 void DataPlayer::Update()
 {
-    auto *me_agent = GW::Agents::GetPlayer();
-    auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    const auto *me_agent = GW::Agents::GetPlayer();
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+
+    if (!me_agent || !me_living)
+        return;
 
     id = me_agent->agent_id;
     pos = me_living->pos;
@@ -83,6 +86,17 @@ void DataPlayer::Update()
                                               weapon_main_hand->type == GW::Constants::ItemType::Scythe ||
                                               weapon_main_hand->type == GW::Constants::ItemType::Spear);
     holds_caster_weapon = !holds_melee_weapon;
+
+    is_melee_class = primary == GW::Constants::Profession::Assassin || primary == GW::Constants::Profession::Dervish ||
+                     primary == GW::Constants::Profession::Warrior || primary == GW::Constants::Profession::Paragon ||
+                     primary == GW::Constants::Profession::Ranger;
+    is_caster_class = !is_melee_class;
+
+    static auto standing_timer_start_ms = clock();
+    if (living->GetIsMoving())
+        standing_timer_start_ms = clock();
+
+    standing_for_ms = TIMER_DIFF(standing_timer_start_ms);
 }
 
 bool DataPlayer::CanCast() const
@@ -123,6 +137,16 @@ bool DataPlayer::IsCasting() const
     return living->GetIsCasting();
 }
 
+bool DataPlayer::IsFighting() const
+{
+    if (!living)
+        return false;
+
+    if (IsAttacking() || IsCasting())
+        return true;
+
+    return standing_for_ms > 2'000; // Assuming standing in enemies
+}
 
 bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id) const
 {
@@ -135,13 +159,8 @@ bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id) const
         const auto agent_id = buff.target_agent_id;
         const auto skill_id = buff.skill_id;
 
-        if (agent_id == id)
-        {
-            if (skill_id == buff_skill_id)
-            {
-                return true;
-            }
-        }
+        if (agent_id == id && skill_id == buff_skill_id)
+            return true;
     }
 
     return false;

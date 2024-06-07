@@ -14,14 +14,14 @@ struct AgentLivingData
 
     void Update();
 
-    static void UpdateType(std::vector<GW::AgentLiving *> &filtered_agents, const GW::Constants::Allegiance type);
+    static void UpdateType(std::vector<const GW::AgentLiving *> &filtered_agents, const GW::Constants::Allegiance type);
 
     size_t NumEnemiesInRange(const GW::GamePos &player_pos, const float range) const;
 
-    std::vector<GW::AgentLiving *> allies;
-    std::vector<GW::AgentLiving *> neutrals;
-    std::vector<GW::AgentLiving *> enemies;
-    std::vector<GW::AgentLiving *> spirits;
-    std::vector<GW::AgentLiving *> minions;
-    std::vector<GW::AgentLiving *> npcs;
+    std::vector<const GW::AgentLiving *> allies;
+    std::vector<const GW::AgentLiving *> neutrals;
+    std::vector<const GW::AgentLiving *> enemies;
+    std::vector<const GW::AgentLiving *> spirits;
+    std::vector<const GW::AgentLiving *> minions;
+    std::vector<const GW::AgentLiving *> npcs;
 };

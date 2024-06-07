@@ -69,7 +69,7 @@ private:
     void UseUnionInFight();
     void UseSosInFight();
     void ShatterImportantHexes();
-    void RemoveBlindness();
+    void RemoveImportantConditions();
 
     void ToggleHeroBehaviour();
     void FollowPlayer();

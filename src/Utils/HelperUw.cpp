@@ -308,12 +308,12 @@ bool TargetIsReaper(DataPlayer &player_data)
     return living_target->player_number == static_cast<uint32_t>(GW::Constants::ModelID::UW::Reapers);
 }
 
-bool TargetReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs)
+bool TargetReaper(DataPlayer &player_data, const std::vector<const GW::AgentLiving *> &npcs)
 {
     return TargetClosestNpcById(player_data, npcs, GW::Constants::ModelID::UW::Reapers) != 0U;
 }
 
-bool TalkReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs)
+bool TalkReaper(DataPlayer &player_data, const std::vector<const GW::AgentLiving *> &npcs)
 {
     const auto npc_id = TargetClosestNpcById(player_data, npcs, GW::Constants::ModelID::UW::Reapers);
     if (!npc_id)
@@ -328,7 +328,7 @@ bool TalkReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &n
     return true;
 }
 
-bool TargetClosestKeeper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> enemies)
+bool TargetClosestKeeper(DataPlayer &player_data, const std::vector<const GW::AgentLiving *> enemies)
 {
     return TargetClosestEnemyById(player_data, enemies, GW::Constants::ModelID::UW::KeeperOfSouls) != 0;
 }
@@ -380,7 +380,7 @@ bool TakePlanes()
     return true;
 }
 
-bool FoundKeeperAtPos(const std::vector<GW::AgentLiving *> &keeper_livings, const GW::GamePos &keeper_pos)
+bool FoundKeeperAtPos(const std::vector<const GW::AgentLiving *> &keeper_livings, const GW::GamePos &keeper_pos)
 {
     auto found_keeper = false;
 

@@ -25,6 +25,7 @@ public:
     bool CanAttack() const;
     bool IsCasting() const;
     bool IsAttacking() const;
+    bool IsFighting() const;
 
     bool HasBuff(const GW::Constants::SkillID buff_skill_id) const;
     bool HasEffect(const GW::Constants::SkillID effect_skill_id) const;
@@ -41,10 +42,11 @@ public:
 
 public:
     uint32_t id = UINT32_MAX;
+    const GW::Agent *me = nullptr;
+    const GW::AgentLiving *living = nullptr;
 
-    GW::Agent *me = nullptr;
-    GW::AgentLiving *living = nullptr;
-    GW::Agent *target = nullptr;
+    const GW::Agent *target = nullptr;
+
     GW::GamePos pos;
 
     uint32_t energy = 0U;
@@ -54,13 +56,16 @@ public:
     uint32_t hp = 0U;
     uint32_t max_hp = 0U;
     float hp_perc = 0.0F;
+    bool dead = false;
 
     GW::Constants::Profession primary = GW::Constants::Profession::None;
     GW::Constants::Profession secondary = GW::Constants::Profession::None;
+    bool is_melee_class = false;
+    bool is_caster_class = false;
 
     GW::Item *weapon_main_hand = nullptr;
     bool holds_melee_weapon = false;
     bool holds_caster_weapon = false;
 
-    bool dead = false;
+    long standing_for_ms = 0;
 };

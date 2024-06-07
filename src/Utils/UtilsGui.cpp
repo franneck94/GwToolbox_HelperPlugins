@@ -86,7 +86,7 @@ void DrawButton(ActionState &action_state, const ImVec4 color, std::string_view 
 // }
 
 // void PlotEnemies(const GW::GamePos &player_pos,
-//                  const std::vector<GW::AgentLiving *> &living_agents,
+//                  const std::vector<const GW::AgentLiving *> &living_agents,
 //                  std::string_view label,
 //                  const ImVec4 &color)
 // {
@@ -106,7 +106,7 @@ void DrawButton(ActionState &action_state, const ImVec4 color, std::string_view 
 // }
 
 // void DrawMap(const GW::GamePos &player_pos,
-//              const std::vector<GW::AgentLiving *> &enemies,
+//              const std::vector<const GW::AgentLiving *> &enemies,
 //              const GW::GamePos &move_pos,
 //              std::string_view label)
 // {

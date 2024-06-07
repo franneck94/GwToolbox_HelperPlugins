@@ -32,27 +32,27 @@ std::tuple<uint32_t, uint32_t, float> GetHp();
 bool AgentHasBuff(const GW::Constants::SkillID buff_skill_id, const uint32_t target_agent_id);
 
 void TargetAndAttackEnemyInAggro(const DataPlayer &player_data,
-                                 const std::vector<GW::AgentLiving *> &enemies,
+                                 const std::vector<const GW::AgentLiving *> &enemies,
                                  const float range = GW::Constants::Range::Spellcast);
 
 bool CastBondIfNotAvailable(const DataSkill &skill_data, const uint32_t target_id, const DataPlayer *const player_data);
 
 bool TargetNearest(const GW::GamePos &player_pos,
-                   const std::vector<GW::AgentLiving *> &livings,
+                   const std::vector<const GW::AgentLiving *> &livings,
                    const float max_distance = GW::Constants::SqrRange::Compass);
 
-std::vector<GW::AgentLiving *> FilterById(const std::vector<GW::AgentLiving *> &livings, const uint32_t id);
+std::vector<const GW::AgentLiving *> FilterById(const std::vector<const GW::AgentLiving *> &livings, const uint32_t id);
 
 void FilterByIdAndDistance(const GW::GamePos &player_pos,
-                           const std::vector<GW::AgentLiving *> &livings,
-                           std::vector<GW::AgentLiving *> &filtered_livings,
+                           const std::vector<const GW::AgentLiving *> &livings,
+                           std::vector<const GW::AgentLiving *> &filtered_livings,
                            const uint32_t id,
                            const float max_distance = GW::Constants::Range::Compass);
 
 template <uint32_t N>
 void FilterByIdsAndDistances(const GW::GamePos &player_pos,
-                             const std::vector<GW::AgentLiving *> &livings,
-                             std::vector<GW::AgentLiving *> &filtered_livings,
+                             const std::vector<const GW::AgentLiving *> &livings,
+                             std::vector<const GW::AgentLiving *> &filtered_livings,
                              const std::array<uint32_t, N> ids,
                              const float max_distance = GW::Constants::Range::Compass)
 {
@@ -66,46 +66,48 @@ void FilterByIdsAndDistances(const GW::GamePos &player_pos,
     }
 }
 
-void SortByDistance(const DataPlayer &player_data, std::vector<GW::AgentLiving *> &filtered_livings);
+void SortByDistance(const DataPlayer &player_data, std::vector<const GW::AgentLiving *> &filtered_livings);
 
-std::pair<GW::Agent *, float> GetClosestEnemy(const DataPlayer *player_data,
-                                              const std::vector<GW::AgentLiving *> &enemies);
+std::pair<const GW::AgentLiving *, float> GetClosestEnemy(const DataPlayer *player_data,
+                                                          const std::vector<const GW::AgentLiving *> &enemies);
 
 uint32_t GetClosestToPosition(const GW::GamePos &pos,
-                              const std::vector<GW::AgentLiving *> &livings,
+                              const std::vector<const GW::AgentLiving *> &livings,
                               const uint32_t target_id);
 
-uint32_t GetMostDistantEnemy(const GW::GamePos &pos, const std::vector<GW::AgentLiving *> &livings);
+uint32_t GetMostDistantEnemy(const GW::GamePos &pos, const std::vector<const GW::AgentLiving *> &livings);
 
 uint32_t GetClosestById(const DataPlayer &player_data,
-                        const std::vector<GW::AgentLiving *> &livings,
+                        const std::vector<const GW::AgentLiving *> &livings,
                         const uint32_t id);
 
 uint32_t GetClosestEnemyById(const DataPlayer &player_data,
-                             const std::vector<GW::AgentLiving *> &enemies,
+                             const std::vector<const GW::AgentLiving *> &enemies,
                              const uint32_t id);
 
 uint32_t GetClosestAllyById(const DataPlayer &player_data,
-                            const std::vector<GW::AgentLiving *> &allies,
+                            const std::vector<const GW::AgentLiving *> &allies,
                             const uint32_t id);
 
 uint32_t GetClosestNpcbyId(const DataPlayer &player_data,
-                           const std::vector<GW::AgentLiving *> &npcs,
+                           const std::vector<const GW::AgentLiving *> &npcs,
                            const uint32_t id);
 
 uint32_t TargetClosestEnemyById(DataPlayer &player_data,
-                                const std::vector<GW::AgentLiving *> &enemies,
+                                const std::vector<const GW::AgentLiving *> &enemies,
                                 const uint32_t id);
 
 uint32_t TargetClosestAllyById(DataPlayer &player_data,
-                               const std::vector<GW::AgentLiving *> &allies,
+                               const std::vector<const GW::AgentLiving *> &allies,
                                const uint32_t id);
 
-uint32_t TargetClosestNpcById(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs, const uint32_t id);
+uint32_t TargetClosestNpcById(DataPlayer &player_data,
+                              const std::vector<const GW::AgentLiving *> &npcs,
+                              const uint32_t id);
 
-std::vector<GW::AgentLiving *> FilterAgentsByRange(const std::vector<GW::AgentLiving *> &livings,
-                                                   const DataPlayer &player_data,
-                                                   const float dist_threshold = GW::Constants::Range::Earshot);
+std::vector<const GW::AgentLiving *> FilterAgentsByRange(const std::vector<const GW::AgentLiving *> &livings,
+                                                         const DataPlayer &player_data,
+                                                         const float dist_threshold = GW::Constants::Range::Earshot);
 
 struct PlayerMapping
 {
@@ -115,7 +117,7 @@ struct PlayerMapping
 
 bool GetPartyMembers(std::vector<PlayerMapping> &party_members);
 
-std::set<uint32_t> FilterAgentIDS(const std::vector<GW::AgentLiving *> &filtered_livings,
+std::set<uint32_t> FilterAgentIDS(const std::vector<const GW::AgentLiving *> &filtered_livings,
                                   const std::set<uint32_t> &filter_ids);
 
 uint32_t GetPartyIdxByID(const uint32_t id);
@@ -127,7 +129,7 @@ const GW::AgentLiving *GetPlayerAsLiving();
 const GW::AgentLiving *GetTargetAsLiving();
 
 bool FoundSpirit(const DataPlayer &player_data,
-                 const std::vector<GW::AgentLiving *> &spirits,
+                 const std::vector<const GW::AgentLiving *> &spirits,
                  const uint32_t spirit_id,
                  const float range = GW::Constants::Range::Spellcast);
 

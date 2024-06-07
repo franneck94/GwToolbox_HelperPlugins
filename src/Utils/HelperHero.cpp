@@ -80,11 +80,13 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
             continue;
         }
 
-        const auto hero_energy = (static_cast<uint32_t>(hero.hero_living->energy) * hero.hero_living->max_energy);
+        const auto hero_energy =
+            static_cast<uint32_t>(hero.hero_living->energy * static_cast<float>(hero.hero_living->max_energy));
 
         if (has_skill_in_skillbar && skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost())
         {
-            HeroUseSkill(use_player_target ? player_data.target->agent_id : player_data.id,
+            const auto valid_target = use_player_target && player_data.target && player_data.target->agent_id;
+            HeroUseSkill(valid_target ? player_data.target->agent_id : player_data.id,
                          skill_idx,
                          hero.hero_idx_zero_based);
             return true;
