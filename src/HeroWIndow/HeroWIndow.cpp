@@ -174,21 +174,28 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
 
 void HeroWindow::ShatterImportantHexes()
 {
-    constexpr static auto to_remove_skill_ids_melee = std::array<GW::Constants::SkillID, 4>{
-        GW::Constants::SkillID::Wandering_Eye, // Test Case
+    constexpr static auto to_remove_skill_ids_melee = std::array<GW::Constants::SkillID, 5>{
+        // Mesmer
         GW::Constants::SkillID::Ineptitude,
         GW::Constants::SkillID::Empathy,
         GW::Constants::SkillID::Spiteful_Spirit,
+        GW::Constants::SkillID::Crippling_Anguish,
+        // Ele
+        GW::Constants::SkillID::Blurred_Vision,
     };
     constexpr static auto to_remove_skill_ids_caster = std::array<GW::Constants::SkillID, 5>{
-        GW::Constants::SkillID::Wandering_Eye, // Test Case
+        // Mesmer
         GW::Constants::SkillID::Panic,
         GW::Constants::SkillID::Backfire,
         GW::Constants::SkillID::Mistrust,
         GW::Constants::SkillID::Spiteful_Spirit,
     };
-    constexpr static auto to_remove_skill_ids_all = std::array<GW::Constants::SkillID, 1>{
+    constexpr static auto to_remove_skill_ids_all = std::array<GW::Constants::SkillID, 3>{
+        // Mesmer
         GW::Constants::SkillID::Diversion,
+        // Ele
+        GW::Constants::SkillID::Deep_Freeze,
+        GW::Constants::SkillID::Mind_Freeze,
     };
 
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
