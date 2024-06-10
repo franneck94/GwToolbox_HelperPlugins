@@ -185,6 +185,9 @@ void TargetAndAttackEnemyInAggro(const DataPlayer &player_data,
 
 bool CastBondIfNotAvailable(const DataSkill &skill_data, const uint32_t target_id, const DataPlayer *const player_data)
 {
+    if (!target_id)
+        return false;
+
     const auto has_bond = AgentHasBuff(static_cast<GW::Constants::SkillID>(skill_data.id), target_id);
     const auto bond_avail = skill_data.CanBeCasted(player_data->energy);
     const auto skill_idx = skill_data.idx;

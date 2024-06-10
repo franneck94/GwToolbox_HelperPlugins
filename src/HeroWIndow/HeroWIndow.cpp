@@ -70,27 +70,30 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
     if (!GW::Initialize())
         SignalTerminate();
 
+    // GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivaiton);
+
+    GW::UI::RegisterUIMessageCallback(
+        &AgentPinged_Entry,
+        GW::UI::UIMessage::kSendCallTarget,
+        [this](GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *) -> void {
+            const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
+
+            if (!packet || (packet->call_type != GW::CallTargetType::AttackingOrTargetting))
+                return;
+
+            const auto *ping_agent = GW::Agents::GetAgentByID(packet->agent_id);
+            if (!ping_agent)
+                return;
+
+            if (GW::GetDistance(ping_agent->pos, player_data.pos) < GW::Constants::Range::Spellcast + 200.0F)
+                StopFollowing();
+            else
+                UseFallback();
+        });
+
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(
         &MapLoaded_Entry,
         [this](GW::HookStatus *, const GW::Packet::StoC::MapLoaded *) -> void { ResetData(); });
-
-    // GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivaiton);
-
-    GW::UI::RegisterUIMessageCallback(&AgentPinged_Entry,
-                                      GW::UI::UIMessage::kSendCallTarget,
-                                      [this](GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *) -> void {
-                                          const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
-
-                                          if (!packet ||
-                                              (packet->call_type != GW::CallTargetType::AttackingOrTargetting))
-                                              return;
-
-                                          const auto *ping_agent = GW::Agents::GetAgentByID(packet->agent_id);
-                                          if (!ping_agent || GW::GetDistance(ping_agent->pos, player_data.pos) <
-                                                                 GW::Constants::Range::Spellcast + 200.0F)
-                                              return;
-                                          UseFallback();
-                                      });
 
     GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"HeroWindow");
 }
@@ -722,6 +725,47 @@ void HeroWindow::HeroSmarterSkills_Logic()
     UseHonorOnPlayer();
 }
 
+void HeroWindow::HeroFollow_StuckCheck()
+{
+    static std::vector<uint32_t> same_position_counters(7U, 0);
+    static std::vector<GW::GamePos> last_positions(7U, {});
+
+    auto hero_idx = 0U;
+    for (const auto &hero : hero_data.hero_vec)
+    {
+        if (!hero.hero_living || !hero.hero_living->agent_id || !player_data.living ||
+            !player_data.living->GetIsMoving())
+        {
+            same_position_counters.at(hero_idx) = 0U;
+            ++hero_idx;
+            continue;
+        }
+
+        const auto *hero_agent = GW::Agents::GetAgentByID(hero.hero_living->agent_id);
+        if (!hero_agent || GW::GetDistance(player_data.pos, hero_agent->pos) > (GW::Constants::Range::Compass - 100.0F))
+        {
+            same_position_counters.at(hero_idx) = 0U;
+            ++hero_idx;
+            continue;
+        }
+
+        if (hero_agent->pos == last_positions.at(hero_idx))
+            ++same_position_counters.at(hero_idx);
+        else
+            same_position_counters.at(hero_idx) = 0U;
+
+        if (same_position_counters.at(hero_idx) >= 1000)
+        {
+            Log::Info("Hero at position %d is stuck!", hero_idx + 1U);
+            same_position_counters.at(hero_idx) = 0U;
+        }
+
+        last_positions.at(hero_idx) = hero_agent->pos;
+
+        ++hero_idx;
+    }
+}
+
 void HeroWindow::HeroFollow_StopConditions()
 {
     if (!IsExplorable() || !following_active)
@@ -814,4 +858,5 @@ void HeroWindow::Update(float)
 
     HeroSmarterSkills_Logic();
     HeroFollow_StopConditions();
+    HeroFollow_StuckCheck();
 }

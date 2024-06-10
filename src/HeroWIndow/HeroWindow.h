@@ -51,6 +51,7 @@ private:
 
     void HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &toggled_follow);
     void HeroFollow_StopConditions();
+    void HeroFollow_StuckCheck();
     void StopFollowing();
 
     void SmartUseSkill(const GW::Constants::SkillID skill_id,

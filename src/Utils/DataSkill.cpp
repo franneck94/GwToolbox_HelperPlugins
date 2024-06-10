@@ -42,9 +42,7 @@ RoutineState DataSkill::Cast(const uint32_t current_energy, const uint32_t targe
         GW::GameThread::Enqueue([&]() {
             used_the_skill = GW::SkillbarMgr::UseSkill(idx, target_id);
             if (used_the_skill)
-            {
                 Log::Info("Used?: %u", (int)used_the_skill);
-            }
         });
     }
     else
@@ -52,9 +50,7 @@ RoutineState DataSkill::Cast(const uint32_t current_energy, const uint32_t targe
         GW::GameThread::Enqueue([&]() {
             used_the_skill = GW::SkillbarMgr::UseSkill(idx);
             if (used_the_skill)
-            {
                 Log::Info("Used?: %u", (int)used_the_skill);
-            }
         });
     }
 

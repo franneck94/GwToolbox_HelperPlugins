@@ -8,7 +8,10 @@
 #include "DataHero.h"
 #include "DataPlayer.h"
 
-void HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, const uint32_t hero_idx_zero_based);
+void HeroUseSkill(const bool use_target,
+                  const uint32_t target_agent_id,
+                  const uint32_t skill_idx,
+                  const uint32_t hero_idx_zero_based);
 
 bool HeroCastSkillIfAvailable(const Hero &hero_data,
                               const DataPlayer &player_data,

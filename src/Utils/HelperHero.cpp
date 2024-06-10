@@ -20,7 +20,10 @@
 #include "DataPlayer.h"
 #include "HelperHero.h"
 
-void HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, const uint32_t hero_idx_zero_based)
+void HeroUseSkill(const bool use_target,
+                  const uint32_t target_agent_id,
+                  const uint32_t skill_idx,
+                  const uint32_t hero_idx_zero_based)
 {
     auto hero_action = GW::UI::ControlAction_Hero1Skill1;
     if (hero_idx_zero_based == 0)
@@ -43,10 +46,10 @@ void HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, cons
     const auto curr_target_id = GW::Agents::GetTargetId();
 
     GW::GameThread::Enqueue([=] {
-        if (target_agent_id && target_agent_id != GW::Agents::GetTargetId())
+        if (use_target && target_agent_id && target_agent_id != GW::Agents::GetTargetId())
             GW::Agents::ChangeTarget(target_agent_id);
         GW::UI::Keypress((GW::UI::ControlAction)(static_cast<uint32_t>(hero_action) + skill_idx));
-        if (curr_target_id && target_agent_id != curr_target_id)
+        if (use_target && curr_target_id && target_agent_id != curr_target_id)
             GW::Agents::ChangeTarget(curr_target_id);
     });
 }
@@ -86,7 +89,8 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
         if (has_skill_in_skillbar && skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost())
         {
             const auto valid_target = use_player_target && player_data.target && player_data.target->agent_id;
-            HeroUseSkill(valid_target ? player_data.target->agent_id : player_data.id,
+            HeroUseSkill(use_player_target,
+                         valid_target ? player_data.target->agent_id : player_data.id,
                          skill_idx,
                          hero.hero_idx_zero_based);
             return true;
