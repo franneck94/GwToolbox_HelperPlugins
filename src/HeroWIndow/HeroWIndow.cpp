@@ -76,6 +76,22 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
 
     // GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivaiton);
 
+    GW::UI::RegisterUIMessageCallback(&AgentPinged_Entry,
+                                      GW::UI::UIMessage::kSendCallTarget,
+                                      [this](GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *) -> void {
+                                          const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
+
+                                          if (!packet ||
+                                              (packet->call_type != GW::CallTargetType::AttackingOrTargetting))
+                                              return;
+
+                                          const auto *ping_agent = GW::Agents::GetAgentByID(packet->agent_id);
+                                          if (!ping_agent || GW::GetDistance(ping_agent->pos, player_data.pos) <
+                                                                 GW::Constants::Range::Spellcast + 200.0F)
+                                              return;
+                                          UseFallback();
+                                      });
+
     GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"HeroWindow");
 }
 
