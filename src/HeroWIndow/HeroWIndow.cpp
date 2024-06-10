@@ -257,6 +257,9 @@ void HeroWindow::RemoveImportantConditions()
     constexpr static auto to_remove_skill_ids_caster = std::array<GW::Constants::SkillID, 5>{
         GW::Constants::SkillID::Dazed,
     };
+    constexpr static auto to_remove_skill_ids_all = std::array<GW::Constants::SkillID, 1>{
+        GW::Constants::SkillID::Crippled,
+    };
 
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
         {GW::Constants::SkillID::Mend_Body_and_Soul, GW::Constants::Profession::Ritualist},
@@ -295,6 +298,9 @@ void HeroWindow::RemoveImportantConditions()
                 if (found_cond(to_remove_skill_ids_caster, effect))
                     return true;
             }
+
+            if (found_cond(to_remove_skill_ids_all, effect))
+                return true;
         }
 
         return false;
