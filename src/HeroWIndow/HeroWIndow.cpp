@@ -56,6 +56,37 @@ constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 //     (void)message_id;
 //     (void)lParam;
 // }
+
+void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
+{
+    auto *instance = static_cast<HeroWindow *>(ToolboxPluginInstance());
+
+    const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
+
+    if (!packet || (packet->call_type != GW::CallTargetType::AttackingOrTargetting))
+        return;
+
+    const auto *ping_agent = GW::Agents::GetAgentByID(packet->agent_id);
+    if (!ping_agent)
+        return;
+
+    const auto ping_distance = GW::GetDistance(ping_agent->pos, instance->player_data.pos);
+    const auto ping_close = ping_distance < GW::Constants::Range::Spellcast + 200.0F;
+    const auto ping_far = ping_distance > GW::Constants::Range::Spirit;
+    if (ping_close)
+        instance->StopFollowing();
+    else if (!ping_close && !ping_far)
+        instance->UseFallback();
+    else if (ping_far)
+        instance->following_active = true;
+}
+
+void OnMapLoad(GW::HookStatus *, const GW::Packet::StoC::MapLoaded *)
+{
+    auto *instance = static_cast<HeroWindow *>(ToolboxPluginInstance());
+
+    instance->ResetData();
+}
 } // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -72,28 +103,9 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
 
     // GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivaiton);
 
-    GW::UI::RegisterUIMessageCallback(
-        &AgentPinged_Entry,
-        GW::UI::UIMessage::kSendCallTarget,
-        [this](GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *) -> void {
-            const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
+    GW::UI::RegisterUIMessageCallback(&AgentPinged_Entry, GW::UI::UIMessage::kSendCallTarget, OnTargetPing);
 
-            if (!packet || (packet->call_type != GW::CallTargetType::AttackingOrTargetting))
-                return;
-
-            const auto *ping_agent = GW::Agents::GetAgentByID(packet->agent_id);
-            if (!ping_agent)
-                return;
-
-            if (GW::GetDistance(ping_agent->pos, player_data.pos) < GW::Constants::Range::Spellcast + 200.0F)
-                StopFollowing();
-            else
-                UseFallback();
-        });
-
-    GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(
-        &MapLoaded_Entry,
-        [this](GW::HookStatus *, const GW::Packet::StoC::MapLoaded *) -> void { ResetData(); });
+    GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(&MapLoaded_Entry, OnMapLoad);
 
     GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"HeroWindow");
 }
