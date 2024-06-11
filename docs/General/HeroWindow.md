@@ -14,9 +14,11 @@ Toggle **all** heroes between:
 
 ## Follow
 
-All heroes will be flagged to your current position every ~800ms.
-Hence, its much easier to run through enemies with your heroes.
-While running, your heroes with fall back will cast the skill after each other.
+All heroes will be flagged to your current position every ~800ms.  
+Hence, its much easier to run through enemies with your heroes.  
+While running, your heroes with fall back will cast the skill after each other.  
+When you ping a far away target, this gets activated.  
+When you ping a close target or attack an close target, the following will stop.
 
 ## Attack
 
