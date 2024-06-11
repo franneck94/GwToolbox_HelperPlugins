@@ -56,6 +56,37 @@ constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 //     (void)message_id;
 //     (void)lParam;
 // }
+
+void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
+{
+    auto *instance = static_cast<HeroWindow *>(ToolboxPluginInstance());
+
+    const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
+
+    if (!packet || (packet->call_type != GW::CallTargetType::AttackingOrTargetting))
+        return;
+
+    const auto *ping_agent = GW::Agents::GetAgentByID(packet->agent_id);
+    if (!ping_agent)
+        return;
+
+    const auto ping_distance = GW::GetDistance(ping_agent->pos, instance->player_data.pos);
+    const auto ping_close = ping_distance < GW::Constants::Range::Spellcast + 200.0F;
+    const auto ping_far = ping_distance > GW::Constants::Range::Spirit;
+    if (ping_close)
+        instance->StopFollowing();
+    else if (!ping_close && !ping_far)
+        instance->UseFallback();
+    else if (ping_far)
+        instance->following_active = true;
+}
+
+void OnMapLoad(GW::HookStatus *, const GW::Packet::StoC::MapLoaded *)
+{
+    auto *instance = static_cast<HeroWindow *>(ToolboxPluginInstance());
+
+    instance->ResetData();
+}
 } // namespace
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -70,11 +101,11 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
     if (!GW::Initialize())
         SignalTerminate();
 
-    GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(
-        &MapLoaded_Entry,
-        [this](GW::HookStatus *, const GW::Packet::StoC::MapLoaded *) -> void { ResetData(); });
-
     // GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivaiton);
+
+    GW::UI::RegisterUIMessageCallback(&AgentPinged_Entry, GW::UI::UIMessage::kSendCallTarget, OnTargetPing);
+
+    GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(&MapLoaded_Entry, OnMapLoad);
 
     GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"HeroWindow");
 }
@@ -174,21 +205,28 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
 
 void HeroWindow::ShatterImportantHexes()
 {
-    constexpr static auto to_remove_skill_ids_melee = std::array<GW::Constants::SkillID, 4>{
-        GW::Constants::SkillID::Wandering_Eye, // Test Case
+    constexpr static auto to_remove_skill_ids_melee = std::array<GW::Constants::SkillID, 5>{
+        // Mesmer
         GW::Constants::SkillID::Ineptitude,
         GW::Constants::SkillID::Empathy,
         GW::Constants::SkillID::Spiteful_Spirit,
+        GW::Constants::SkillID::Crippling_Anguish,
+        // Ele
+        GW::Constants::SkillID::Blurred_Vision,
     };
     constexpr static auto to_remove_skill_ids_caster = std::array<GW::Constants::SkillID, 5>{
-        GW::Constants::SkillID::Wandering_Eye, // Test Case
+        // Mesmer
         GW::Constants::SkillID::Panic,
         GW::Constants::SkillID::Backfire,
         GW::Constants::SkillID::Mistrust,
         GW::Constants::SkillID::Spiteful_Spirit,
     };
-    constexpr static auto to_remove_skill_ids_all = std::array<GW::Constants::SkillID, 1>{
+    constexpr static auto to_remove_skill_ids_all = std::array<GW::Constants::SkillID, 3>{
+        // Mesmer
         GW::Constants::SkillID::Diversion,
+        // Ele
+        GW::Constants::SkillID::Deep_Freeze,
+        GW::Constants::SkillID::Mind_Freeze,
     };
 
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
@@ -257,6 +295,9 @@ void HeroWindow::RemoveImportantConditions()
     constexpr static auto to_remove_skill_ids_caster = std::array<GW::Constants::SkillID, 5>{
         GW::Constants::SkillID::Dazed,
     };
+    constexpr static auto to_remove_skill_ids_all = std::array<GW::Constants::SkillID, 1>{
+        GW::Constants::SkillID::Crippled,
+    };
 
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
         {GW::Constants::SkillID::Mend_Body_and_Soul, GW::Constants::Profession::Ritualist},
@@ -295,6 +336,9 @@ void HeroWindow::RemoveImportantConditions()
                 if (found_cond(to_remove_skill_ids_caster, effect))
                     return true;
             }
+
+            if (found_cond(to_remove_skill_ids_all, effect))
+                return true;
         }
 
         return false;
@@ -693,6 +737,47 @@ void HeroWindow::HeroSmarterSkills_Logic()
     UseHonorOnPlayer();
 }
 
+void HeroWindow::HeroFollow_StuckCheck()
+{
+    static std::vector<uint32_t> same_position_counters(7U, 0);
+    static std::vector<GW::GamePos> last_positions(7U, {});
+
+    auto hero_idx = 0U;
+    for (const auto &hero : hero_data.hero_vec)
+    {
+        if (!hero.hero_living || !hero.hero_living->agent_id || !player_data.living ||
+            !player_data.living->GetIsMoving())
+        {
+            same_position_counters.at(hero_idx) = 0U;
+            ++hero_idx;
+            continue;
+        }
+
+        const auto *hero_agent = GW::Agents::GetAgentByID(hero.hero_living->agent_id);
+        if (!hero_agent || GW::GetDistance(player_data.pos, hero_agent->pos) > (GW::Constants::Range::Compass - 100.0F))
+        {
+            same_position_counters.at(hero_idx) = 0U;
+            ++hero_idx;
+            continue;
+        }
+
+        if (hero_agent->pos == last_positions.at(hero_idx))
+            ++same_position_counters.at(hero_idx);
+        else
+            same_position_counters.at(hero_idx) = 0U;
+
+        if (same_position_counters.at(hero_idx) >= 1000)
+        {
+            Log::Info("Hero at position %d is stuck!", hero_idx + 1U);
+            same_position_counters.at(hero_idx) = 0U;
+        }
+
+        last_positions.at(hero_idx) = hero_agent->pos;
+
+        ++hero_idx;
+    }
+}
+
 void HeroWindow::HeroFollow_StopConditions()
 {
     if (!IsExplorable() || !following_active)
@@ -785,4 +870,5 @@ void HeroWindow::Update(float)
 
     HeroSmarterSkills_Logic();
     HeroFollow_StopConditions();
+    HeroFollow_StuckCheck();
 }

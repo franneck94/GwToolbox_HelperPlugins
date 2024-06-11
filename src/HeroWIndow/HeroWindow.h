@@ -41,17 +41,13 @@ public:
         return true;
     }
     void Update(float delta) override;
-
-private:
     void UpdateInternalData();
 
     void HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size);
-
     void HeroSpike_DrawAndLogic(const ImVec2 &im_button_size);
-
     void HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &toggled_follow);
     void HeroFollow_StopConditions();
-    void StopFollowing();
+    void HeroFollow_StuckCheck();
 
     void SmartUseSkill(const GW::Constants::SkillID skill_id,
                        const GW::Constants::Profession skill_class,
@@ -71,9 +67,10 @@ private:
     void ShatterImportantHexes();
     void RemoveImportantConditions();
 
+    void StopFollowing();
+    void UseFallback();
     void ToggleHeroBehaviour();
     void FollowPlayer();
-    void UseFallback();
     void MesmerSpikeTarget(const Hero &hero_data) const;
     void AttackTarget();
     void ResetData();
@@ -88,6 +85,8 @@ private:
     long time_at_last_pos_change;
     uint32_t target_agent_id = 0;
     bool following_active = false;
+
+    GW::HookEntry AgentPinged_Entry;
 
     GW::HookEntry MapLoaded_Entry;
     bool load_cb_triggered = false;

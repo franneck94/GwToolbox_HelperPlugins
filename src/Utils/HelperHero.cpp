@@ -20,7 +20,7 @@
 #include "DataPlayer.h"
 #include "HelperHero.h"
 
-void HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, const uint32_t hero_idx_zero_based)
+bool HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, const uint32_t hero_idx_zero_based)
 {
     auto hero_action = GW::UI::ControlAction_Hero1Skill1;
     if (hero_idx_zero_based == 0)
@@ -38,17 +38,21 @@ void HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, cons
     else if (hero_idx_zero_based == 6)
         hero_action = GW::UI::ControlAction_Hero7Skill1;
     else
-        return;
+        return false;
 
     const auto curr_target_id = GW::Agents::GetTargetId();
+    auto success = true;
 
-    GW::GameThread::Enqueue([=] {
+    GW::GameThread::Enqueue([=, &success] {
         if (target_agent_id && target_agent_id != GW::Agents::GetTargetId())
-            GW::Agents::ChangeTarget(target_agent_id);
-        GW::UI::Keypress((GW::UI::ControlAction)(static_cast<uint32_t>(hero_action) + skill_idx));
+            success &= GW::Agents::ChangeTarget(target_agent_id);
+        const auto keypress_id = (GW::UI::ControlAction)(static_cast<uint32_t>(hero_action) + skill_idx);
+        success &= GW::UI::Keypress(keypress_id);
         if (curr_target_id && target_agent_id != curr_target_id)
-            GW::Agents::ChangeTarget(curr_target_id);
+            success &= GW::Agents::ChangeTarget(curr_target_id);
     });
+
+    return success;
 }
 
 bool HeroCastSkillIfAvailable(const Hero &hero,
@@ -62,6 +66,26 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
 
     if (!cb_fn(player_data, hero))
         return false;
+
+    const auto [skill_idx, can_cast_skill] = SkillIdxOfHero(hero, skill_id);
+    const auto has_skill_in_skillbar = skill_idx != static_cast<uint32_t>(-1);
+
+    if (has_skill_in_skillbar && can_cast_skill)
+    {
+        const auto valid_target = use_player_target && player_data.target && player_data.target->agent_id;
+        const auto skill_target = valid_target ? player_data.target->agent_id : player_data.id;
+        const auto success = HeroUseSkill(skill_target, skill_idx, hero.hero_idx_zero_based);
+        return success;
+    }
+
+    return false;
+}
+
+
+std::tuple<uint32_t, bool> SkillIdxOfHero(const Hero &hero, const GW::Constants::SkillID skill_id)
+{
+    const auto hero_energy =
+        static_cast<uint32_t>(hero.hero_living->energy * static_cast<float>(hero.hero_living->max_energy));
 
     auto skill_idx = 0U;
     for (const auto &skill : hero.skills)
@@ -80,20 +104,9 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
             continue;
         }
 
-        const auto hero_energy =
-            static_cast<uint32_t>(hero.hero_living->energy * static_cast<float>(hero.hero_living->max_energy));
-
-        if (has_skill_in_skillbar && skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost())
-        {
-            const auto valid_target = use_player_target && player_data.target && player_data.target->agent_id;
-            HeroUseSkill(valid_target ? player_data.target->agent_id : player_data.id,
-                         skill_idx,
-                         hero.hero_idx_zero_based);
-            return true;
-        }
-
-        ++skill_idx;
+        const auto can_cast_skill = skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost();
+        return std::make_tuple(skill_idx, can_cast_skill);
     }
 
-    return false;
+    return std::make_tuple(static_cast<uint32_t>(-1), false);
 }
