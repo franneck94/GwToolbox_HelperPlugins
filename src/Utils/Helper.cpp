@@ -2,11 +2,9 @@
 
 #include <GWCA/GameEntities/Player.h>
 #include <GWCA/Managers/AgentMgr.h>
-#include <GWCA/Managers/CtoSMgr.h>
 #include <GWCA/Managers/MapMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
 #include <GWCA/Managers/UIMgr.h>
-#include <GWCA/Packets/Opcodes.h>
 
 #include "Helper.h"
 #include "HelperDialogs.h"

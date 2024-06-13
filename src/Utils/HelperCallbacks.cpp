@@ -5,11 +5,7 @@
 #include <GWCA/GameEntities/Map.h>
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/ChatMgr.h>
-#include <GWCA/Managers/CtoSMgr.h>
 #include <GWCA/Managers/MapMgr.h>
-#include <GWCA/Managers/StoCMgr.h>
-#include <GWCA/Packets/Opcodes.h>
-#include <GWCA/Packets/StoC.h>
 #include <GWCA/Utilities/Hook.h>
 
 #include "ActionsBase.h"
