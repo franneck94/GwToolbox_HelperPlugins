@@ -5,7 +5,7 @@ include(FetchContent)
 FetchContent_Declare(
   gwtoolboxpp
   GIT_REPOSITORY https://github.com/gwdevhub/gwtoolboxpp
-  GIT_TAG a4a46ea2c970230112e5296107adb407de8512ff)
+  GIT_TAG a4a46ea2c970230112e5296107adb407de8512ff) # between 6.18 and (upcoming) 6.19
 
 FetchContent_GetProperties(gwtoolboxpp)
 
