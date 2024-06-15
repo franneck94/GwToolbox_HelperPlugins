@@ -289,8 +289,7 @@ void HeroWindow::ShatterImportantHexes()
             if (found_hex(to_remove_hexes_all, effect))
                 return true;
 
-            if (player_data.primary == GW::Constants::Profession::Paragon &&
-                found_hex(to_remove_hexes_paragon, effect))
+            if (player_data.primary == GW::Constants::Profession::Paragon && found_hex(to_remove_hexes_paragon, effect))
                 return true;
         }
 
