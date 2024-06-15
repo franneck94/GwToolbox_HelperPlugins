@@ -15,10 +15,8 @@
 #include <GWCA/GameEntities/Player.h>
 #include <GWCA/GameEntities/Skill.h>
 #include <GWCA/Managers/ChatMgr.h>
-#include <GWCA/Managers/CtoSMgr.h>
 #include <GWCA/Managers/EffectMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
-#include <GWCA/Packets/Opcodes.h>
 
 #include "ActionsBase.h"
 #include "ActionsUw.h"

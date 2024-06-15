@@ -35,8 +35,58 @@ Smart features are:
 - Use splinter weapon and honor of strength on the player if he is melee attacker
   - For honor of strength: Disable the skill in the hero window
 - Immediatly shatter important hexes on the player
-  - For melee: Empathy etc.
-  - For caster: Backfire etc.
 - Immediatly remove important conditions on the player
-  - For melee: blindness, cripple
-  - For caster: Dazed, cripple
+
+### List of Hexes to Remove
+
+```cpp
+// to_remove_hexes_melee
+// Mesmer
+GW::Constants::SkillID::Ineptitude
+GW::Constants::SkillID::Empathy
+GW::Constants::SkillID::Crippling_Anguish
+// Necro
+GW::Constants::SkillID::Spiteful_Spirit
+// Ele
+GW::Constants::SkillID::Blurred_Vision
+
+// to_remove_hexes_caster
+// Mesmer
+GW::Constants::SkillID::Panic
+GW::Constants::SkillID::Backfire
+GW::Constants::SkillID::Mistrust
+GW::Constants::SkillID::Power_Leech
+// Necro
+GW::Constants::SkillID::Spiteful_Spirit
+GW::Constants::SkillID::Soul_Leech
+
+// to_remove_hexes_all
+// Mesmer
+GW::Constants::SkillID::Diversion
+GW::Constants::SkillID::Visions_of_Regret
+// Ele
+GW::Constants::SkillID::Deep_Freeze
+GW::Constants::SkillID::Mind_Freeze
+
+// to_remove_hexes_paragon
+// Necro
+GW::Constants::SkillID::Vocal_Minority
+```
+
+Feel free to  create an feature request (issue in Github) for more to add!
+
+### List of Conditions to Remove
+
+```cpp
+to_remove_conditions_melee
+        GW::Constants::SkillID::Blind
+
+to_remove_conditions_caster
+        GW::Constants::SkillID::Dazed
+
+to_remove_conditions_all
+        GW::Constants::SkillID::Crippled
+
+```
+
+Feel free to  create an feature request (issue in Github) for more to add!

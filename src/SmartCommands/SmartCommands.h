@@ -48,8 +48,11 @@ public:
         return ICON_FA_COMMENT_DOTS;
     }
 
-    void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
+    void Initialize(ImGuiContext*, ImGuiAllocFns, HMODULE) override;
     void SignalTerminate() override;
+    bool CanTerminate() override;
+    void Terminate() override;
+
     void Draw(IDirect3DDevice9 *) override {};
     bool HasSettings() const override
     {
@@ -57,6 +60,6 @@ public:
     }
     void Update(float delta) override;
 
-    static void CmdDhuumUseSkill(const wchar_t *cmd, const int argc, const LPWSTR *argv);
-    static void CmdUseSkill(const wchar_t *cmd, const int argc, const LPWSTR *argv);
+    static void CmdDhuumUseSkill(GW::HookStatus *, const wchar_t *, int argc, const LPWSTR *argv);
+    static void CmdUseSkill(GW::HookStatus *, const wchar_t *, int argc, const LPWSTR *argv);
 };

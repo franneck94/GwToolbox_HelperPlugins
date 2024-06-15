@@ -6,12 +6,9 @@
 
 #include <GWCA/Constants/Skills.h>
 #include <GWCA/GameEntities/Skill.h>
-#include <GWCA/Managers/CtoSMgr.h>
 #include <GWCA/Managers/GameThreadMgr.h>
 #include <GWCA/Managers/SkillbarMgr.h>
 #include <GWCA/Managers/StoCMgr.h>
-#include <GWCA/Packets/Opcodes.h>
-#include <GWCA/Packets/StoC.h>
 #include <GWCA/Utilities/Hook.h>
 
 #include "DataSkill.h"

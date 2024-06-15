@@ -7,11 +7,9 @@
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/GameEntities/Item.h>
 #include <GWCA/Managers/AgentMgr.h>
-#include <GWCA/Managers/CtoSMgr.h>
 #include <GWCA/Managers/GameThreadMgr.h>
 #include <GWCA/Managers/ItemMgr.h>
 #include <GWCA/Managers/UIMgr.h>
-#include <GWCA/Packets/Opcodes.h>
 
 #include "Helper.h"
 

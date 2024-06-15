@@ -18,6 +18,7 @@
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
 #include <GWCA/Managers/UIMgr.h>
+#include <GWCA/Utilities/Hooker.h>
 #include <GWCA/Utilities/Scanner.h>
 
 #include "ActionTypes.h"
@@ -40,21 +41,9 @@ constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 
-// void OnSkillActivaiton(GW::HookStatus *status, const GW::UI::UIMessage message_id, void *wParam, void *lParam)
+// bool DoBlockSkill(uint32_t agent_id, uint32_t skill_id)
 // {
-//     const struct Payload
-//     {
-//         uint32_t agent_id;
-//         GW::Constants::SkillID skill_id;
-//     } *payload = static_cast<Payload *>(wParam);
-
-//     if (payload->agent_id == GW::Agents::GetPlayerId() && payload->skill_id == static_cast<GW::Constants::SkillID>(0U))
-//     {
-//         status->blocked = true;
-//     }
-
-//     (void)message_id;
-//     (void)lParam;
+//     return (GW::Constants::SkillID)skill_id == GW::Constants::SkillID::Fox_Fangs;
 // }
 
 void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
@@ -99,9 +88,20 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
     if (!GW::Initialize())
-        SignalTerminate();
+    {
+        GW::Terminate();
+        return;
+    }
 
-    // GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivaiton);
+    // GW::StoC::RegisterUseSkillCallback(
+    //     &OnSkillActivated_Entry,
+    //     GAME_SMSG_SKILL_ACTIVATE,
+    //     [this](GW::HookStatus *hook, void *packet) -> void {
+    //         const auto skill_packet = static_cast<GW::Packet::StoC::SkillActivate *>(packet);
+    //         if (DoBlockSkill(skill_packet->agent_id, skill_packet->skill_id))
+    //             hook->blocked = true;
+    //     },
+    //     -0x3000);
 
     GW::UI::RegisterUIMessageCallback(&AgentPinged_Entry, GW::UI::UIMessage::kSendCallTarget, OnTargetPing);
 
@@ -114,6 +114,18 @@ void HeroWindow::SignalTerminate()
 {
     ToolboxUIPlugin::SignalTerminate();
     GW::DisableHooks();
+}
+
+bool HeroWindow::CanTerminate()
+{
+    return GW::HookBase::GetInHookCount() == 0;
+}
+
+void HeroWindow::Terminate()
+{
+    ToolboxPlugin::Terminate();
+    GW::StoC::RemoveCallbacks(&MapLoaded_Entry);
+    GW::UI::RemoveUIMessageCallback(&AgentPinged_Entry);
 }
 
 void HeroWindow::StopFollowing()
@@ -205,28 +217,37 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
 
 void HeroWindow::ShatterImportantHexes()
 {
-    constexpr static auto to_remove_skill_ids_melee = std::array<GW::Constants::SkillID, 5>{
+    constexpr static auto to_remove_hexes_melee = std::array{
         // Mesmer
         GW::Constants::SkillID::Ineptitude,
         GW::Constants::SkillID::Empathy,
-        GW::Constants::SkillID::Spiteful_Spirit,
         GW::Constants::SkillID::Crippling_Anguish,
+        // Necro
+        GW::Constants::SkillID::Spiteful_Spirit,
         // Ele
         GW::Constants::SkillID::Blurred_Vision,
     };
-    constexpr static auto to_remove_skill_ids_caster = std::array<GW::Constants::SkillID, 5>{
+    constexpr static auto to_remove_hexes_caster = std::array{
         // Mesmer
         GW::Constants::SkillID::Panic,
         GW::Constants::SkillID::Backfire,
         GW::Constants::SkillID::Mistrust,
+        GW::Constants::SkillID::Power_Leech,
+        // Necro
         GW::Constants::SkillID::Spiteful_Spirit,
+        GW::Constants::SkillID::Soul_Leech,
     };
-    constexpr static auto to_remove_skill_ids_all = std::array<GW::Constants::SkillID, 3>{
+    constexpr static auto to_remove_hexes_all = std::array{
         // Mesmer
         GW::Constants::SkillID::Diversion,
+        GW::Constants::SkillID::Visions_of_Regret,
         // Ele
         GW::Constants::SkillID::Deep_Freeze,
         GW::Constants::SkillID::Mind_Freeze,
+    };
+    constexpr static auto to_remove_hexes_paragon = std::array{
+        // Necro
+        GW::Constants::SkillID::Vocal_Minority,
     };
 
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
@@ -256,16 +277,19 @@ void HeroWindow::ShatterImportantHexes()
 
             if (player_data.holds_melee_weapon)
             {
-                if (found_hex(to_remove_skill_ids_melee, effect))
+                if (found_hex(to_remove_hexes_melee, effect))
                     return true;
             }
             else
             {
-                if (found_hex(to_remove_skill_ids_caster, effect))
+                if (found_hex(to_remove_hexes_caster, effect))
                     return true;
             }
 
-            if (found_hex(to_remove_skill_ids_all, effect))
+            if (found_hex(to_remove_hexes_all, effect))
+                return true;
+
+            if (player_data.primary == GW::Constants::Profession::Paragon && found_hex(to_remove_hexes_paragon, effect))
                 return true;
         }
 
@@ -289,13 +313,13 @@ void HeroWindow::ShatterImportantHexes()
 
 void HeroWindow::RemoveImportantConditions()
 {
-    constexpr static auto to_remove_skill_ids_melee = std::array<GW::Constants::SkillID, 4>{
+    constexpr static auto to_remove_conditions_melee = std::array{
         GW::Constants::SkillID::Blind,
     };
-    constexpr static auto to_remove_skill_ids_caster = std::array<GW::Constants::SkillID, 5>{
+    constexpr static auto to_remove_conditions_caster = std::array{
         GW::Constants::SkillID::Dazed,
     };
-    constexpr static auto to_remove_skill_ids_all = std::array<GW::Constants::SkillID, 1>{
+    constexpr static auto to_remove_conditions_all = std::array{
         GW::Constants::SkillID::Crippled,
     };
 
@@ -328,16 +352,16 @@ void HeroWindow::RemoveImportantConditions()
 
             if (player_data.holds_melee_weapon)
             {
-                if (found_cond(to_remove_skill_ids_melee, effect))
+                if (found_cond(to_remove_conditions_melee, effect))
                     return true;
             }
             else
             {
-                if (found_cond(to_remove_skill_ids_caster, effect))
+                if (found_cond(to_remove_conditions_caster, effect))
                     return true;
             }
 
-            if (found_cond(to_remove_skill_ids_all, effect))
+            if (found_cond(to_remove_conditions_all, effect))
                 return true;
         }
 
@@ -754,7 +778,7 @@ void HeroWindow::HeroFollow_StuckCheck()
         }
 
         const auto *hero_agent = GW::Agents::GetAgentByID(hero.hero_living->agent_id);
-        if (!hero_agent || GW::GetDistance(player_data.pos, hero_agent->pos) > (GW::Constants::Range::Compass - 100.0F))
+        if (!hero_agent || GW::GetDistance(player_data.pos, hero_agent->pos) > (GW::Constants::Range::Compass - 500.0F))
         {
             same_position_counters.at(hero_idx) = 0U;
             ++hero_idx;
@@ -766,9 +790,9 @@ void HeroWindow::HeroFollow_StuckCheck()
         else
             same_position_counters.at(hero_idx) = 0U;
 
-        if (same_position_counters.at(hero_idx) >= 1000)
+        if (same_position_counters.at(hero_idx) >= 1'000U)
         {
-            Log::Info("Hero at position %d is stuck!", hero_idx + 1U);
+            Log::Info("Hero at position %d might be stuck!", hero_idx + 1U);
             same_position_counters.at(hero_idx) = 0U;
         }
 

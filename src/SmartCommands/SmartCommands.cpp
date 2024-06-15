@@ -7,6 +7,7 @@
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/ChatMgr.h>
 #include <GWCA/Managers/GameThreadMgr.h>
+#include <GWCA/Utilities/Hooker.h>
 
 #include "HelperAgents.h"
 #include "HelperItems.h"
@@ -36,7 +37,11 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void SmartCommands::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
-    GW::Initialize();
+    if (!GW::Initialize())
+    {
+        GW::Terminate();
+        return;
+    }
 
     GW::Chat::CreateCommand(L"use", SmartCommands::CmdUseSkill);
     GW::Chat::CreateCommand(L"dhuum", SmartCommands::CmdDhuumUseSkill);
@@ -48,9 +53,19 @@ void SmartCommands::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const
 void SmartCommands::SignalTerminate()
 {
     ToolboxUIPlugin::SignalTerminate();
+    GW::DisableHooks();
+}
+
+bool SmartCommands::CanTerminate()
+{
+    return GW::HookBase::GetInHookCount() == 0;
+}
+
+void SmartCommands::Terminate()
+{
+    ToolboxPlugin::Terminate();
     GW::Chat::DeleteCommand(L"use");
     GW::Chat::DeleteCommand(L"dhuum");
-    GW::DisableHooks();
 }
 
 void SmartCommands::Update(float)
@@ -112,7 +127,7 @@ void SmartCommands::UseSkill::Update()
     if (!me_living)
         return;
 
-    const auto current_energy = static_cast<uint32_t>(me_living->energy) * me_living->max_energy;
+    const auto current_energy = static_cast<uint32_t>(me_living->energy * me_living->max_energy);
     CastSelectedSkill(current_energy, skillbar);
 }
 
@@ -190,7 +205,7 @@ void SmartCommands::DhuumUseSkill::Update()
     CastSelectedSkill(current_energy, skillbar, target_id);
 }
 
-void SmartCommands::CmdDhuumUseSkill(const wchar_t *, const int argc, const LPWSTR *argv)
+void SmartCommands::CmdDhuumUseSkill(GW::HookStatus *, const wchar_t *, int argc, const LPWSTR *argv)
 {
     if (!IsMapReady() || !IsUw())
     {
@@ -216,7 +231,7 @@ void SmartCommands::CmdDhuumUseSkill(const wchar_t *, const int argc, const LPWS
     dhuum_useskill.slot = static_cast<uint32_t>(-1);
 }
 
-void SmartCommands::CmdUseSkill(const wchar_t *, const int argc, const LPWSTR *argv)
+void SmartCommands::CmdUseSkill(GW::HookStatus *, const wchar_t *, int argc, const LPWSTR *argv)
 {
     if (!IsMapReady() || !IsExplorable())
     {
@@ -229,7 +244,7 @@ void SmartCommands::CmdUseSkill(const wchar_t *, const int argc, const LPWSTR *a
 
     if (argc < 2)
     {
-        Log::Info("Sopped smart useskill.");
+        Log::Info("Stopped smart useskill.");
         return;
     }
 
