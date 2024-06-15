@@ -29,6 +29,7 @@ Also, for all mesmer heroes, they will cast ESurge on that target.
 
 Smart features are:
 
+- Heros will follow the player with smart flagging and a maximal fall back uptime, when following activated or player pings distant target
 - BiP the player regardless of the weapon when he is on low energy (below 30% or below 15 energy)
 - ST: Use Shelter and Union when in fight if not already present
 - Use SoS when in fight if not all three spirits are already present
@@ -36,6 +37,7 @@ Smart features are:
   - For honor of strength: Disable the skill in the hero window
 - Immediatly shatter important hexes on the player
 - Immediatly remove important conditions on the player
+  - For a full list of hexes and conditions to remove, look into the documentation!
 
 ### List of Hexes to Remove
 

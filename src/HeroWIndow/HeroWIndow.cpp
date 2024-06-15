@@ -61,11 +61,9 @@ void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
 
     const auto ping_distance = GW::GetDistance(ping_agent->pos, instance->player_data.pos);
     const auto ping_close = ping_distance < GW::Constants::Range::Spellcast + 200.0F;
-    const auto ping_far = ping_distance > GW::Constants::Range::Spirit;
+    const auto ping_far = ping_distance > GW::Constants::Range::Spellcast + 200.0F;
     if (ping_close)
         instance->StopFollowing();
-    else if (!ping_close && !ping_far)
-        instance->UseFallback();
     else if (ping_far)
         instance->following_active = true;
 }
@@ -193,6 +191,9 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
         return;
 
     if (!HeroSkill_StartConditions(skill_id, wait_ms))
+        return;
+
+    if (hero_data.hero_class_idx_map.find(skill_class) == hero_data.hero_class_idx_map.end())
         return;
 
     auto hero_idxs_zero_based = hero_data.hero_class_idx_map.at(skill_class);
