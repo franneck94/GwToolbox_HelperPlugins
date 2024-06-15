@@ -766,7 +766,7 @@ void HeroWindow::HeroFollow_StuckCheck()
         }
 
         const auto *hero_agent = GW::Agents::GetAgentByID(hero.hero_living->agent_id);
-        if (!hero_agent || GW::GetDistance(player_data.pos, hero_agent->pos) > (GW::Constants::Range::Compass - 100.0F))
+        if (!hero_agent || GW::GetDistance(player_data.pos, hero_agent->pos) > (GW::Constants::Range::Compass - 500.0F))
         {
             same_position_counters.at(hero_idx) = 0U;
             ++hero_idx;
@@ -778,9 +778,9 @@ void HeroWindow::HeroFollow_StuckCheck()
         else
             same_position_counters.at(hero_idx) = 0U;
 
-        if (same_position_counters.at(hero_idx) >= 1000)
+        if (same_position_counters.at(hero_idx) >= 1'000U)
         {
-            Log::Info("Hero at position %d is stuck!", hero_idx + 1U);
+            Log::Info("Hero at position %d might be stuck!", hero_idx + 1U);
             same_position_counters.at(hero_idx) = 0U;
         }
 
