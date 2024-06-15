@@ -18,6 +18,7 @@
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
 #include <GWCA/Managers/UIMgr.h>
+#include <GWCA/Utilities/Hooker.h>
 #include <GWCA/Utilities/Scanner.h>
 
 #include "ActionTypes.h"
@@ -40,21 +41,9 @@ constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 
-// void OnSkillActivaiton(GW::HookStatus *status, const GW::UI::UIMessage message_id, void *wParam, void *lParam)
+// bool DoBlockSkill(uint32_t agent_id, uint32_t skill_id)
 // {
-//     const struct Payload
-//     {
-//         uint32_t agent_id;
-//         GW::Constants::SkillID skill_id;
-//     } *payload = static_cast<Payload *>(wParam);
-
-//     if (payload->agent_id == GW::Agents::GetPlayerId() && payload->skill_id == static_cast<GW::Constants::SkillID>(0U))
-//     {
-//         status->blocked = true;
-//     }
-
-//     (void)message_id;
-//     (void)lParam;
+//     return (GW::Constants::SkillID)skill_id == GW::Constants::SkillID::Fox_Fangs;
 // }
 
 void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
@@ -99,9 +88,20 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
     if (!GW::Initialize())
-        SignalTerminate();
+    {
+        GW::Terminate();
+        return;
+    }
 
-    // GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivaiton);
+    // GW::StoC::RegisterUseSkillCallback(
+    //     &OnSkillActivated_Entry,
+    //     GAME_SMSG_SKILL_ACTIVATE,
+    //     [this](GW::HookStatus *hook, void *packet) -> void {
+    //         const auto skill_packet = static_cast<GW::Packet::StoC::SkillActivate *>(packet);
+    //         if (DoBlockSkill(skill_packet->agent_id, skill_packet->skill_id))
+    //             hook->blocked = true;
+    //     },
+    //     -0x3000);
 
     GW::UI::RegisterUIMessageCallback(&AgentPinged_Entry, GW::UI::UIMessage::kSendCallTarget, OnTargetPing);
 
@@ -114,6 +114,18 @@ void HeroWindow::SignalTerminate()
 {
     ToolboxUIPlugin::SignalTerminate();
     GW::DisableHooks();
+}
+
+bool HeroWindow::CanTerminate()
+{
+    return GW::HookBase::GetInHookCount() == 0;
+}
+
+void HeroWindow::Terminate()
+{
+    ToolboxPlugin::Terminate();
+    GW::StoC::RemoveCallbacks(&MapLoaded_Entry);
+    GW::UI::RemoveUIMessageCallback(&AgentPinged_Entry);
 }
 
 void HeroWindow::StopFollowing()

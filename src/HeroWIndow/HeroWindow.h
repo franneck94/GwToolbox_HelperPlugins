@@ -33,16 +33,18 @@ public:
         return ICON_FA_COMMENT_DOTS;
     }
 
-    void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
+    void Initialize(ImGuiContext*, ImGuiAllocFns, HMODULE) override;
     void SignalTerminate() override;
+    bool CanTerminate() override;
+    void Terminate() override;
     void Draw(IDirect3DDevice9 *) override;
     bool HasSettings() const override
     {
         return true;
     }
     void Update(float delta) override;
-    void UpdateInternalData();
 
+    void UpdateInternalData();
     void HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size);
     void HeroSpike_DrawAndLogic(const ImVec2 &im_button_size);
     void HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &toggled_follow);

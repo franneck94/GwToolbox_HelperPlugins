@@ -48,8 +48,11 @@ public:
         return ICON_FA_COMMENT_DOTS;
     }
 
-    void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
+    void Initialize(ImGuiContext*, ImGuiAllocFns, HMODULE) override;
     void SignalTerminate() override;
+    bool CanTerminate() override;
+    void Terminate() override;
+
     void Draw(IDirect3DDevice9 *) override {};
     bool HasSettings() const override
     {
