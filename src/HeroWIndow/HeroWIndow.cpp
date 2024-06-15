@@ -217,28 +217,37 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
 
 void HeroWindow::ShatterImportantHexes()
 {
-    constexpr static auto to_remove_skill_ids_melee = std::array<GW::Constants::SkillID, 5>{
+    constexpr static auto to_remove_skill_ids_melee = std::array{
         // Mesmer
         GW::Constants::SkillID::Ineptitude,
         GW::Constants::SkillID::Empathy,
-        GW::Constants::SkillID::Spiteful_Spirit,
         GW::Constants::SkillID::Crippling_Anguish,
+        // Necro
+        GW::Constants::SkillID::Spiteful_Spirit,
         // Ele
         GW::Constants::SkillID::Blurred_Vision,
     };
-    constexpr static auto to_remove_skill_ids_caster = std::array<GW::Constants::SkillID, 5>{
+    constexpr static auto to_remove_skill_ids_caster = std::array{
         // Mesmer
         GW::Constants::SkillID::Panic,
         GW::Constants::SkillID::Backfire,
         GW::Constants::SkillID::Mistrust,
+        GW::Constants::SkillID::Power_Leech,
+        // Necro
         GW::Constants::SkillID::Spiteful_Spirit,
+        GW::Constants::SkillID::Soul_Leech,
     };
-    constexpr static auto to_remove_skill_ids_all = std::array<GW::Constants::SkillID, 3>{
+    constexpr static auto to_remove_skill_ids_all = std::array{
         // Mesmer
         GW::Constants::SkillID::Diversion,
+        GW::Constants::SkillID::Visions_of_Regret,
         // Ele
         GW::Constants::SkillID::Deep_Freeze,
         GW::Constants::SkillID::Mind_Freeze,
+    };
+    constexpr static auto to_remove_skill_ids_paragon = std::array{
+        // Necro
+        GW::Constants::SkillID::Vocal_Minority,
     };
 
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
@@ -278,6 +287,10 @@ void HeroWindow::ShatterImportantHexes()
             }
 
             if (found_hex(to_remove_skill_ids_all, effect))
+                return true;
+
+            if (player_data.primary == GW::Constants::Profession::Paragon &&
+                found_hex(to_remove_skill_ids_paragon, effect))
                 return true;
         }
 
