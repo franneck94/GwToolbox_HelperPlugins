@@ -49,15 +49,18 @@ constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
 {
     auto *instance = static_cast<HeroWindow *>(ToolboxPluginInstance());
+    if (!instance)
+        return;
 
     const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
-
     if (!packet || (packet->call_type != GW::CallTargetType::AttackingOrTargetting))
         return;
 
     const auto *ping_agent = GW::Agents::GetAgentByID(packet->agent_id);
     if (!ping_agent)
         return;
+
+    Log::Info("Called OnTargetPing");
 
     const auto ping_distance = GW::GetDistance(ping_agent->pos, instance->player_data.pos);
     const auto ping_close = ping_distance < GW::Constants::Range::Spellcast + 200.0F;
@@ -126,10 +129,20 @@ void HeroWindow::Terminate()
     GW::UI::RemoveUIMessageCallback(&AgentPinged_Entry);
 }
 
+void HeroWindow::StartFollowing()
+{
+    Log::Info("Heroes will follow the player!");
+    following_active = true;
+    current_hero_behaviour_before_follow = current_hero_behaviour;
+    current_hero_behaviour = GW::HeroBehavior::AvoidCombat;
+}
+
 void HeroWindow::StopFollowing()
 {
+    Log::Info("Heroes stopped following the player!");
     following_active = false;
     GW::PartyMgr::UnflagAll();
+    current_hero_behaviour = current_hero_behaviour_before_follow;
 }
 
 void HeroWindow::ToggleHeroBehaviour()
@@ -688,9 +701,9 @@ void HeroWindow::HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &tog
             toggled_follow = true;
 
             if (following_active)
-                Log::Info("Heroes will follow the player!");
+                StartFollowing();
             else
-                Log::Info("Heroes stopped following the player!");
+                StopFollowing();
         }
     }
 
@@ -814,7 +827,6 @@ void HeroWindow::HeroFollow_StopConditions()
 
     if (ms_with_no_pos_change >= 10'000)
     {
-        Log::Info("Players seesm to be afk. Stopping hero following.");
         StopFollowing();
         ms_with_no_pos_change = 0U;
         time_at_last_pos_change = TIMER_INIT();
@@ -822,7 +834,6 @@ void HeroWindow::HeroFollow_StopConditions()
 
     if (player_data.IsAttacking() && following_active)
     {
-        Log::Info("Player attacks enemies. Stopping hero following.");
         StopFollowing();
         ms_with_no_pos_change = 0U;
         time_at_last_pos_change = TIMER_INIT();

@@ -20,8 +20,8 @@
 class HeroWindow : public ToolboxUIPlugin
 {
 public:
-    HeroWindow() : player_data({}){};
-    ~HeroWindow(){};
+    HeroWindow() : player_data({}) {};
+    ~HeroWindow() {};
 
     const char *Name() const override
     {
@@ -33,7 +33,7 @@ public:
         return ICON_FA_COMMENT_DOTS;
     }
 
-    void Initialize(ImGuiContext*, ImGuiAllocFns, HMODULE) override;
+    void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
     void SignalTerminate() override;
     bool CanTerminate() override;
     void Terminate() override;
@@ -69,6 +69,7 @@ public:
     void ShatterImportantHexes();
     void RemoveImportantConditions();
 
+    void StartFollowing();
     void StopFollowing();
     void UseFallback();
     void ToggleHeroBehaviour();
@@ -82,6 +83,7 @@ public:
     HeroData hero_data;
 
     GW::HeroBehavior current_hero_behaviour = GW::HeroBehavior::Guard;
+    GW::HeroBehavior current_hero_behaviour_before_follow = GW::HeroBehavior::Guard;
     GW::GamePos follow_pos = {};
     long ms_with_no_pos_change = 0;
     long time_at_last_pos_change;
