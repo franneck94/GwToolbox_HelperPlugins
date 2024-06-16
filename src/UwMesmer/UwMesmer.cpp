@@ -381,6 +381,12 @@ void UwMesmer::Update(float)
     };
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
+        std::vector<float> distances_to_enemies(livings_data.enemies.size());
+        std::transform(livings_data.enemies.begin(),
+                       livings_data.enemies.end(),
+                       distances_to_enemies.begin(),
+                       [&](const auto *enemy) { return GW::GetDistance(player_data.pos, enemy->pos); });
+
         for (const auto *enemy : livings_data.enemies)
         {
             const auto dist_to_enemy = GW::GetDistance(player_data.pos, enemy->pos);
@@ -394,8 +400,7 @@ void UwMesmer::Update(float)
             if (std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_id) != skills_to_rupt.end())
             {
                 const auto new_target_id = enemy->agent_id;
-                GW::GameThread::Enqueue([&, new_target_id] { GW::Agents::ChangeTarget(new_target_id); });
-                Log::Info("Changed target to %d casting %d", new_target_id, (uint32_t)skill_id);
+                Log::Info("Changed target to %d casting %d", new_target_id, skill_id);
                 return true;
             }
         }
