@@ -38,6 +38,7 @@ Smart features are:
 - Immediatly shatter important hexes on the player
 - Immediatly remove important conditions on the player
   - For a full list of hexes and conditions to remove, look into the documentation!
+- Mesmer heros will rupt important enemy skills
 
 ### List of Hexes to Remove
 
@@ -80,15 +81,30 @@ Feel free to  create an feature request (issue in Github) for more to add!
 ### List of Conditions to Remove
 
 ```cpp
-to_remove_conditions_melee
-        GW::Constants::SkillID::Blind
+// to_remove_conditions_melee
+GW::Constants::SkillID::Blind
 
-to_remove_conditions_caster
-        GW::Constants::SkillID::Dazed
+// to_remove_conditions_caster
+GW::Constants::SkillID::Dazed
 
-to_remove_conditions_all
-        GW::Constants::SkillID::Crippled
+// to_remove_conditions_all
+GW::Constants::SkillID::Crippled
+```
 
+### List of Skills to Rupt
+
+```cpp
+// Mesmer
+GW::Constants::SkillID::Panic
+GW::Constants::SkillID::Energy_Surge
+// Necro
+GW::Constants::SkillID::Chilblains
+// Ele
+GW::Constants::SkillID::Meteor
+GW::Constants::SkillID::Meteor_Shower
+GW::Constants::SkillID::Searing_Flames
+// All
+GW::Constants::SkillID::Resurrection_Signet
 ```
 
 Feel free to  create an feature request (issue in Github) for more to add!
