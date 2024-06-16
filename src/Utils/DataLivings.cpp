@@ -23,6 +23,7 @@ void AgentLivingData::UpdateType(std::vector<const GW::AgentLiving *> &filtered_
                                  const GW::Constants::Allegiance type)
 {
     filtered_agents.clear();
+    filtered_agents.shrink_to_fit();
 
     const auto agents = GW::Agents::GetAgentArray();
     if (!agents || !agents->valid())

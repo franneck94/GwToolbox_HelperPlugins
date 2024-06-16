@@ -184,9 +184,7 @@ void LtRoutine::Update()
     static auto paused = false;
 
     if (GW::PartyMgr::GetIsPartyDefeated())
-    {
         action_state = ActionState::INACTIVE;
-    }
 
     if (action_state == ActionState::ACTIVE && PauseRoutine())
     {
@@ -209,9 +207,7 @@ void LtRoutine::Update()
 #endif
 
     if (action_state == ActionState::ACTIVE)
-    {
         (void)Routine();
-    }
 }
 
 DLLAPI ToolboxPlugin *ToolboxPluginInstance()
@@ -263,27 +259,19 @@ void UwMesmer::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
     for (const auto living : livings)
     {
         if (!living)
-        {
             continue;
-        }
 
         ImGui::TableNextRow();
 
         if (living->hp == 0.0F || living->GetIsDead())
-        {
             continue;
-        }
 
         if ((living->player_number == static_cast<uint32_t>(GW::Constants::ModelID::UW::BladedAatxe) ||
              living->player_number == static_cast<uint32_t>(GW::Constants::ModelID::UW::FourHorseman)) &&
             living->GetIsHexed())
-        {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8F, 0.0F, 0.2F, 1.0F));
-        }
         else
-        {
             ImGui::PushStyleColor(ImGuiCol_Text, color);
-        }
 
         const auto distance = GW::GetDistance(player_data.pos, living->pos);
         ImGui::TableNextColumn();
@@ -295,16 +283,12 @@ void UwMesmer::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
         const auto _label = std::format("Target##{}{}", label.data(), idx);
         ImGui::TableNextColumn();
         if (ImGui::Button(_label.data()))
-        {
             player_data.ChangeTarget(living->agent_id);
-        }
 
         ++idx;
 
         if (idx >= MAX_TABLE_LENGTH)
-        {
             break;
-        }
     }
 }
 
@@ -377,6 +361,7 @@ void UwMesmer::Update(float)
     lt_routine.livings_data = &livings_data;
     lt_routine.load_cb_triggered = uw_metadata.load_cb_triggered;
 
+#ifdef _DEBUG
     const static auto skills_to_rupt = std::array{
         // Mesmer
         GW::Constants::SkillID::Panic,
@@ -410,6 +395,7 @@ void UwMesmer::Update(float)
             {
                 const auto new_target_id = enemy->agent_id;
                 GW::GameThread::Enqueue([&, new_target_id] { GW::Agents::ChangeTarget(new_target_id); });
+                Log::Info("Changed target to %d casting %d", new_target_id, (uint32_t)skill_id);
                 return true;
             }
         }
@@ -417,6 +403,7 @@ void UwMesmer::Update(float)
         return false;
     };
     player_conditions(player_data, livings_data);
+#endif
 
     FilterByIdsAndDistances(pos, livings_data.enemies, filtered_livings, IDS, 1600.0F);
     FilterByIdAndDistance(pos, filtered_livings, aatxe_livings, GW::Constants::ModelID::UW::BladedAatxe);
