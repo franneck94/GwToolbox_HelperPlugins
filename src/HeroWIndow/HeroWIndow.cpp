@@ -41,19 +41,6 @@ constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 
-void OnSkillActivated(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
-{
-    auto *instance = static_cast<HeroWindow *>(ToolboxPluginInstance());
-    if (!instance)
-        return;
-
-    const auto *payload = static_cast<SkillCastedPayload *>(wparam);
-    if (!payload || !payload->agent_id || payload->skill_id == GW::Constants::SkillID::No_Skill)
-        return;
-
-    instance->RuptEnemies(payload);
-}
-
 void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
 {
     auto *instance = static_cast<HeroWindow *>(ToolboxPluginInstance());
@@ -101,8 +88,6 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
         GW::Terminate();
         return;
     }
-
-    GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivated);
 
     GW::UI::RegisterUIMessageCallback(&AgentPinged_Entry, GW::UI::UIMessage::kSendCallTarget, OnTargetPing);
 
@@ -270,7 +255,7 @@ void HeroWindow::ShatterImportantHexes()
         {GW::Constants::SkillID::Remove_Hex, GW::Constants::Profession::Monk},
         {GW::Constants::SkillID::Smite_Hex, GW::Constants::Profession::Monk},
     };
-    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
@@ -345,7 +330,7 @@ void HeroWindow::RemoveImportantConditions()
         {GW::Constants::SkillID::Smite_Condition, GW::Constants::Profession::Monk},
         {GW::Constants::SkillID::Purge_Conditions, GW::Constants::Profession::Monk},
     };
-    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
@@ -398,7 +383,7 @@ void HeroWindow::RemoveImportantConditions()
     }
 }
 
-void HeroWindow::RuptEnemies(const SkillCastedPayload *const skill_payload)
+void HeroWindow::RuptEnemies()
 {
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
         {GW::Constants::SkillID::Cry_of_Frustration, GW::Constants::Profession::Mesmer},
@@ -418,17 +403,26 @@ void HeroWindow::RuptEnemies(const SkillCastedPayload *const skill_payload)
         GW::Constants::SkillID::Resurrection_Signet,
 
     };
-    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto wait_ms = 0UL;
     constexpr static auto target_logic = TargetLogic::SEARCH_TARGET;
 
-    auto player_conditions = [&skill_payload](const DataPlayer &, const AgentLivingData &) {
-        const auto *casting_agent = GW::Agents::GetAgentByID(skill_payload->agent_id);
-        if (!casting_agent)
-            return false;
-
-        if (std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_payload->skill_id) != skills_to_rupt.end())
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
+        for (const auto *enemy : livings_data.enemies)
         {
-            return true;
+            const auto dist_to_enemy = GW::GetDistance(player_data.pos, enemy->pos);
+            if (dist_to_enemy > GW::Constants::Range::Spellcast + 200.0F)
+                return false;
+
+            const auto skill_id = static_cast<GW::Constants::SkillID>(enemy->skill);
+            if (skill_id == GW::Constants::SkillID::No_Skill)
+                return false;
+
+            if (std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_id) != skills_to_rupt.end())
+            {
+                const auto new_target_id = enemy->agent_id;
+                GW::GameThread::Enqueue([&, new_target_id] { GW::Agents::ChangeTarget(new_target_id); });
+                return true;
+            }
         }
 
         return false;
@@ -438,14 +432,7 @@ void HeroWindow::RuptEnemies(const SkillCastedPayload *const skill_payload)
 
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
     {
-        SmartUseSkill(skill_id,
-                      skill_class,
-                      "Rupted Skill",
-                      player_conditions,
-                      hero_conditions,
-                      wait_ms,
-                      target_logic,
-                      skill_payload->agent_id);
+        SmartUseSkill(skill_id, skill_class, "Rupted Skill", player_conditions, hero_conditions, wait_ms, target_logic);
     }
 }
 
@@ -453,7 +440,7 @@ void HeroWindow::UseSplinterOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Splinter_Weapon;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
-    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
@@ -482,7 +469,7 @@ void HeroWindow::UseHonorOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Strength_of_Honor;
     constexpr static auto skill_class = GW::Constants::Profession::Monk;
-    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
@@ -508,7 +495,7 @@ void HeroWindow::UseShelterInFight()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Shelter;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
-    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
@@ -537,7 +524,7 @@ void HeroWindow::UseUnionInFight()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Union;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
-    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
@@ -570,7 +557,7 @@ void HeroWindow::UseSosInFight()
 
     constexpr static auto skill_id = GW::Constants::SkillID::Signet_of_Spirits;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
-    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
@@ -621,7 +608,7 @@ void HeroWindow::UseBipOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Blood_is_Power;
     constexpr static auto skill_class = GW::Constants::Profession::Necromancer;
-    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
@@ -825,6 +812,7 @@ void HeroWindow::HeroSmarterSkills_Logic()
     RemoveImportantConditions();
     UseBipOnPlayer();
     UseHonorOnPlayer();
+    RuptEnemies();
 }
 
 void HeroWindow::HeroFollow_StuckCheck()

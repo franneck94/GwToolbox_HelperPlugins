@@ -17,12 +17,6 @@
 #include "DataLivings.h"
 #include "DataPlayer.h"
 
-struct SkillCastedPayload
-{
-    uint32_t agent_id;
-    GW::Constants::SkillID skill_id;
-};
-
 class HeroWindow : public ToolboxUIPlugin
 {
 public:
@@ -76,7 +70,7 @@ public:
     void UseSosInFight();
     void ShatterImportantHexes();
     void RemoveImportantConditions();
-    void RuptEnemies(const SkillCastedPayload *const skill_payload);
+    void RuptEnemies();
 
     void StartFollowing();
     void StopFollowing();
