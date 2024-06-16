@@ -26,8 +26,16 @@ macro(add_tb_plugin PLUGIN)
            imgui::fonts
            helper_utils
            Stdafx)
-  target_link_options(${PLUGIN} PRIVATE
-                      "$<$<CONFIG:DEBUG>:/NODEFAULTLIB:LIBCMT>")
+  target_compile_options(${PLUGIN} PRIVATE /wd4201 /wd4505)
+  target_compile_options(${PLUGIN} PRIVATE /W4 /Gy)
+  target_compile_options(${PLUGIN} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/GL>)
+  target_compile_options(${PLUGIN} PRIVATE $<$<CONFIG:Debug>:/ZI /Od /RTCs>)
+  target_link_options(${PLUGIN} PRIVATE /OPT:REF /OPT:ICF /SAFESEH:NO)
+  target_link_options(${PLUGIN} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/LTCG
+                      /INCREMENTAL:NO>)
+  target_link_options(${PLUGIN} PRIVATE $<$<CONFIG:Debug>:/IGNORE:4098
+                      /OPT:NOREF /OPT:NOICF>)
+  target_link_options(${PLUGIN} PRIVATE $<$<CONFIG:RelWithDebInfo>:/OPT:NOICF>)
   source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCES})
   target_sources(${PLUGIN} PRIVATE ${SOURCES})
   target_compile_definitions(
