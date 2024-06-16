@@ -41,10 +41,18 @@ constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 
-// bool DoBlockSkill(uint32_t agent_id, uint32_t skill_id)
-// {
-//     return (GW::Constants::SkillID)skill_id == GW::Constants::SkillID::Fox_Fangs;
-// }
+void OnSkillActivated(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
+{
+    auto *instance = static_cast<HeroWindow *>(ToolboxPluginInstance());
+    if (!instance)
+        return;
+
+    const auto *payload = static_cast<SkillCastedPayload *>(wparam);
+    if (!payload || !payload->agent_id || payload->skill_id == GW::Constants::SkillID::No_Skill)
+        return;
+
+    instance->RuptEnemies(payload);
+}
 
 void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
 {
@@ -94,15 +102,7 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
         return;
     }
 
-    // GW::StoC::RegisterUseSkillCallback(
-    //     &OnSkillActivated_Entry,
-    //     GAME_SMSG_SKILL_ACTIVATE,
-    //     [this](GW::HookStatus *hook, void *packet) -> void {
-    //         const auto skill_packet = static_cast<GW::Packet::StoC::SkillActivate *>(packet);
-    //         if (DoBlockSkill(skill_packet->agent_id, skill_packet->skill_id))
-    //             hook->blocked = true;
-    //     },
-    //     -0x3000);
+    GW::UI::RegisterUIMessageCallback(&OnSkillActivated_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillActivated);
 
     GW::UI::RegisterUIMessageCallback(&AgentPinged_Entry, GW::UI::UIMessage::kSendCallTarget, OnTargetPing);
 
@@ -195,10 +195,11 @@ bool HeroWindow::HeroSkill_StartConditions(const GW::Constants::SkillID skill_id
 void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
                                const GW::Constants::Profession skill_class,
                                const std::string_view skill_name,
-                               const long wait_ms,
-                               const bool use_player_target,
                                std::function<bool(const DataPlayer &, const AgentLivingData &)> player_conditions,
-                               std::function<bool(const DataPlayer &, const Hero &)> hero_conditions)
+                               std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
+                               const long wait_ms,
+                               const TargetLogic target_logic,
+                               const uint32_t target_id)
 {
     if (!player_conditions(player_data, livings_data))
         return;
@@ -217,7 +218,7 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
     {
         const auto &hero = hero_data.hero_vec.at(hero_idx_zero_based);
 
-        if (HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, use_player_target))
+        if (HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, target_logic, target_id))
         {
 #ifdef _DEBUG
             Log::Info("Casted %s.", skill_name);
@@ -270,7 +271,7 @@ void HeroWindow::ShatterImportantHexes()
         {GW::Constants::SkillID::Smite_Hex, GW::Constants::Profession::Monk},
     };
     constexpr static auto wait_ms = 1000UL;
-    constexpr static auto use_target = false;
+    constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
         if (!player_data.living || !player_data.living->GetIsHexed())
@@ -321,7 +322,7 @@ void HeroWindow::ShatterImportantHexes()
 
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
     {
-        SmartUseSkill(skill_id, skill_class, "Remove Hex", wait_ms, use_target, player_conditions, hero_conditions);
+        SmartUseSkill(skill_id, skill_class, "Remove Hex", player_conditions, hero_conditions, wait_ms, target_logic);
     }
 }
 
@@ -345,7 +346,7 @@ void HeroWindow::RemoveImportantConditions()
         {GW::Constants::SkillID::Purge_Conditions, GW::Constants::Profession::Monk},
     };
     constexpr static auto wait_ms = 1000UL;
-    constexpr static auto use_target = false;
+    constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
         if (!player_data.living || !player_data.living->GetIsHexed())
@@ -393,7 +394,58 @@ void HeroWindow::RemoveImportantConditions()
 
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
     {
-        SmartUseSkill(skill_id, skill_class, "Remove Coond", wait_ms, use_target, player_conditions, hero_conditions);
+        SmartUseSkill(skill_id, skill_class, "Remove Coond", player_conditions, hero_conditions, wait_ms, target_logic);
+    }
+}
+
+void HeroWindow::RuptEnemies(const SkillCastedPayload *const skill_payload)
+{
+    const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
+        {GW::Constants::SkillID::Cry_of_Frustration, GW::Constants::Profession::Mesmer},
+        {GW::Constants::SkillID::Power_Drain, GW::Constants::Profession::Mesmer},
+    };
+    const static auto skills_to_rupt = std::array{
+        // Mesmer
+        GW::Constants::SkillID::Panic,
+        GW::Constants::SkillID::Energy_Surge,
+        // Necro
+        GW::Constants::SkillID::Chilblains,
+        // Ele
+        GW::Constants::SkillID::Meteor,
+        GW::Constants::SkillID::Meteor_Shower,
+        GW::Constants::SkillID::Searing_Flames,
+        // All
+        GW::Constants::SkillID::Resurrection_Signet,
+
+    };
+    constexpr static auto wait_ms = 1000UL;
+    constexpr static auto target_logic = TargetLogic::SEARCH_TARGET;
+
+    auto player_conditions = [&skill_payload](const DataPlayer &, const AgentLivingData &) {
+        const auto *casting_agent = GW::Agents::GetAgentByID(skill_payload->agent_id);
+        if (!casting_agent)
+            return false;
+
+        if (std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_payload->skill_id) != skills_to_rupt.end())
+        {
+            return true;
+        }
+
+        return false;
+    };
+
+    const auto hero_conditions = [](const DataPlayer &, const Hero &) { return true; };
+
+    for (const auto &[skill_id, skill_class] : skill_class_pairs)
+    {
+        SmartUseSkill(skill_id,
+                      skill_class,
+                      "Rupted Skill",
+                      player_conditions,
+                      hero_conditions,
+                      wait_ms,
+                      target_logic,
+                      skill_payload->agent_id);
     }
 }
 
@@ -402,7 +454,7 @@ void HeroWindow::UseSplinterOnPlayer()
     constexpr static auto skill_id = GW::Constants::SkillID::Splinter_Weapon;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
     constexpr static auto wait_ms = 1000UL;
-    constexpr static auto use_target = false;
+    constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
         const auto num_enemies_at_player =
@@ -423,7 +475,7 @@ void HeroWindow::UseSplinterOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "Splinter", wait_ms, use_target, player_conditions, hero_conditions);
+    return SmartUseSkill(skill_id, skill_class, "Splinter", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseHonorOnPlayer()
@@ -431,7 +483,7 @@ void HeroWindow::UseHonorOnPlayer()
     constexpr static auto skill_id = GW::Constants::SkillID::Strength_of_Honor;
     constexpr static auto skill_class = GW::Constants::Profession::Monk;
     constexpr static auto wait_ms = 1000UL;
-    constexpr static auto use_target = false;
+    constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
         const auto player_is_melee_attacking = player_data.holds_melee_weapon;
@@ -449,7 +501,7 @@ void HeroWindow::UseHonorOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "Honor", wait_ms, use_target, player_conditions, hero_conditions);
+    return SmartUseSkill(skill_id, skill_class, "Honor", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseShelterInFight()
@@ -457,7 +509,7 @@ void HeroWindow::UseShelterInFight()
     constexpr static auto skill_id = GW::Constants::SkillID::Shelter;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
     constexpr static auto wait_ms = 1000UL;
-    constexpr static auto use_target = false;
+    constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
         const auto num_enemies_in_aggro_of_player =
@@ -478,7 +530,7 @@ void HeroWindow::UseShelterInFight()
         return dist < GW::Constants::Range::Spirit - 100.0F;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "Shelter", wait_ms, use_target, player_conditions, hero_conditions);
+    return SmartUseSkill(skill_id, skill_class, "Shelter", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseUnionInFight()
@@ -486,7 +538,7 @@ void HeroWindow::UseUnionInFight()
     constexpr static auto skill_id = GW::Constants::SkillID::Union;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
     constexpr static auto wait_ms = 1000UL;
-    constexpr static auto use_target = false;
+    constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
         const auto num_enemies_in_aggro_of_player =
@@ -507,7 +559,7 @@ void HeroWindow::UseUnionInFight()
         return dist < GW::Constants::Range::Spirit - 100.0F;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "Union", wait_ms, use_target, player_conditions, hero_conditions);
+    return SmartUseSkill(skill_id, skill_class, "Union", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseSosInFight()
@@ -519,7 +571,7 @@ void HeroWindow::UseSosInFight()
     constexpr static auto skill_id = GW::Constants::SkillID::Signet_of_Spirits;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
     constexpr static auto wait_ms = 1000UL;
-    constexpr static auto use_target = false;
+    constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
         const auto num_enemies_in_aggro_of_player =
@@ -546,7 +598,7 @@ void HeroWindow::UseSosInFight()
         return dist < GW::Constants::Range::Spellcast;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "SoS", wait_ms, use_target, player_conditions, hero_conditions);
+    return SmartUseSkill(skill_id, skill_class, "SoS", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseFallback()
@@ -554,7 +606,7 @@ void HeroWindow::UseFallback()
     constexpr static auto skill_id = GW::Constants::SkillID::Fall_Back;
     constexpr static auto skill_class = GW::Constants::Profession::Paragon;
     constexpr static auto wait_ms = 250UL;
-    constexpr static auto use_target = false;
+    constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &, const AgentLivingData &) { return true; };
 
@@ -562,7 +614,7 @@ void HeroWindow::UseFallback()
         return !player_data.AnyTeamMemberHasEffect(GW::Constants::SkillID::Fall_Back);
     };
 
-    return SmartUseSkill(skill_id, skill_class, "FallBack", wait_ms, use_target, player_conditions, hero_conditions);
+    return SmartUseSkill(skill_id, skill_class, "FallBack", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseBipOnPlayer()
@@ -570,7 +622,7 @@ void HeroWindow::UseBipOnPlayer()
     constexpr static auto skill_id = GW::Constants::SkillID::Blood_is_Power;
     constexpr static auto skill_class = GW::Constants::Profession::Necromancer;
     constexpr static auto wait_ms = 1000UL;
-    constexpr static auto use_target = false;
+    constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
         if (!player_data.living)
@@ -594,7 +646,7 @@ void HeroWindow::UseBipOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->hp > 0.60F;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "BiP", wait_ms, use_target, player_conditions, hero_conditions);
+    return SmartUseSkill(skill_id, skill_class, "BiP", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::MesmerSpikeTarget(const Hero &hero) const
@@ -608,7 +660,7 @@ void HeroWindow::MesmerSpikeTarget(const Hero &hero) const
     auto hero_conditions = [](const DataPlayer &, const Hero &) { return true; };
 
     if (hero.hero_living->primary == static_cast<uint8_t>(skill_class))
-        HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, true);
+        HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, TargetLogic::PLAYER_TARGET);
 }
 
 bool player_conditions_attack(const DataPlayer &player_data, const AgentLivingData &)

@@ -17,6 +17,12 @@
 #include "DataLivings.h"
 #include "DataPlayer.h"
 
+struct SkillCastedPayload
+{
+    uint32_t agent_id;
+    GW::Constants::SkillID skill_id;
+};
+
 class HeroWindow : public ToolboxUIPlugin
 {
 public:
@@ -54,10 +60,12 @@ public:
     void SmartUseSkill(const GW::Constants::SkillID skill_id,
                        const GW::Constants::Profession skill_class,
                        const std::string_view skill_name,
-                       const long wait_time_ms,
-                       const bool use_player_target,
                        std::function<bool(const DataPlayer &, const AgentLivingData &)> player_conditions,
-                       std::function<bool(const DataPlayer &, const Hero &)> hero_conditions);
+                       std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
+                       const long wait_ms,
+                       const TargetLogic target_logic = TargetLogic::NO_TARGET,
+                       const uint32_t target_id = 0U);
+
     bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id, const long wait_time_ms = 0UL);
     void HeroSmarterSkills_Logic();
     void UseBipOnPlayer();
@@ -68,6 +76,7 @@ public:
     void UseSosInFight();
     void ShatterImportantHexes();
     void RemoveImportantConditions();
+    void RuptEnemies(const SkillCastedPayload *const skill_payload);
 
     void StartFollowing();
     void StopFollowing();

@@ -59,7 +59,8 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
                               const DataPlayer &player_data,
                               const GW::Constants::SkillID skill_id,
                               std::function<bool(const DataPlayer &, const Hero &)> cb_fn,
-                              const bool use_player_target)
+                              const TargetLogic target_logic,
+                              const uint32_t target_id)
 {
     if (!hero.hero_living || !hero.hero_living->agent_id)
         return false;
@@ -72,10 +73,27 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
 
     if (has_skill_in_skillbar && can_cast_skill)
     {
-        const auto valid_target = use_player_target && player_data.target && player_data.target->agent_id;
-        const auto skill_target = valid_target ? player_data.target->agent_id : player_data.id;
-        const auto success = HeroUseSkill(skill_target, skill_idx, hero.hero_idx_zero_based);
-        return success;
+        switch (target_logic)
+        {
+        case TargetLogic::SEARCH_TARGET:
+        {
+            if (target_id != 0)
+                return HeroUseSkill(target_id, skill_idx, hero.hero_idx_zero_based);
+
+            return false;
+        }
+        case TargetLogic::PLAYER_TARGET:
+        {
+            const auto is_player_target_valid = player_data.target && player_data.target->agent_id;
+            const auto skill_target = is_player_target_valid ? player_data.target->agent_id : player_data.id;
+            return HeroUseSkill(skill_target, skill_idx, hero.hero_idx_zero_based);
+        }
+        case TargetLogic::NO_TARGET:
+        default:
+        {
+            return HeroUseSkill(player_data.id, skill_idx, hero.hero_idx_zero_based);
+        }
+        }
     }
 
     return false;
