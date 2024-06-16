@@ -33,6 +33,7 @@ bool IsEndGameEntryOutpost()
 #ifdef _DEBUG
         GW::Map::GetMapID() == GW::Constants::MapID::Great_Temple_of_Balthazar_outpost ||
         GW::Map::GetMapID() == GW::Constants::MapID::Isle_of_the_Nameless ||
+        GW::Map::GetMapID() == GW::Constants::MapID::Ember_Light_Camp_outpost ||
 #endif
         GW::Map::GetMapID() == GW::Constants::MapID::Embark_Beach ||
         GW::Map::GetMapID() == GW::Constants::MapID::Temple_of_the_Ages ||

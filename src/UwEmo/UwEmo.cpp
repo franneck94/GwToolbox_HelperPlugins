@@ -17,6 +17,7 @@
 #include <GWCA/Managers/ChatMgr.h>
 #include <GWCA/Managers/EffectMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
+#include <GWCA/Utilities/Hooker.h>
 
 #include "ActionsBase.h"
 #include "ActionsUw.h"
@@ -83,6 +84,19 @@ void UwEmo::SignalTerminate()
     GW::DisableHooks();
 }
 
+bool UwEmo::CanTerminate()
+{
+    return GW::HookBase::GetInHookCount() == 0;
+}
+
+void UwEmo::Terminate()
+{
+    ToolboxPlugin::Terminate();
+    GW::StoC::RemoveCallbacks(&uw_metadata.MapLoaded_Entry);
+    GW::StoC::RemoveCallbacks(&uw_metadata.SendChat_Entry);
+    GW::StoC::RemoveCallbacks(&uw_metadata.ObjectiveDone_Entry);
+}
+
 void UwEmo::LoadSettings(const wchar_t *folder)
 {
     ToolboxUIPlugin::LoadSettings(folder);
@@ -141,9 +155,7 @@ UwEmo::UwEmo() : skillbar({}), uw_metadata({}), emo_routine(&player_data, &skill
 void UwEmo::Draw(IDirect3DDevice9 *)
 {
     if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsEmo(player_data))
-    {
         return;
-    }
 
     ImGui::SetNextWindowSize(ImVec2(115.0F, 180.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),

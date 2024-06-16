@@ -20,7 +20,7 @@ class LtRoutine : public MesmerActionABC
 {
 public:
     LtRoutine(DataPlayer *player, MesmerSkillbarData *skillbar, const AgentLivingData *agents)
-        : MesmerActionABC(player, "LtRoutine", skillbar), livings_data(agents){};
+        : MesmerActionABC(player, "LtRoutine", skillbar), livings_data(agents) {};
 
     RoutineState Routine() override;
     void Update() override;
@@ -53,7 +53,7 @@ public:
         if (skillbar.ValidateData())
             skillbar.Load();
     };
-    ~UwMesmer(){};
+    ~UwMesmer() {};
 
     const char *Name() const override
     {
@@ -67,6 +67,9 @@ public:
 
     void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
     void SignalTerminate() override;
+    bool CanTerminate();
+    void Terminate();
+
     void Draw(IDirect3DDevice9 *) override;
     bool HasSettings() const override
     {

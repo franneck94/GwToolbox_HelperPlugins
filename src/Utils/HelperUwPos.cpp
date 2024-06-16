@@ -12,6 +12,7 @@ bool IsUw()
 #ifdef _DEBUG
     return GW::Map::GetMapID() == GW::Constants::MapID::Great_Temple_of_Balthazar_outpost ||
            GW::Map::GetMapID() == GW::Constants::MapID::Isle_of_the_Nameless ||
+           GW::Map::GetMapID() == GW::Constants::MapID::Perdition_Rock ||
            GW::Map::GetMapID() == GW::Constants::MapID::The_Underworld;
 #else
     return GW::Map::GetMapID() == GW::Constants::MapID::The_Underworld;

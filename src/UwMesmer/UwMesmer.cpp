@@ -14,7 +14,7 @@
 #include <GWCA/GameEntities/Player.h>
 #include <GWCA/Managers/PartyMgr.h>
 #include <GWCA/Managers/SkillbarMgr.h>
-#include <GWCA/Utilities/Scanner.h>
+#include <GWCA/Utilities/Hooker.h>
 
 #include "ActionsBase.h"
 #include "ActionsUw.h"
@@ -223,8 +223,11 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void UwMesmer::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
-    GW::Initialize();
-    GW::Scanner::Initialize();
+    if (!GW::Initialize())
+    {
+        GW::Terminate();
+        return;
+    }
 
     skillbar.Initialize();
     uw_metadata.Initialize();
@@ -236,6 +239,19 @@ void UwMesmer::SignalTerminate()
 {
     ToolboxUIPlugin::SignalTerminate();
     GW::DisableHooks();
+}
+
+bool UwMesmer::CanTerminate()
+{
+    return GW::HookBase::GetInHookCount() == 0;
+}
+
+void UwMesmer::Terminate()
+{
+    ToolboxPlugin::Terminate();
+    GW::StoC::RemoveCallbacks(&uw_metadata.MapLoaded_Entry);
+    GW::StoC::RemoveCallbacks(&uw_metadata.SendChat_Entry);
+    GW::StoC::RemoveCallbacks(&uw_metadata.ObjectiveDone_Entry);
 }
 
 void UwMesmer::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
@@ -294,10 +310,8 @@ void UwMesmer::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
 
 void UwMesmer::Draw(IDirect3DDevice9 *)
 {
-    if (!player_data.ValidateData(UwHelperActivationConditions, false) || !IsUwMesmer(player_data))
-    {
+    if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsUwMesmer(player_data))
         return;
-    }
 
     ImGui::SetNextWindowSize(ImVec2(200.0F, 240.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
@@ -342,25 +356,19 @@ void UwMesmer::Update(float)
     horseman_livings.clear();
     keeper_livings.clear();
 
-    if (!player_data.ValidateData(UwHelperActivationConditions, false))
-    {
+    if (!player_data.ValidateData(UwHelperActivationConditions, true))
         return;
-    }
 
     livings_data.Update();
     player_data.Update();
 
     if (!IsSpiker(player_data) && !IsLT(player_data))
-    {
         return;
-    }
 
     if (TankIsSoloLT())
     {
         if (!skillbar.ValidateData())
-        {
             return;
-        }
 
         skillbar.Update();
     }
@@ -368,6 +376,47 @@ void UwMesmer::Update(float)
     const auto &pos = player_data.pos;
     lt_routine.livings_data = &livings_data;
     lt_routine.load_cb_triggered = uw_metadata.load_cb_triggered;
+
+    const static auto skills_to_rupt = std::array{
+        // Mesmer
+        GW::Constants::SkillID::Panic,
+        GW::Constants::SkillID::Energy_Surge,
+        // Necro
+        GW::Constants::SkillID::Chilblains,
+#ifdef _DEBUG
+        GW::Constants::SkillID::Death_Nova,
+#endif
+        // Ele
+        GW::Constants::SkillID::Meteor,
+        GW::Constants::SkillID::Meteor_Shower,
+        GW::Constants::SkillID::Searing_Flames,
+        // All
+        GW::Constants::SkillID::Resurrection_Signet,
+
+    };
+
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
+        for (const auto *enemy : livings_data.enemies)
+        {
+            const auto dist_to_enemy = GW::GetDistance(player_data.pos, enemy->pos);
+            if (dist_to_enemy > GW::Constants::Range::Spellcast + 200.0F)
+                return false;
+
+            const auto skill_id = static_cast<GW::Constants::SkillID>(enemy->skill);
+            if (skill_id == GW::Constants::SkillID::No_Skill)
+                return false;
+
+            if (std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_id) != skills_to_rupt.end())
+            {
+                const auto new_target_id = enemy->agent_id;
+                GW::GameThread::Enqueue([&, new_target_id] { GW::Agents::ChangeTarget(new_target_id); });
+                return true;
+            }
+        }
+
+        return false;
+    };
+    player_conditions(player_data, livings_data);
 
     FilterByIdsAndDistances(pos, livings_data.enemies, filtered_livings, IDS, 1600.0F);
     FilterByIdAndDistance(pos, filtered_livings, aatxe_livings, GW::Constants::ModelID::UW::BladedAatxe);
@@ -385,7 +434,5 @@ void UwMesmer::Update(float)
     SortByDistance(player_data, skele_livings);
 
     if (TankIsSoloLT())
-    {
         lt_routine.Update();
-    }
 }

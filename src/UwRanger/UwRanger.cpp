@@ -12,6 +12,7 @@
 #include <GWCA/GameEntities/Player.h>
 #include <GWCA/Managers/ChatMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
+#include <GWCA/Utilities/Hooker.h>
 
 #include "ActionsBase.h"
 #include "ActionsUw.h"
@@ -61,6 +62,16 @@ void UwRanger::SignalTerminate()
 {
     ToolboxUIPlugin::SignalTerminate();
     GW::DisableHooks();
+}
+
+bool UwRanger::CanTerminate()
+{
+    return GW::HookBase::GetInHookCount() == 0;
+}
+
+void UwRanger::Terminate()
+{
+    ToolboxPlugin::Terminate();
 }
 
 void AutoTargetAction::Update()
@@ -201,10 +212,8 @@ void UwRanger::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
 
 void UwRanger::Draw(IDirect3DDevice9 *)
 {
-    if (!player_data.ValidateData(UwHelperActivationConditions, false) || !IsRangerTerra(player_data))
-    {
+    if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsRangerTerra(player_data))
         return;
-    }
 
     ImGui::SetNextWindowSize(ImVec2(200.0F, 240.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),
@@ -251,7 +260,7 @@ void UwRanger::Update(float)
     skele_livings.clear();
     horseman_livings.clear();
 
-    if (!player_data.ValidateData(UwHelperActivationConditions, false))
+    if (!player_data.ValidateData(UwHelperActivationConditions, true))
     {
         last_casted_times_ms.clear();
         return;

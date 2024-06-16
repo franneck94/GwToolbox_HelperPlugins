@@ -395,6 +395,9 @@ void HeroWindow::RuptEnemies()
         GW::Constants::SkillID::Energy_Surge,
         // Necro
         GW::Constants::SkillID::Chilblains,
+#ifdef _DEBUG
+        GW::Constants::SkillID::Death_Nova,
+#endif
         // Ele
         GW::Constants::SkillID::Meteor,
         GW::Constants::SkillID::Meteor_Shower,

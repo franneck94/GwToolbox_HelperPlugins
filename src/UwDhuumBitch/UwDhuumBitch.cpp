@@ -15,6 +15,7 @@
 #include <GWCA/GameEntities/Player.h>
 #include <GWCA/Managers/ChatMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
+#include <GWCA/Utilities/Hooker.h>
 
 #include "ActionsBase.h"
 #include "ActionsUw.h"
@@ -73,6 +74,19 @@ void UwDhuumBitch::SignalTerminate()
     GW::DisableHooks();
 }
 
+bool UwDhuumBitch::CanTerminate()
+{
+    return GW::HookBase::GetInHookCount() == 0;
+}
+
+void UwDhuumBitch::Terminate()
+{
+    ToolboxPlugin::Terminate();
+    GW::StoC::RemoveCallbacks(&uw_metadata.MapLoaded_Entry);
+    GW::StoC::RemoveCallbacks(&uw_metadata.SendChat_Entry);
+    GW::StoC::RemoveCallbacks(&uw_metadata.ObjectiveDone_Entry);
+}
+
 void UwDhuumBitch::LoadSettings(const wchar_t *folder)
 {
     ToolboxUIPlugin::LoadSettings(folder);
@@ -107,9 +121,7 @@ UwDhuumBitch::UwDhuumBitch() : skillbar({}), db_routine(&player_data, &skillbar,
 void UwDhuumBitch::Draw(IDirect3DDevice9 *)
 {
     if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsDhuumBitch(player_data))
-    {
         return;
-    }
 
     ImGui::SetNextWindowSize(ImVec2(115.0F, 178.0F), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(Name(),

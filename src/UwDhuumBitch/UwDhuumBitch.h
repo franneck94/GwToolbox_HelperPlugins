@@ -63,6 +63,9 @@ public:
 
     void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
     void SignalTerminate() override;
+    bool CanTerminate();
+    void Terminate();
+
     void Draw(IDirect3DDevice9 *pDevice) override;
     void DrawSettings() override;
     bool HasSettings() const override
