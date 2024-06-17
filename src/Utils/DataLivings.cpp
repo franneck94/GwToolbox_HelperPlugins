@@ -61,3 +61,18 @@ size_t AgentLivingData::NumEnemiesInRange(const GW::GamePos &player_pos, const f
         return dist < range;
     });
 }
+
+size_t AgentLivingData::NumAgentsInRange(const GW::AgentArray &agents,
+                                         const GW::GamePos &player_pos,
+                                         const GW::Constants::Allegiance allegiance,
+                                         const float range)
+{
+    return std::count_if(agents.begin(), agents.end(), [=](const auto *enemy_living) {
+        if (!enemy_living)
+            return false;
+
+        const auto dist = GW::GetDistance(enemy_living->pos, player_pos);
+
+        return dist < range;
+    });
+}

@@ -404,9 +404,6 @@ void HeroWindow::RuptEnemies()
         GW::Constants::SkillID::Energy_Surge,
         // Necro
         GW::Constants::SkillID::Chilblains,
-#ifdef _DEBUG
-        GW::Constants::SkillID::Death_Nova,
-#endif
         // Ele
         GW::Constants::SkillID::Meteor,
         GW::Constants::SkillID::Meteor_Shower,
@@ -417,13 +414,12 @@ void HeroWindow::RuptEnemies()
     };
     constexpr static auto wait_ms = 200UL;
     constexpr static auto target_logic = TargetLogic::SEARCH_TARGET;
+    static auto last_time_target_changed = clock();
 
     auto player_target = player_data.target ? player_data.target->agent_id : 0;
 
-    auto player_conditions = [](const DataPlayer &, const AgentLivingData &) {
-        const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
-        if (!me_living)
-            return false;
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+        static auto _last_time_target_changed = clock();
 
         const auto agents_ptr = GW::Agents::GetAgentArray();
         if (!agents_ptr)
@@ -435,7 +431,7 @@ void HeroWindow::RuptEnemies()
             if (!enemy)
                 continue;
 
-            const auto dist_to_enemy = GW::GetDistance(me_living->pos, enemy->pos);
+            const auto dist_to_enemy = GW::GetDistance(player_data.pos, enemy->pos);
             if (dist_to_enemy > GW::Constants::Range::Spellcast + 200.0F)
                 continue;
 
@@ -456,7 +452,12 @@ void HeroWindow::RuptEnemies()
 #ifdef _DEBUG
                 Log::Info("Changed target to %d casting %d", new_target_id, skill_id);
 #endif
-                GW::GameThread::Enqueue([&, new_target_id] { GW::Agents::ChangeTarget(new_target_id); });
+                if (player_data.target && player_data.target->agent_id != new_target_id &&
+                    TIMER_DIFF(_last_time_target_changed) > 10)
+                {
+                    GW::GameThread::Enqueue([&, new_target_id] { GW::Agents::ChangeTarget(new_target_id); });
+                    _last_time_target_changed = clock();
+                }
                 return true;
             }
         }
@@ -485,7 +486,11 @@ void HeroWindow::RuptEnemies()
                           wait_ms,
                           target_logic))
         {
-            GW::GameThread::Enqueue([&, player_target] { GW::Agents::ChangeTarget(player_target); });
+            if (TIMER_DIFF(last_time_target_changed) > 10)
+            {
+                GW::GameThread::Enqueue([&, player_target] { GW::Agents::ChangeTarget(player_target); });
+                last_time_target_changed = clock();
+            }
         }
     }
 }
@@ -498,8 +503,15 @@ void HeroWindow::UseSplinterOnPlayer()
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
-        const auto num_enemies_at_player =
-            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Nearby);
+        const auto agents_ptr = GW::Agents::GetAgentArray();
+        if (!agents_ptr)
+            return false;
+        auto &agents = *agents_ptr;
+
+        const auto num_enemies_at_player = AgentLivingData::NumAgentsInRange(agents,
+                                                                             player_data.pos,
+                                                                             GW::Constants::Allegiance::Enemy,
+                                                                             GW::Constants::Range::Nearby);
 
         const auto player_is_melee_attacking = player_data.holds_melee_weapon;
         const auto player_is_melee_class = player_data.is_melee_class;
@@ -552,9 +564,17 @@ void HeroWindow::UseShelterInFight()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+        const auto agents_ptr = GW::Agents::GetAgentArray();
+        if (!agents_ptr)
+            return false;
+        auto &agents = *agents_ptr;
+
         const auto num_enemies_in_aggro_of_player =
-            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Spellcast + 200.0F);
+            AgentLivingData::NumAgentsInRange(agents,
+                                              player_data.pos,
+                                              GW::Constants::Allegiance::Enemy,
+                                              GW::Constants::Range::Spellcast + 200.0F);
 
         const auto player_started_fight = num_enemies_in_aggro_of_player >= 3 && player_data.IsFighting();
         const auto has_skill_already = player_data.PlayerHasEffect(GW::Constants::SkillID::Shelter);
@@ -581,9 +601,17 @@ void HeroWindow::UseUnionInFight()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
+    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+        const auto agents_ptr = GW::Agents::GetAgentArray();
+        if (!agents_ptr)
+            return false;
+        auto &agents = *agents_ptr;
+
         const auto num_enemies_in_aggro_of_player =
-            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Spellcast + 200.0F);
+            AgentLivingData::NumAgentsInRange(agents,
+                                              player_data.pos,
+                                              GW::Constants::Allegiance::Enemy,
+                                              GW::Constants::Range::Spellcast + 200.0F);
 
         const auto player_started_fight = num_enemies_in_aggro_of_player >= 3 && player_data.IsFighting();
         const auto has_skill_already = player_data.PlayerHasEffect(GW::Constants::SkillID::Union);
@@ -615,8 +643,15 @@ void HeroWindow::UseSosInFight()
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
-        const auto num_enemies_in_aggro_of_player =
-            livings_data.NumEnemiesInRange(player_data.pos, GW::Constants::Range::Spellcast);
+        const auto agents_ptr = GW::Agents::GetAgentArray();
+        if (!agents_ptr)
+            return false;
+        auto &agents = *agents_ptr;
+
+        const auto num_enemies_in_aggro_of_player = AgentLivingData::NumAgentsInRange(agents,
+                                                                                      player_data.pos,
+                                                                                      GW::Constants::Allegiance::Enemy,
+                                                                                      GW::Constants::Range::Spellcast);
 
         const auto player_started_fight = num_enemies_in_aggro_of_player >= 3 && player_data.IsFighting();
 
