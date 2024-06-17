@@ -37,8 +37,8 @@ Smart features are:
   - For honor of strength: Disable the skill in the hero window
 - Immediatly shatter important hexes on the player
 - Immediatly remove important conditions on the player
-  - For a full list of hexes and conditions to remove, look into the documentation!
 - Mesmer heros will rupt important enemy skills
+- For a full list of hexes and conditions to remove, look into the documentation!
 
 ### List of Hexes to Remove
 
