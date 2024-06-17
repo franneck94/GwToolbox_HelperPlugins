@@ -76,12 +76,6 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
         switch (target_logic)
         {
         case TargetLogic::SEARCH_TARGET:
-        {
-            if (target_id != 0)
-                return HeroUseSkill(target_id, skill_idx, hero.hero_idx_zero_based);
-
-            return false;
-        }
         case TargetLogic::PLAYER_TARGET:
         {
             const auto is_player_target_valid = player_data.target && player_data.target->agent_id;

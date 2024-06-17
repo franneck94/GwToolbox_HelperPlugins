@@ -51,7 +51,7 @@ public:
     void HeroFollow_StopConditions();
     void HeroFollow_StuckCheck();
 
-    void SmartUseSkill(const GW::Constants::SkillID skill_id,
+    bool SmartUseSkill(const GW::Constants::SkillID skill_id,
                        const GW::Constants::Profession skill_class,
                        const std::string_view skill_name,
                        std::function<bool(const DataPlayer &, const AgentLivingData &)> player_conditions,
@@ -77,7 +77,7 @@ public:
     void UseFallback();
     void ToggleHeroBehaviour();
     void FollowPlayer();
-    void MesmerSpikeTarget(const Hero &hero_data) const;
+    bool MesmerSpikeTarget(const Hero &hero_data) const;
     void AttackTarget();
     void ResetData();
 

@@ -361,55 +361,6 @@ void UwMesmer::Update(float)
     lt_routine.livings_data = &livings_data;
     lt_routine.load_cb_triggered = uw_metadata.load_cb_triggered;
 
-#ifdef _DEBUG
-    const static auto skills_to_rupt = std::array{
-        // Mesmer
-        GW::Constants::SkillID::Panic,
-        GW::Constants::SkillID::Energy_Surge,
-        // Necro
-        GW::Constants::SkillID::Chilblains,
-#ifdef _DEBUG
-        GW::Constants::SkillID::Death_Nova,
-#endif
-        // Ele
-        GW::Constants::SkillID::Meteor,
-        GW::Constants::SkillID::Meteor_Shower,
-        GW::Constants::SkillID::Searing_Flames,
-        // All
-        GW::Constants::SkillID::Resurrection_Signet,
-
-    };
-
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
-        std::vector<float> distances_to_enemies(livings_data.enemies.size());
-        std::transform(livings_data.enemies.begin(),
-                       livings_data.enemies.end(),
-                       distances_to_enemies.begin(),
-                       [&](const auto *enemy) { return GW::GetDistance(player_data.pos, enemy->pos); });
-
-        for (const auto *enemy : livings_data.enemies)
-        {
-            const auto dist_to_enemy = GW::GetDistance(player_data.pos, enemy->pos);
-            if (dist_to_enemy > GW::Constants::Range::Spellcast + 200.0F)
-                return false;
-
-            const auto skill_id = static_cast<GW::Constants::SkillID>(enemy->skill);
-            if (skill_id == GW::Constants::SkillID::No_Skill)
-                return false;
-
-            if (std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_id) != skills_to_rupt.end())
-            {
-                const auto new_target_id = enemy->agent_id;
-                Log::Info("Changed target to %d casting %d", new_target_id, skill_id);
-                return true;
-            }
-        }
-
-        return false;
-    };
-    player_conditions(player_data, livings_data);
-#endif
-
     FilterByIdsAndDistances(pos, livings_data.enemies, filtered_livings, IDS, 1600.0F);
     FilterByIdAndDistance(pos, filtered_livings, aatxe_livings, GW::Constants::ModelID::UW::BladedAatxe);
     FilterByIdAndDistance(pos, filtered_livings, nightmare_livings, GW::Constants::ModelID::UW::DyingNightmare);

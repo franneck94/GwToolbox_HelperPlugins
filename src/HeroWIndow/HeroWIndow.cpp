@@ -177,7 +177,7 @@ bool HeroWindow::HeroSkill_StartConditions(const GW::Constants::SkillID skill_id
     return true;
 }
 
-void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
+bool HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
                                const GW::Constants::Profession skill_class,
                                const std::string_view skill_name,
                                std::function<bool(const DataPlayer &, const AgentLivingData &)> player_conditions,
@@ -187,17 +187,17 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
                                const uint32_t target_id)
 {
     if (!player_conditions(player_data, livings_data))
-        return;
+        return false;
 
     if (!HeroSkill_StartConditions(skill_id, wait_ms))
-        return;
+        return false;
 
     if (hero_data.hero_class_idx_map.find(skill_class) == hero_data.hero_class_idx_map.end())
-        return;
+        return false;
 
     auto hero_idxs_zero_based = hero_data.hero_class_idx_map.at(skill_class);
     if (hero_idxs_zero_based.size() == 0)
-        return;
+        return false;
 
     for (const auto hero_idx_zero_based : hero_idxs_zero_based)
     {
@@ -210,9 +210,11 @@ void HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
 #else
             (void)skill_name;
 #endif
-            return;
+            return true;
         }
     }
+
+    return false;
 }
 
 void HeroWindow::ShatterImportantHexes()
@@ -307,7 +309,14 @@ void HeroWindow::ShatterImportantHexes()
 
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
     {
-        SmartUseSkill(skill_id, skill_class, "Remove Hex", player_conditions, hero_conditions, wait_ms, target_logic);
+        if (SmartUseSkill(skill_id,
+                          skill_class,
+                          "Remove Hex",
+                          player_conditions,
+                          hero_conditions,
+                          wait_ms,
+                          target_logic))
+            return;
     }
 }
 
@@ -379,7 +388,7 @@ void HeroWindow::RemoveImportantConditions()
 
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
     {
-        SmartUseSkill(skill_id, skill_class, "Remove Coond", player_conditions, hero_conditions, wait_ms, target_logic);
+        SmartUseSkill(skill_id, skill_class, "Remove Cond", player_conditions, hero_conditions, wait_ms, target_logic);
     }
 }
 
@@ -410,19 +419,39 @@ void HeroWindow::RuptEnemies()
     constexpr static auto target_logic = TargetLogic::SEARCH_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
-        for (const auto *enemy : livings_data.enemies)
-        {
-            const auto dist_to_enemy = GW::GetDistance(player_data.pos, enemy->pos);
-            if (dist_to_enemy > GW::Constants::Range::Spellcast + 200.0F)
-                return false;
+        const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+        if (!me_living)
+            return false;
 
-            const auto skill_id = static_cast<GW::Constants::SkillID>(enemy->skill);
+        const auto agents_ptr = GW::Agents::GetAgentArray();
+        if (!agents_ptr)
+            return false;
+        auto &agents = *agents_ptr;
+
+        for (const auto *enemy : agents)
+        {
+            if (!enemy)
+                continue;
+
+            const auto dist_to_enemy = GW::GetDistance(me_living->pos, enemy->pos);
+            if (dist_to_enemy > GW::Constants::Range::Spellcast + 200.0F)
+                continue;
+
+            if (!enemy)
+                continue;
+
+            const auto enemy_living = enemy->GetAsAgentLiving();
+            if (!enemy_living || enemy_living->allegiance != GW::Constants::Allegiance::Enemy)
+                continue;
+
+            const auto skill_id = static_cast<GW::Constants::SkillID>(enemy_living->skill);
             if (skill_id == GW::Constants::SkillID::No_Skill)
-                return false;
+                continue;
 
             if (std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_id) != skills_to_rupt.end())
             {
                 const auto new_target_id = enemy->agent_id;
+                Log::Info("Changed target to %d casting %d", new_target_id, skill_id);
                 GW::GameThread::Enqueue([&, new_target_id] { GW::Agents::ChangeTarget(new_target_id); });
                 return true;
             }
@@ -465,7 +494,7 @@ void HeroWindow::UseSplinterOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "Splinter", player_conditions, hero_conditions, wait_ms, target_logic);
+    SmartUseSkill(skill_id, skill_class, "Splinter", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseHonorOnPlayer()
@@ -491,7 +520,7 @@ void HeroWindow::UseHonorOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "Honor", player_conditions, hero_conditions, wait_ms, target_logic);
+    SmartUseSkill(skill_id, skill_class, "Honor", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseShelterInFight()
@@ -520,7 +549,7 @@ void HeroWindow::UseShelterInFight()
         return dist < GW::Constants::Range::Spirit - 100.0F;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "Shelter", player_conditions, hero_conditions, wait_ms, target_logic);
+    SmartUseSkill(skill_id, skill_class, "Shelter", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseUnionInFight()
@@ -549,7 +578,7 @@ void HeroWindow::UseUnionInFight()
         return dist < GW::Constants::Range::Spirit - 100.0F;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "Union", player_conditions, hero_conditions, wait_ms, target_logic);
+    SmartUseSkill(skill_id, skill_class, "Union", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseSosInFight()
@@ -588,7 +617,7 @@ void HeroWindow::UseSosInFight()
         return dist < GW::Constants::Range::Spellcast;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "SoS", player_conditions, hero_conditions, wait_ms, target_logic);
+    SmartUseSkill(skill_id, skill_class, "SoS", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseFallback()
@@ -604,7 +633,7 @@ void HeroWindow::UseFallback()
         return !player_data.AnyTeamMemberHasEffect(GW::Constants::SkillID::Fall_Back);
     };
 
-    return SmartUseSkill(skill_id, skill_class, "FallBack", player_conditions, hero_conditions, wait_ms, target_logic);
+    SmartUseSkill(skill_id, skill_class, "FallBack", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
 void HeroWindow::UseBipOnPlayer()
@@ -636,21 +665,23 @@ void HeroWindow::UseBipOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->hp > 0.60F;
     };
 
-    return SmartUseSkill(skill_id, skill_class, "BiP", player_conditions, hero_conditions, wait_ms, target_logic);
+    SmartUseSkill(skill_id, skill_class, "BiP", player_conditions, hero_conditions, wait_ms, target_logic);
 }
 
-void HeroWindow::MesmerSpikeTarget(const Hero &hero) const
+bool HeroWindow::MesmerSpikeTarget(const Hero &hero) const
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Energy_Surge;
     constexpr static auto skill_class = GW::Constants::Profession::Mesmer;
 
     if (!hero.hero_living)
-        return;
+        return false;
 
     auto hero_conditions = [](const DataPlayer &, const Hero &) { return true; };
 
     if (hero.hero_living->primary == static_cast<uint8_t>(skill_class))
-        HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, TargetLogic::PLAYER_TARGET);
+        return HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, TargetLogic::PLAYER_TARGET);
+
+    return false;
 }
 
 bool player_conditions_attack(const DataPlayer &player_data, const AgentLivingData &)

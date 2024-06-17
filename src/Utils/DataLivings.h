@@ -11,15 +11,12 @@
 
 struct AgentLivingData
 {
-    AgentLivingData() : allies({}), neutrals({}), enemies({}), spirits({}), minions({}), npcs({}){};
-    ~AgentLivingData()
-    {
-        Log::Info("Destroyed Living Data");
-    };
+    AgentLivingData() : allies({}), neutrals({}), enemies({}), spirits({}), minions({}), npcs({}) {};
+    ~AgentLivingData() {};
 
     void Update();
 
-    static void UpdateType(std::vector<const GW::AgentLiving *> &filtered_agents, const GW::Constants::Allegiance type);
+    static std::vector<const GW::AgentLiving *> UpdateType(const GW::Constants::Allegiance type);
 
     size_t NumEnemiesInRange(const GW::GamePos &player_pos, const float range) const;
 
