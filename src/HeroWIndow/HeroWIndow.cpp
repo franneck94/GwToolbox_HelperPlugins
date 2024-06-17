@@ -184,7 +184,7 @@ bool HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
                                std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
                                const long wait_ms,
                                const TargetLogic target_logic,
-                               const uint32_t target_id)
+                               const uint32_t current_target_id)
 {
     if (!player_conditions(player_data, livings_data))
         return false;
@@ -203,7 +203,7 @@ bool HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
     {
         const auto &hero = hero_data.hero_vec.at(hero_idx_zero_based);
 
-        if (HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, target_logic, target_id))
+        if (HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, target_logic, current_target_id))
         {
 #ifdef _DEBUG
             Log::Info("Casted %s.", skill_name);
@@ -214,7 +214,7 @@ bool HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
         }
     }
 
-    return false;
+    return true;
 }
 
 void HeroWindow::ShatterImportantHexes()
@@ -415,10 +415,12 @@ void HeroWindow::RuptEnemies()
         GW::Constants::SkillID::Resurrection_Signet,
 
     };
-    constexpr static auto wait_ms = 0UL;
+    constexpr static auto wait_ms = 200UL;
     constexpr static auto target_logic = TargetLogic::SEARCH_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
+    auto player_target = player_data.target ? player_data.target->agent_id : 0;
+
+    auto player_conditions = [](const DataPlayer &, const AgentLivingData &) {
         const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
         if (!me_living)
             return false;
@@ -451,7 +453,9 @@ void HeroWindow::RuptEnemies()
             if (std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_id) != skills_to_rupt.end())
             {
                 const auto new_target_id = enemy->agent_id;
+#ifdef _DEBUG
                 Log::Info("Changed target to %d casting %d", new_target_id, skill_id);
+#endif
                 GW::GameThread::Enqueue([&, new_target_id] { GW::Agents::ChangeTarget(new_target_id); });
                 return true;
             }
@@ -460,11 +464,29 @@ void HeroWindow::RuptEnemies()
         return false;
     };
 
-    const auto hero_conditions = [](const DataPlayer &, const Hero &) { return true; };
+    const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
+        if (!hero.hero_living || !player_data.living)
+            return false;
+
+        const auto dist_to_enemy = GW::GetDistance(player_data.living->pos, hero.hero_living->pos);
+        if (dist_to_enemy > GW::Constants::Range::Spellcast + 200.0F)
+            return false;
+
+        return true;
+    };
 
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
     {
-        SmartUseSkill(skill_id, skill_class, "Rupted Skill", player_conditions, hero_conditions, wait_ms, target_logic);
+        if (SmartUseSkill(skill_id,
+                          skill_class,
+                          "Rupted Skill",
+                          player_conditions,
+                          hero_conditions,
+                          wait_ms,
+                          target_logic))
+        {
+            GW::GameThread::Enqueue([&, player_target] { GW::Agents::ChangeTarget(player_target); });
+        }
     }
 }
 
