@@ -223,6 +223,7 @@ void HeroWindow::ShatterImportantHexes()
         GW::Constants::SkillID::Ineptitude,
         GW::Constants::SkillID::Empathy,
         GW::Constants::SkillID::Crippling_Anguish,
+        GW::Constants::SkillID::Clumsiness,
         // Necro
         GW::Constants::SkillID::Spiteful_Spirit,
         // Ele
