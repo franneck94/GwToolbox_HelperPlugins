@@ -146,7 +146,7 @@ static void _chatlog(LogType log_type, const wchar_t *message)
 
 static void _vchatlog(LogType log_type, const char *format, va_list argv)
 {
-    constexpr static auto timer_wait_ms = 500UL;
+    constexpr static auto timer_wait_ms = 750UL;
     static std::wstring last_message;
     static clock_t last_log_time;
 
