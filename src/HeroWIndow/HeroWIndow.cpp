@@ -180,13 +180,13 @@ bool HeroWindow::HeroSkill_StartConditions(const GW::Constants::SkillID skill_id
 bool HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
                                const GW::Constants::Profession skill_class,
                                const std::string_view skill_name,
-                               std::function<bool(const DataPlayer &, const AgentLivingData &)> player_conditions,
+                               std::function<bool(const DataPlayer &)> player_conditions,
                                std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
                                const long wait_ms,
                                const TargetLogic target_logic,
                                const uint32_t current_target_id)
 {
-    if (!player_conditions(player_data, livings_data))
+    if (!player_conditions(player_data))
         return false;
 
     if (!HeroSkill_StartConditions(skill_id, wait_ms))
@@ -260,7 +260,7 @@ void HeroWindow::ShatterImportantHexes()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+    auto player_conditions = [](const DataPlayer &player_data) {
         if (!player_data.living || !player_data.living->GetIsHexed())
             return false;
 
@@ -342,8 +342,8 @@ void HeroWindow::RemoveImportantConditions()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
-        if (!player_data.living || !player_data.living->GetIsHexed())
+    auto player_conditions = [](const DataPlayer &player_data) {
+        if (!player_data.living || !player_data.living->GetIsConditioned())
             return false;
 
         const auto *const effects = GW::Effects::GetPlayerEffects();
@@ -419,7 +419,7 @@ void HeroWindow::RuptEnemies()
     auto player_target = player_data.target ? player_data.target->agent_id : 0;
     auto change_target_to_id = 0U;
 
-    auto player_conditions = [&change_target_to_id](const DataPlayer &player_data, const AgentLivingData &) {
+    auto player_conditions = [&change_target_to_id](const DataPlayer &player_data) {
         static auto _last_time_target_changed = clock();
 
         const auto agents_ptr = GW::Agents::GetAgentArray();
@@ -509,7 +509,7 @@ void HeroWindow::UseSplinterOnPlayer()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
+    auto player_conditions = [](const DataPlayer &player_data) {
         const auto agents_ptr = GW::Agents::GetAgentArray();
         if (!agents_ptr)
             return false;
@@ -545,7 +545,7 @@ void HeroWindow::UseHonorOnPlayer()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+    auto player_conditions = [](const DataPlayer &player_data) {
         const auto player_is_melee_attacking = player_data.holds_melee_weapon;
         const auto player_is_melee_class = player_data.is_melee_class;
 
@@ -571,7 +571,7 @@ void HeroWindow::UseShelterInFight()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+    auto player_conditions = [](const DataPlayer &player_data) {
         const auto agents_ptr = GW::Agents::GetAgentArray();
         if (!agents_ptr)
             return false;
@@ -608,7 +608,7 @@ void HeroWindow::UseUnionInFight()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+    auto player_conditions = [](const DataPlayer &player_data) {
         const auto agents_ptr = GW::Agents::GetAgentArray();
         if (!agents_ptr)
             return false;
@@ -649,7 +649,7 @@ void HeroWindow::UseSosInFight()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &livings_data) {
+    auto player_conditions = [](const DataPlayer &player_data) {
         const auto agents_ptr = GW::Agents::GetAgentArray();
         if (!agents_ptr)
             return false;
@@ -665,9 +665,28 @@ void HeroWindow::UseSosInFight()
         if (!player_started_fight)
             return false;
 
-        const auto sos_spirits_in_range = FoundSpirit(player_data, livings_data.spirits, SOS1_AGENT_ID) &&
-                                          FoundSpirit(player_data, livings_data.spirits, SOS2_AGENT_ID) &&
-                                          FoundSpirit(player_data, livings_data.spirits, SOS3_AGENT_ID);
+        auto spirits_in_range = std::vector<const GW::AgentLiving *>{};
+        for (const auto *enemy : agents)
+        {
+            if (!enemy)
+                continue;
+
+            const auto dist_to_enemy = GW::GetDistance(player_data.pos, enemy->pos);
+            if (dist_to_enemy > GW::Constants::Range::Spellcast + 200.0F)
+                continue;
+
+            if (!enemy)
+                continue;
+            const auto enemy_living = enemy->GetAsAgentLiving();
+            if (!enemy_living || enemy_living->allegiance != GW::Constants::Allegiance::Spirit_Pet)
+                continue;
+
+            spirits_in_range.push_back(enemy_living);
+        }
+
+        const auto sos_spirits_in_range = FoundSpirit(player_data, spirits_in_range, SOS1_AGENT_ID) &&
+                                          FoundSpirit(player_data, spirits_in_range, SOS2_AGENT_ID) &&
+                                          FoundSpirit(player_data, spirits_in_range, SOS3_AGENT_ID);
 
         return player_started_fight && !sos_spirits_in_range;
     };
@@ -691,7 +710,7 @@ void HeroWindow::UseFallback()
     constexpr static auto wait_ms = 250UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &, const AgentLivingData &) { return true; };
+    auto player_conditions = [](const DataPlayer &) { return true; };
 
     auto hero_conditions = [](const DataPlayer &player_data, const Hero &) {
         return !player_data.AnyTeamMemberHasEffect(GW::Constants::SkillID::Fall_Back);
@@ -707,7 +726,7 @@ void HeroWindow::UseBipOnPlayer()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+    auto player_conditions = [](const DataPlayer &player_data) {
         if (!player_data.living)
             return false;
 
@@ -748,7 +767,7 @@ bool HeroWindow::MesmerSpikeTarget(const Hero &hero) const
     return false;
 }
 
-bool player_conditions_attack(const DataPlayer &player_data, const AgentLivingData &)
+bool player_conditions_attack(const DataPlayer &player_data)
 {
     if (!player_data.target)
         return false;
@@ -765,7 +784,7 @@ bool player_conditions_attack(const DataPlayer &player_data, const AgentLivingDa
 
 void HeroWindow::AttackTarget()
 {
-    if (!player_conditions_attack(player_data, livings_data))
+    if (!player_conditions_attack(player_data))
         return;
 
     if (!HeroSkill_StartConditions(GW::Constants::SkillID::No_Skill))
@@ -1039,7 +1058,6 @@ void HeroWindow::Update(float)
     }
 
     player_data.Update();
-    livings_data.Update();
     UpdateInternalData();
 
     HeroSmarterSkills_Logic();

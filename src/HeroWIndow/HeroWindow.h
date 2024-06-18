@@ -54,7 +54,7 @@ public:
     bool SmartUseSkill(const GW::Constants::SkillID skill_id,
                        const GW::Constants::Profession skill_class,
                        const std::string_view skill_name,
-                       std::function<bool(const DataPlayer &, const AgentLivingData &)> player_conditions,
+                       std::function<bool(const DataPlayer &)> player_conditions,
                        std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
                        const long wait_ms,
                        const TargetLogic target_logic = TargetLogic::NO_TARGET,
