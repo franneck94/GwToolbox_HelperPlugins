@@ -55,8 +55,6 @@ void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
     if (!ping_agent)
         return;
 
-    Log::Info("Called OnTargetPing");
-
     const auto ping_distance = GW::GetDistance(ping_agent->pos, instance->player_data.pos);
     const auto ping_close = ping_distance < GW::Constants::Range::Spellcast + 200.0F;
     const auto ping_far = ping_distance > GW::Constants::Range::Spellcast + 200.0F;
@@ -124,7 +122,8 @@ void HeroWindow::StartFollowing()
 
 void HeroWindow::StopFollowing()
 {
-    Log::Info("Heroes stopped following the player!");
+    if (following_active)
+        Log::Info("Heroes stopped following the player!");
     following_active = false;
     GW::PartyMgr::UnflagAll();
     current_hero_behaviour = current_hero_behaviour_before_follow;
@@ -450,9 +449,6 @@ void HeroWindow::RuptEnemies()
             if (std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_id) != skills_to_rupt.end())
             {
                 const auto new_target_id = enemy->agent_id;
-#ifdef _DEBUG
-                Log::Info("Changed target to %d casting %d", new_target_id, skill_id);
-#endif
                 if (player_data.target && player_data.target->agent_id != new_target_id &&
                     TIMER_DIFF(_last_time_target_changed) > 10)
                 {

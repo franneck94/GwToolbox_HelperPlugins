@@ -38,7 +38,7 @@ Smart features are:
 - Immediatly shatter important hexes on the player
 - Immediatly remove important conditions on the player
 - Mesmer heros will rupt important enemy skills
-- For a full list of hexes and conditions to remove, look into the documentation!
+- For a full list of hexes,conditions and skills to rupt look into the documentation
 
 ### List of Hexes to Remove
 
