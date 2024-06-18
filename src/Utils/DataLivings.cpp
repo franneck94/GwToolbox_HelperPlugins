@@ -67,12 +67,18 @@ size_t AgentLivingData::NumAgentsInRange(const GW::AgentArray &agents,
                                          const GW::Constants::Allegiance allegiance,
                                          const float range)
 {
-    return std::count_if(agents.begin(), agents.end(), [=](const auto *enemy_living) {
+    return std::count_if(agents.begin(), agents.end(), [=](const GW::Agent *enemy) {
+        if (!enemy)
+            return false;
+
+        const auto enemy_living = enemy->GetAsAgentLiving();
         if (!enemy_living)
             return false;
 
-        const auto dist = GW::GetDistance(enemy_living->pos, player_pos);
+        if (enemy_living->allegiance != allegiance)
+            return false;
 
+        const auto dist = GW::GetDistance(enemy_living->pos, player_pos);
         return dist < range;
     });
 }
