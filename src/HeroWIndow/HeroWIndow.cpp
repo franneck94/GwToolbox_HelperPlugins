@@ -41,17 +41,13 @@ constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
 
-void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
+void PingLogic(const uint32_t agent_id)
 {
     auto *instance = static_cast<HeroWindow *>(ToolboxPluginInstance());
     if (!instance)
         return;
 
-    const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
-    if (!packet || (packet->call_type != GW::CallTargetType::AttackingOrTargetting))
-        return;
-
-    const auto *ping_agent = GW::Agents::GetAgentByID(packet->agent_id);
+    const auto *ping_agent = GW::Agents::GetAgentByID(agent_id);
     if (!ping_agent)
         return;
 
@@ -62,6 +58,24 @@ void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
         instance->StopFollowing();
     else if (ping_far)
         instance->following_active = true;
+}
+
+void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
+{
+    const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
+    if (!packet || (packet->call_type != GW::CallTargetType::AttackingOrTargetting))
+        return;
+
+    PingLogic(packet->agent_id);
+}
+
+void OnEnemyInteract(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
+{
+    const auto packet = static_cast<GW::UI::UIPacket::kInteractAgent *>(wparam);
+    if (!packet || !packet->call_target)
+        return;
+
+    PingLogic(packet->agent_id);
 }
 
 void OnMapLoad(GW::HookStatus *, const GW::Packet::StoC::MapLoaded *)
@@ -88,6 +102,7 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
     }
 
     GW::UI::RegisterUIMessageCallback(&AgentPinged_Entry, GW::UI::UIMessage::kSendCallTarget, OnTargetPing);
+    GW::UI::RegisterUIMessageCallback(&AgentCalled_Entry, GW::UI::UIMessage::kSendInteractEnemy, OnEnemyInteract);
 
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(&MapLoaded_Entry, OnMapLoad);
 

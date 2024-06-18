@@ -94,6 +94,7 @@ public:
     bool following_active = false;
 
     GW::HookEntry AgentPinged_Entry;
+    GW::HookEntry AgentCalled_Entry;
 
     GW::HookEntry MapLoaded_Entry;
     bool load_cb_triggered = false;
