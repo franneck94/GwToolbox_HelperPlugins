@@ -96,6 +96,9 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
 
 std::tuple<uint32_t, bool> SkillIdxOfHero(const Hero &hero, const GW::Constants::SkillID skill_id)
 {
+    if (!hero.hero_living)
+        return std::make_tuple(static_cast<uint32_t>(-1), false);
+
     const auto hero_energy =
         static_cast<uint32_t>(hero.hero_living->energy * static_cast<float>(hero.hero_living->max_energy));
 
@@ -116,7 +119,8 @@ std::tuple<uint32_t, bool> SkillIdxOfHero(const Hero &hero, const GW::Constants:
             continue;
         }
 
-        const auto can_cast_skill = skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost();
+        const auto can_cast_skill = skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost() &&
+                                    !hero.hero_living->GetIsCasting() && !hero.hero_living->GetIsKnockedDown();
         return std::make_tuple(skill_idx, can_cast_skill);
     }
 

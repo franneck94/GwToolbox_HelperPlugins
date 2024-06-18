@@ -417,8 +417,9 @@ void HeroWindow::RuptEnemies()
     static auto last_time_target_changed = clock();
 
     auto player_target = player_data.target ? player_data.target->agent_id : 0;
+    auto change_target_to_id = 0U;
 
-    auto player_conditions = [](const DataPlayer &player_data, const AgentLivingData &) {
+    auto player_conditions = [&change_target_to_id](const DataPlayer &player_data, const AgentLivingData &) {
         static auto _last_time_target_changed = clock();
 
         const auto agents_ptr = GW::Agents::GetAgentArray();
@@ -455,7 +456,7 @@ void HeroWindow::RuptEnemies()
                 if (player_data.target && player_data.target->agent_id != new_target_id &&
                     TIMER_DIFF(_last_time_target_changed) > 10)
                 {
-                    GW::GameThread::Enqueue([&, new_target_id] { GW::Agents::ChangeTarget(new_target_id); });
+                    change_target_to_id = new_target_id;
                     _last_time_target_changed = clock();
                 }
                 return true;
@@ -465,13 +466,19 @@ void HeroWindow::RuptEnemies()
         return false;
     };
 
-    const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
+    const auto hero_conditions = [&change_target_to_id](const DataPlayer &player_data, const Hero &hero) {
         if (!hero.hero_living || !player_data.living)
             return false;
 
         const auto dist_to_enemy = GW::GetDistance(player_data.living->pos, hero.hero_living->pos);
         if (dist_to_enemy > GW::Constants::Range::Spellcast + 200.0F)
             return false;
+
+        if (change_target_to_id)
+        {
+            GW::GameThread::Enqueue([&, change_target_to_id] { GW::Agents::ChangeTarget(change_target_to_id); });
+            change_target_to_id = 0;
+        }
 
         return true;
     };

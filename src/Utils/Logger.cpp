@@ -146,6 +146,7 @@ static void _chatlog(LogType log_type, const wchar_t *message)
 
 static void _vchatlog(LogType log_type, const char *format, va_list argv)
 {
+    constexpr static auto timer_wait_ms = 500UL;
     static std::wstring last_message;
     static clock_t last_log_time;
 
@@ -156,7 +157,7 @@ static void _vchatlog(LogType log_type, const char *format, va_list argv)
     clock_t now = TIMER_INIT();
     double time_diff = TIMER_DIFF(last_log_time);
 
-    if (sbuf2 == last_message && time_diff < 250)
+    if (sbuf2 == last_message && time_diff < timer_wait_ms)
     {
         return;
     }
