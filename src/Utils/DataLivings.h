@@ -20,8 +20,7 @@ struct AgentLivingData
 
     size_t NumEnemiesInRange(const GW::GamePos &player_pos, const float range) const;
 
-    static size_t NumAgentsInRange(const GW::AgentArray &agents,
-                                   const GW::GamePos &player_pos,
+    static size_t NumAgentsInRange(const GW::GamePos &player_pos,
                                    const GW::Constants::Allegiance allegiance,
                                    const float range);
 

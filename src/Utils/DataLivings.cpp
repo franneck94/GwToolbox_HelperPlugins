@@ -62,11 +62,15 @@ size_t AgentLivingData::NumEnemiesInRange(const GW::GamePos &player_pos, const f
     });
 }
 
-size_t AgentLivingData::NumAgentsInRange(const GW::AgentArray &agents,
-                                         const GW::GamePos &player_pos,
+size_t AgentLivingData::NumAgentsInRange(const GW::GamePos &player_pos,
                                          const GW::Constants::Allegiance allegiance,
                                          const float range)
 {
+    const auto agents_ptr = GW::Agents::GetAgentArray();
+    if (!agents_ptr)
+        return 0;
+    auto &agents = *agents_ptr;
+
     return std::count_if(agents.begin(), agents.end(), [=](const GW::Agent *enemy) {
         if (!enemy)
             return false;

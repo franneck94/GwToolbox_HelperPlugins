@@ -64,6 +64,7 @@ public:
     void HeroSmarterSkills_Logic();
     void UseBipOnPlayer();
     void UseSplinterOnPlayer();
+    void UseVigSpiritOnPlayer();
     void UseHonorOnPlayer();
     void UseShelterInFight();
     void UseUnionInFight();

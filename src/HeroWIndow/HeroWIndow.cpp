@@ -514,13 +514,37 @@ void HeroWindow::UseSplinterOnPlayer()
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data) {
-        const auto agents_ptr = GW::Agents::GetAgentArray();
-        if (!agents_ptr)
-            return false;
-        auto &agents = *agents_ptr;
+        const auto num_enemies_at_player = AgentLivingData::NumAgentsInRange(player_data.pos,
+                                                                             GW::Constants::Allegiance::Enemy,
+                                                                             GW::Constants::Range::Nearby);
 
-        const auto num_enemies_at_player = AgentLivingData::NumAgentsInRange(agents,
-                                                                             player_data.pos,
+        const auto player_is_melee_attacking = player_data.holds_melee_weapon;
+        const auto player_is_melee_class = player_data.is_melee_class;
+
+        return num_enemies_at_player >= 2 && player_is_melee_attacking && player_is_melee_class;
+    };
+
+    const auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
+        if (!hero.hero_living)
+            return false;
+
+        const auto dist = GW::GetDistance(hero.hero_living->pos, player_data.pos);
+
+        return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
+    };
+
+    SmartUseSkill(skill_id, skill_class, "Splinter", player_conditions, hero_conditions, wait_ms, target_logic);
+}
+
+void HeroWindow::UseVigSpiritOnPlayer()
+{
+    constexpr static auto skill_id = GW::Constants::SkillID::Vigorous_Spirit;
+    constexpr static auto skill_class = GW::Constants::Profession::Monk;
+    constexpr static auto wait_ms = 500UL;
+    constexpr static auto target_logic = TargetLogic::NO_TARGET;
+
+    auto player_conditions = [](const DataPlayer &player_data) {
+        const auto num_enemies_at_player = AgentLivingData::NumAgentsInRange(player_data.pos,
                                                                              GW::Constants::Allegiance::Enemy,
                                                                              GW::Constants::Range::Nearby);
 
@@ -576,14 +600,8 @@ void HeroWindow::UseShelterInFight()
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data) {
-        const auto agents_ptr = GW::Agents::GetAgentArray();
-        if (!agents_ptr)
-            return false;
-        auto &agents = *agents_ptr;
-
         const auto num_enemies_in_aggro_of_player =
-            AgentLivingData::NumAgentsInRange(agents,
-                                              player_data.pos,
+            AgentLivingData::NumAgentsInRange(player_data.pos,
                                               GW::Constants::Allegiance::Enemy,
                                               GW::Constants::Range::Spellcast + 200.0F);
 
@@ -613,14 +631,8 @@ void HeroWindow::UseUnionInFight()
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data) {
-        const auto agents_ptr = GW::Agents::GetAgentArray();
-        if (!agents_ptr)
-            return false;
-        auto &agents = *agents_ptr;
-
         const auto num_enemies_in_aggro_of_player =
-            AgentLivingData::NumAgentsInRange(agents,
-                                              player_data.pos,
+            AgentLivingData::NumAgentsInRange(player_data.pos,
                                               GW::Constants::Allegiance::Enemy,
                                               GW::Constants::Range::Spellcast + 200.0F);
 
@@ -659,8 +671,7 @@ void HeroWindow::UseSosInFight()
             return false;
         auto &agents = *agents_ptr;
 
-        const auto num_enemies_in_aggro_of_player = AgentLivingData::NumAgentsInRange(agents,
-                                                                                      player_data.pos,
+        const auto num_enemies_in_aggro_of_player = AgentLivingData::NumAgentsInRange(player_data.pos,
                                                                                       GW::Constants::Allegiance::Enemy,
                                                                                       GW::Constants::Range::Spellcast);
 
@@ -929,7 +940,7 @@ void HeroWindow::HeroSmarterSkills_Logic()
     UseUnionInFight();
     UseSosInFight();
     UseSplinterOnPlayer();
-    ShatterImportantHexes();
+    UseVigSpiritOnPlayer();
     RemoveImportantConditions();
     UseBipOnPlayer();
     UseHonorOnPlayer();
