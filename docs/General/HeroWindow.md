@@ -12,13 +12,22 @@ Toggle **all** heroes between:
 - Avoid Combat
 - Attack
 
-## Follow
+## Hero Following
+
+While the hero following is active, your heroes with cast fall back after each other.  
+The hero behaviour will be set to guard, afterwards it will be set back to the previous behaviour.  
+There are two different kinds of activation the hero following:
+
+#### Manual Follow
 
 All heroes will be flagged to your current position every ~800ms.  
 Hence, its much easier to run through enemies with your heroes.  
-While running, your heroes with fall back will cast the skill after each other.  
-When you ping a far away target, this gets activated.  
-When you ping a close target or attack an close target, the following will stop.
+
+#### Automatic Follow
+
+Note: With pinging a target i mean pressing **ctrl+space**.
+When you ping a far away target, the hero following gets activated.  
+When you ping a close target or attack an close target, the hero following will stop.
 
 ## Attack
 
@@ -48,7 +57,8 @@ Smart features are:
 GW::Constants::SkillID::Ineptitude
 GW::Constants::SkillID::Empathy
 GW::Constants::SkillID::Crippling_Anguish
-GW::Constants::SkillID::Clumsiness,
+GW::Constants::SkillID::Clumsiness
+GW::Constants::SkillID::Faintheartedness
 // Necro
 GW::Constants::SkillID::Spiteful_Spirit
 // Ele
@@ -84,6 +94,7 @@ Feel free to  create an feature request (issue in Github) for more to add!
 ```cpp
 // to_remove_conditions_melee
 GW::Constants::SkillID::Blind
+GW::Constants::SkillID::Weakness
 
 // to_remove_conditions_caster
 GW::Constants::SkillID::Dazed
