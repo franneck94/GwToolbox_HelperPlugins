@@ -60,15 +60,6 @@ void PingLogic(const uint32_t agent_id)
         instance->following_active = true;
 }
 
-void OnTargetPing(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
-{
-    const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
-    if (!packet || (packet->call_type != GW::CallTargetType::AttackingOrTargetting))
-        return;
-
-    PingLogic(packet->agent_id);
-}
-
 void OnEnemyInteract(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
 {
     const auto packet = static_cast<GW::UI::UIPacket::kInteractAgent *>(wparam);
@@ -101,7 +92,6 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
         return;
     }
 
-    GW::UI::RegisterUIMessageCallback(&AgentPinged_Entry, GW::UI::UIMessage::kSendCallTarget, OnTargetPing);
     GW::UI::RegisterUIMessageCallback(&AgentCalled_Entry, GW::UI::UIMessage::kSendInteractEnemy, OnEnemyInteract);
 
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(&MapLoaded_Entry, OnMapLoad);
@@ -239,6 +229,7 @@ void HeroWindow::ShatterImportantHexes()
         GW::Constants::SkillID::Empathy,
         GW::Constants::SkillID::Crippling_Anguish,
         GW::Constants::SkillID::Clumsiness,
+        GW::Constants::SkillID::Faintheartedness,
         // Necro
         GW::Constants::SkillID::Spiteful_Spirit,
         // Ele
@@ -339,6 +330,7 @@ void HeroWindow::RemoveImportantConditions()
 {
     constexpr static auto to_remove_conditions_melee = std::array{
         GW::Constants::SkillID::Blind,
+        GW::Constants::SkillID::Weakness,
     };
     constexpr static auto to_remove_conditions_caster = std::array{
         GW::Constants::SkillID::Dazed,
