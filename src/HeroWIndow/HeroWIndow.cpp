@@ -738,14 +738,14 @@ void HeroWindow::UseBipOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Blood_is_Power;
     constexpr static auto skill_class = GW::Constants::Profession::Necromancer;
-    constexpr static auto wait_ms = 500UL;
+    constexpr static auto wait_ms = 600UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = [](const DataPlayer &player_data) {
         if (!player_data.living)
             return false;
 
-        if (player_data.energy_perc > 0.30F && player_data.energy > 15)
+        if (player_data.energy_perc > 0.30F && player_data.energy > 20)
             return false;
 
         if (player_data.living->energy_regen > 0.03F)
@@ -760,7 +760,7 @@ void HeroWindow::UseBipOnPlayer()
 
         const auto dist = GW::GetDistance(hero.hero_living->pos, player_data.pos);
 
-        return dist < GW::Constants::Range::Spellcast && hero.hero_living->hp > 0.60F;
+        return dist < GW::Constants::Range::Spellcast + 300.0F && hero.hero_living->hp > 0.50F;
     };
 
     SmartUseSkill(skill_id, skill_class, "BiP", player_conditions, hero_conditions, wait_ms, target_logic);
