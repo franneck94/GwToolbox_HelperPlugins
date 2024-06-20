@@ -22,7 +22,7 @@ Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugin
 
 ## New feature compared to last release (0.12.0)
 
-- Hero Ping Feature only works with: **trl+space**
+- Hero Ping Feature only works with: **ctrl+space**
 - Added more conditions and hexes to remove
 - Added vigorous spirit for melee players
 
