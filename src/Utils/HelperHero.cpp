@@ -119,8 +119,7 @@ std::tuple<uint32_t, bool> SkillIdxOfHero(const Hero &hero, const GW::Constants:
             continue;
         }
 
-        const auto can_cast_skill = skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost() &&
-                                    !hero.hero_living->GetIsCasting() && !hero.hero_living->GetIsKnockedDown();
+        const auto can_cast_skill = skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost();
         return std::make_tuple(skill_idx, can_cast_skill);
     }
 
