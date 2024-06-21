@@ -22,6 +22,8 @@ public:
 class HeroData
 {
 public:
+    HeroData();
+
     std::vector<Hero> hero_vec;
     std::map<GW::Constants::Profession, std::vector<uint32_t>> hero_class_idx_map;
 

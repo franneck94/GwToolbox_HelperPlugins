@@ -32,6 +32,7 @@
 #include "HeroWindow.h"
 #include "Logger.h"
 #include "Utils.h"
+#include "UtilsMath.h"
 
 #include <imgui.h>
 
@@ -813,6 +814,36 @@ void HeroWindow::AttackTarget()
     }
 }
 
+void HeroWindow::SmartInFightFlagging()
+{
+    static auto last_flag_time_ms = clock();
+
+    if (TIMER_DIFF(last_flag_time_ms) > 800)
+        return;
+    last_flag_time_ms = clock();
+
+    const auto enemies_in_aggro_of_player = AgentLivingData::AgentsInRange(player_data.pos,
+                                                                           GW::Constants::Allegiance::Enemy,
+                                                                           GW::Constants::Range::Spellcast);
+
+    if (enemies_in_aggro_of_player.size() < 4)
+        return; // No need for advanced flagging in this case
+
+    // const auto rit_heros = hero_class_idx_map.at(GW::Constants::Profession::Ritualist);
+    // const auto rit_heros = hero_class_idx_map.at(GW::Constants::Profession::Necromancer);
+    // const auto rit_heros = hero_class_idx_map.at(GW::Constants::Profession::Monk);
+
+    const auto enemy_center_pos = AgentLivingData::ComputeCenterOfMass(enemies_in_aggro_of_player);
+    const auto player_pos = player_data.pos;
+    const auto center_to_player_line = ComputeLine(enemy_center_pos, player_pos);
+    const auto dividing_line = ComputePerpendicularLineAtPos(center_to_player_line, player_pos);
+
+    for (const auto &hero : hero_data.hero_vec)
+    {
+        GW::PartyMgr::FlagHeroAgent(hero.hero_living->agent_id, );
+    }
+}
+
 void HeroWindow::ResetData()
 {
     target_agent_id = 0U;
@@ -945,6 +976,7 @@ void HeroWindow::HeroSmarterSkills_Logic()
     UseBipOnPlayer();
     UseHonorOnPlayer();
     RuptEnemies();
+    SmartInFightFlagging();
 }
 
 void HeroWindow::HeroFollow_StuckCheck()

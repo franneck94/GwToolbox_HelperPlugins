@@ -15,6 +15,20 @@
 
 #include "DataHero.h"
 
+HeroData::HeroData()
+{
+    hero_class_idx_map[GW::Constants::Profession::Warrior] = {};
+    hero_class_idx_map[GW::Constants::Profession::Ranger] = {};
+    hero_class_idx_map[GW::Constants::Profession::Monk] = {};
+    hero_class_idx_map[GW::Constants::Profession::Necromancer] = {};
+    hero_class_idx_map[GW::Constants::Profession::Mesmer] = {};
+    hero_class_idx_map[GW::Constants::Profession::Elementalist] = {};
+    hero_class_idx_map[GW::Constants::Profession::Assassin] = {};
+    hero_class_idx_map[GW::Constants::Profession::Ritualist] = {};
+    hero_class_idx_map[GW::Constants::Profession::Paragon] = {};
+    hero_class_idx_map[GW::Constants::Profession::Dervish] = {};
+}
+
 bool HeroData::Update(const GW::Array<GW::HeroPartyMember> &heroes_array)
 {
     hero_vec.clear();

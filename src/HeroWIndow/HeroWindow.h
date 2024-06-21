@@ -72,6 +72,7 @@ public:
     void ShatterImportantHexes();
     void RemoveImportantConditions();
     void RuptEnemies();
+    void SmartInFightFlagging();
 
     void StartFollowing();
     void StopFollowing();

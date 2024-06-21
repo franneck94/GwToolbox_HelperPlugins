@@ -24,6 +24,12 @@ struct AgentLivingData
                                    const GW::Constants::Allegiance allegiance,
                                    const float range);
 
+    static std::vector<GW::AgentLiving *> AgentsInRange(const GW::GamePos &player_pos,
+                                                        const GW::Constants::Allegiance allegiance,
+                                                        const float range);
+
+    static GW::GamePos ComputeCenterOfMass(const std::vector<GW::AgentLiving *> &agents);
+
     std::vector<const GW::AgentLiving *> allies;
     std::vector<const GW::AgentLiving *> neutrals;
     std::vector<const GW::AgentLiving *> enemies;

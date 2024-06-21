@@ -86,3 +86,52 @@ size_t AgentLivingData::NumAgentsInRange(const GW::GamePos &player_pos,
         return dist < range;
     });
 }
+
+std::vector<GW::AgentLiving *> AgentLivingData::AgentsInRange(const GW::GamePos &player_pos,
+                                                              const GW::Constants::Allegiance allegiance,
+                                                              const float range)
+{
+    const auto agents_ptr = GW::Agents::GetAgentArray();
+    if (!agents_ptr)
+        return {};
+    auto &agents = *agents_ptr;
+
+    auto agents_vec = std::vector<GW::AgentLiving *>{};
+    for (auto *enemy : agents)
+    {
+        if (!enemy)
+            continue;
+
+        auto enemy_living = enemy->GetAsAgentLiving();
+        if (!enemy_living)
+            continue;
+
+        if (enemy_living->allegiance != allegiance)
+            continue;
+
+        const auto dist = GW::GetDistance(enemy_living->pos, player_pos);
+        if (dist > range)
+            continue;
+
+        agents_vec.push_back(enemy_living);
+    }
+
+    return agents_vec;
+}
+
+GW::GamePos AgentLivingData::ComputeCenterOfMass(const std::vector<GW::AgentLiving *> &agents)
+{
+    auto sum_x = 0.0f;
+    auto sum_y = 0.0f;
+
+    for (const auto *agent : agents)
+    {
+        sum_x += agent->pos.x;
+        sum_y += agent->pos.y;
+    }
+
+    float center_x = sum_x / agents.size();
+    float center_y = sum_y / agents.size();
+
+    return GW::GamePos{center_x, center_y, 0.0F};
+}

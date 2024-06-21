@@ -43,3 +43,8 @@ std::vector<const GW::AgentLiving *> GetEnemiesInGameRectangle(
 bool PointIsBelowLine(const float slope, const float intercept, const GW::GamePos &point);
 
 std::pair<float, float> GetLineBasedOnPointAndAngle(const GW::GamePos &player_pos, const float theta);
+
+std::pair<float, float> ComputeLine(const GW::GamePos &pos1, const GW::GamePos &pos2);
+
+std::pair<float, float> ComputePerpendicularLineAtPos(const std::pair<float, float> &original_line,
+                                                      const GW::GamePos &pos);

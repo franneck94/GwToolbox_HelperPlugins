@@ -140,3 +140,21 @@ bool PointIsBelowLine(const float slope, const float intercept, const GW::GamePo
 
     return false;
 }
+
+std::pair<float, float> ComputeLine(const GW::GamePos &pos1, const GW::GamePos &pos2)
+{
+    float slope = (pos2.y - pos1.y) / (pos2.x - pos1.x);
+    float y_intercept = pos1.y - slope * pos1.x;
+
+    return {slope, y_intercept};
+}
+
+std::pair<float, float> ComputePerpendicularLineAtPos(const std::pair<float, float> &original_line,
+                                                      const GW::GamePos &pos)
+{
+    float original_slope = original_line.first;
+    float perpendicular_slope = -1.0F / original_slope;
+    float y_intercept = pos.y - perpendicular_slope * pos.x;
+
+    return {perpendicular_slope, y_intercept};
+}
