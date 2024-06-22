@@ -39,7 +39,7 @@ Also, for all mesmer heroes, they will cast ESurge on that target.
 Smart features are:
 
 - Heros will follow the player with smart flagging and a maximal fall-back uptime, when following activated or player pings distant target
-- BiP the player regardless of the weapon when low energy (below 30% or below 15 energy)
+- BiP the player regardless of the weapon when low energy (see the logic below)
 - ST: Use Shelter and Union when in fight if not already present
 - Use SoS when in fight if not all three spirits are already present
 - Use splinter weapon, vigorous spirit and honor of strength on the player if melee attacker
@@ -120,3 +120,22 @@ GW::Constants::SkillID::Resurrection_Signet
 ```
 
 Feel free to  create an feature request (issue in Github) for more to add!
+
+### The BiP Logic
+
+The table defines what absolute and percentage enrgy needs to be surpassed to get a bip.
+
+```cpp
+{GW::Constants::Profession::Warrior, {25U, 0.70F}},
+{GW::Constants::Profession::Ranger, {25U, 0.60F}},
+{GW::Constants::Profession::Monk, {30U, 0.50F}},
+{GW::Constants::Profession::Necromancer, {30U, 0.50F}},
+{GW::Constants::Profession::Mesmer, {30U, 0.50F}},
+{GW::Constants::Profession::Elementalist, {40U, 0.40F}},
+{GW::Constants::Profession::Assassin, {25U, 0.60F}},
+{GW::Constants::Profession::Ritualist, {30U, 0.50F}},
+{GW::Constants::Profession::Paragon, {25U, 0.60F}},
+{GW::Constants::Profession::Dervish, {25U, 0.50F}},
+```
+
+So for example the hero will bip you as a paragon, if your energy is below a total of 25 or below a percentage of 60%.

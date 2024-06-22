@@ -95,7 +95,6 @@ public:
     uint32_t target_agent_id = 0;
     bool following_active = false;
 
-    GW::HookEntry AgentPinged_Entry;
     GW::HookEntry AgentCalled_Entry;
 
     GW::HookEntry MapLoaded_Entry;

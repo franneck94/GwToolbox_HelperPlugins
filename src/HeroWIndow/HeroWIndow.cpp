@@ -115,7 +115,7 @@ void HeroWindow::Terminate()
 {
     ToolboxPlugin::Terminate();
     GW::StoC::RemoveCallbacks(&MapLoaded_Entry);
-    GW::UI::RemoveUIMessageCallback(&AgentPinged_Entry);
+    GW::UI::RemoveUIMessageCallback(&AgentCalled_Entry);
 }
 
 void HeroWindow::StartFollowing()
@@ -741,27 +741,45 @@ void HeroWindow::UseBipOnPlayer()
     constexpr static auto skill_class = GW::Constants::Profession::Necromancer;
     constexpr static auto wait_ms = 600UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
+    const static auto energy_class_map = std::map<GW::Constants::Profession, std::pair<uint32_t, float>>{
+        {GW::Constants::Profession::Warrior, {25U, 0.70F}},
+        {GW::Constants::Profession::Ranger, {25U, 0.60F}},
+        {GW::Constants::Profession::Monk, {30U, 0.50F}},
+        {GW::Constants::Profession::Necromancer, {30U, 0.50F}},
+        {GW::Constants::Profession::Mesmer, {30U, 0.50F}},
+        {GW::Constants::Profession::Elementalist, {40U, 0.40F}},
+        {GW::Constants::Profession::Assassin, {25U, 0.60F}},
+        {GW::Constants::Profession::Ritualist, {30U, 0.50F}},
+        {GW::Constants::Profession::Paragon, {25U, 0.60F}},
+        {GW::Constants::Profession::Dervish, {25U, 0.50F}},
+    };
 
     auto player_conditions = [](const DataPlayer &player_data) {
         if (!player_data.living)
             return false;
 
-        if (player_data.energy_perc > 0.30F && player_data.energy > 20)
+        if (player_data.living->energy_regen > 0.03F) // Dont have bip yet
             return false;
 
-        if (player_data.living->energy_regen > 0.03F)
+        const auto [enrgy_treshold_abs, enrgy_treshold_perc] = energy_class_map.at(player_data.primary);
+        if (player_data.energy_perc > enrgy_treshold_perc && player_data.energy > enrgy_treshold_abs)
             return false;
 
+        Log::Info("Needs bip");
         return true;
     };
 
     auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
+        Log::Info("hero_conditions");
         if (!hero.hero_living)
             return false;
 
         const auto dist = GW::GetDistance(hero.hero_living->pos, player_data.pos);
+        const auto is_close_enough = dist < GW::Constants::Range::Spellcast + 300.0F;
+        const auto hero_has_enough_hp = hero.hero_living->hp > 0.50F;
 
-        return dist < GW::Constants::Range::Spellcast + 300.0F && hero.hero_living->hp > 0.50F;
+        Log::Info("Can bip: %d %d", is_close_enough, hero_has_enough_hp);
+        return is_close_enough && hero_has_enough_hp;
     };
 
     SmartUseSkill(skill_id, skill_class, "BiP", player_conditions, hero_conditions, wait_ms, target_logic);
@@ -838,10 +856,10 @@ void HeroWindow::SmartInFightFlagging()
     const auto center_to_player_line = ComputeLine(enemy_center_pos, player_pos);
     const auto dividing_line = ComputePerpendicularLineAtPos(center_to_player_line, player_pos);
 
-    for (const auto &hero : hero_data.hero_vec)
-    {
-        GW::PartyMgr::FlagHeroAgent(hero.hero_living->agent_id, );
-    }
+    // for (const auto &hero : hero_data.hero_vec)
+    // {
+    //     GW::PartyMgr::FlagHeroAgent(hero.hero_living->agent_id, );
+    // }
 }
 
 void HeroWindow::ResetData()

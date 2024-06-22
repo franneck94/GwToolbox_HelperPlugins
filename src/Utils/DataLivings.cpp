@@ -133,5 +133,5 @@ GW::GamePos AgentLivingData::ComputeCenterOfMass(const std::vector<GW::AgentLivi
     float center_x = sum_x / agents.size();
     float center_y = sum_y / agents.size();
 
-    return GW::GamePos{center_x, center_y, 0.0F};
+    return GW::GamePos{center_x, center_y, 0U};
 }
