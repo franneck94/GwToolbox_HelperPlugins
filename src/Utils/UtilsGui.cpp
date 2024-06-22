@@ -17,27 +17,60 @@
 #define M_PI_2 1.57079632679489661923 // pi/2
 #endif
 
+#ifdef _DEBUG
 namespace
 {
+constexpr static auto MAP_SIZE = (2.0F * GW::Constants::Range::Compass) / 20.0F;
+constexpr static auto MAP_SIZE_OFFSET = 20.0F;
+
+ImVec2 _TransformGamePos(const ImVec2 &p)
+{
+    const auto window_pos = ImGui::GetWindowPos();
+
+    return {p.x + (MAP_SIZE / 2.0F) + MAP_SIZE_OFFSET / 2.0F + window_pos.x,
+            p.y + (MAP_SIZE / 2.0F) + MAP_SIZE_OFFSET / 2.0F + window_pos.y};
+}
+
 void _PlotLine(const ImVec2 &p1,
                const ImVec2 &p2,
                const float thickness = 1.0F,
                const ImVec4 &color = ImVec4{0.0F, 0.0F, 0.0F, 1.0F})
 {
     const auto colorU32 = ImGui::ColorConvertFloat4ToU32(color);
+    const auto adjusted_p1 = _TransformGamePos(p1);
+    const auto adjusted_p2 = _TransformGamePos(p2);
 
     auto *draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddLine(p1, p2, colorU32, thickness);
+    draw_list->AddLine(adjusted_p1, adjusted_p2, colorU32, thickness);
 }
 
 void _PlotPoint(const ImVec2 point, const float radius = 1.0F, const ImVec4 &color = ImVec4{0.0F, 0.0F, 0.0F, 1.0F})
 {
     const auto colorU32 = ImGui::ColorConvertFloat4ToU32(color);
+    const auto adjusted_point = _TransformGamePos(point);
 
     auto *draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddCircleFilled(point, radius, colorU32);
+    draw_list->AddCircleFilled(adjusted_point, radius, colorU32);
+}
+void DrawCanvas(const GW::GamePos &player_pos)
+{
+    constexpr static auto border_thickness = 1.5F;
+
+    const auto window_pos = ImGui::GetWindowPos();
+    const auto global_border_min = ImVec2(window_pos.x + MAP_SIZE_OFFSET / 2.0F, window_pos.y + MAP_SIZE_OFFSET / 2.0F);
+    const auto global_border_max =
+        ImVec2(window_pos.x + MAP_SIZE + MAP_SIZE_OFFSET / 2.0F, window_pos.y + MAP_SIZE + MAP_SIZE_OFFSET / 2.0F);
+
+    auto *draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddRect(global_border_min,
+                       global_border_max,
+                       IM_COL32(255, 255, 255, 255),
+                       0.0F,
+                       ImDrawFlags_RoundCornersAll,
+                       border_thickness);
 }
 } // namespace
+#endif
 
 void DrawButton(ActionState &action_state, const ImVec4 color, std::string_view text, const ImVec2 button_size)
 {
@@ -89,6 +122,7 @@ void PlotPoint(const GW::GamePos &player_pos, const GW::GamePos &p, const ImVec4
 
     const auto v = ImVec2{p_.x * -1.0F, p_.y};
     _PlotPoint(v, 1.0F, color);
+    _PlotPoint({0.0F, 0.0F}, 10.0F, color);
 }
 
 void PlotCircle(const GW::GamePos &player_pos, const ImVec4 &color)
@@ -146,24 +180,14 @@ void DrawMap(const GW::GamePos &player_pos,
     if (std::isnan(theta))
         return;
 
-    ImGui::SetNextWindowSize(ImVec2{450.0F, 450.0F}, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2{MAP_SIZE + MAP_SIZE_OFFSET, MAP_SIZE + MAP_SIZE_OFFSET}, ImGuiCond_Always);
     const auto label_window = std::format("{}Window", label.data());
     if (ImGui::Begin(label_window.data(), nullptr, ImGuiWindowFlags_None))
     {
         const auto next_pos = move_pos;
         const auto rect = GameRectangle(player_pos, next_pos, GW::Constants::Range::Spellcast);
 
-        const auto border_thickness = 1.5F;
-        const auto canvasPos = ImGui::GetCursorPos();
-        const auto border_min = canvasPos;
-        const auto border_max =
-            ImVec2(canvasPos.x + button_size.x - border_thickness, canvasPos.y + button_size.y - border_thickness);
-        draw_list->AddRect(border_min,
-                           border_max,
-                           IM_COL32(255, 255, 255, 255),
-                           0.0F,
-                           ImDrawCornerFlags_All,
-                           border_thickness);
+        DrawCanvas(player_pos);
 
         PlotPoint(player_pos, player_pos, ImVec4{1.0F, 1.0F, 1.0F, 1.0F}, 5.0F);
         PlotPoint(player_pos, next_pos, ImVec4{0.5F, 0.5F, 0.0F, 1.0F}, 5.0F);
@@ -192,10 +216,12 @@ void DrawFlaggingFeature(const GW::GamePos &player_pos, std::string_view label)
     if (std::isnan(theta))
         return;
 
-    ImGui::SetNextWindowSize(ImVec2{450.0F, 450.0F}, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2{MAP_SIZE + MAP_SIZE_OFFSET, MAP_SIZE + MAP_SIZE_OFFSET}, ImGuiCond_Always);
     const auto label_window = std::format("{}Window", label.data());
     if (ImGui::Begin(label_window.data(), nullptr, ImGuiWindowFlags_None))
     {
+        DrawCanvas(player_pos);
+
         PlotPoint(player_pos, player_pos, ImVec4{1.0F, 1.0F, 1.0F, 1.0F}, 5.0F);
     }
     ImGui::End();
