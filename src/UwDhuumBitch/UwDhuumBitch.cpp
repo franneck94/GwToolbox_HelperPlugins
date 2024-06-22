@@ -104,12 +104,12 @@ void UwDhuumBitch::DrawSettings()
 {
     ToolboxUIPlugin::DrawSettings();
 
-    // const auto width = ImGui::GetWindowWidth();
-    // ImGui::Text("Show Debug Map:");
-    // ImGui::SameLine(width * 0.5F);
-    // ImGui::PushItemWidth(width * 0.5F);
-    // ImGui::Checkbox("debugMapActive", &show_debug_map);
-    // ImGui::PopItemWidth();
+    const auto width = ImGui::GetWindowWidth();
+    ImGui::Text("Show Debug Map:");
+    ImGui::SameLine(width * 0.5F);
+    ImGui::PushItemWidth(width * 0.5F);
+    ImGui::Checkbox("debugMapActive", &show_debug_map);
+    ImGui::PopItemWidth();
 }
 
 UwDhuumBitch::UwDhuumBitch() : skillbar({}), db_routine(&player_data, &skillbar, &livings_data)
@@ -134,8 +134,8 @@ void UwDhuumBitch::Draw(IDirect3DDevice9 *)
     ImGui::End();
 
 #ifdef _DEBUG
-    // if (IsUw() && show_debug_map && livings_data)
-    //     DrawMap(player_data.pos, livings_data->enemies, moves[move_idx]->pos, "DbMap");
+    if (IsUw() && show_debug_map)
+        DrawMap(player_data.pos, livings_data.enemies, moves[move_idx]->pos, "DbMap");
 #endif
 }
 

@@ -139,11 +139,11 @@ void UwEmo::DrawSettings()
     ImGui::PopItemWidth();
     slot_idx = _slot_idx;
 
-    // ImGui::Text("Show Debug Map:");
-    // ImGui::SameLine(width * 0.5F);
-    // ImGui::PushItemWidth(width * 0.5F);
-    // ImGui::Checkbox("debugMapActive", &show_debug_map);
-    // ImGui::PopItemWidth();
+    ImGui::Text("Show Debug Map:");
+    ImGui::SameLine(width * 0.5F);
+    ImGui::PushItemWidth(width * 0.5F);
+    ImGui::Checkbox("debugMapActive", &show_debug_map);
+    ImGui::PopItemWidth();
 }
 
 UwEmo::UwEmo() : skillbar({}), uw_metadata({}), emo_routine(&player_data, &skillbar, &bag_idx, &slot_idx, &livings_data)
@@ -172,8 +172,8 @@ void UwEmo::Draw(IDirect3DDevice9 *)
     ImGui::End();
 
 #ifdef _DEBUG
-    // if (IsUw() && show_debug_map && livings_data)
-    //     DrawMap(player_data.pos, livings_data.enemies, moves[move_idx]->pos, "EmoMap");
+    if (IsUw() && show_debug_map)
+        DrawMap(player_data.pos, livings_data.enemies, moves[move_idx]->pos, "EmoMap");
 #endif
 }
 
