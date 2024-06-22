@@ -43,6 +43,8 @@ public:
         return true;
     }
     void Update(float delta) override;
+    void LoadSettings(const wchar_t *folder);
+    void SaveSettings(const wchar_t *folder);
 
     void UpdateInternalData();
     void HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size);
@@ -96,9 +98,12 @@ public:
     bool following_active = false;
 
     GW::HookEntry AgentCalled_Entry;
+    uint32_t ping_target_id = 0;
 
     GW::HookEntry MapLoaded_Entry;
     bool load_cb_triggered = false;
 
     GW::HookEntry OnSkillActivated_Entry;
+
+    bool show_debug_map = false;
 };

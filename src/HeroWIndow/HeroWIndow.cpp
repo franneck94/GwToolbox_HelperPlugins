@@ -59,7 +59,10 @@ void PingLogic(const uint32_t agent_id)
     if (ping_close)
         instance->StopFollowing();
     else if (ping_far)
+    {
+        instance->ping_target_id = ping_agent->agent_id;
         instance->following_active = true;
+    }
 }
 
 void OnEnemyInteract(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
@@ -117,6 +120,19 @@ void HeroWindow::Terminate()
     ToolboxPlugin::Terminate();
     GW::StoC::RemoveCallbacks(&MapLoaded_Entry);
     GW::UI::RemoveUIMessageCallback(&AgentCalled_Entry);
+}
+
+void HeroWindow::LoadSettings(const wchar_t *folder)
+{
+    ToolboxUIPlugin::LoadSettings(folder);
+    show_debug_map = ini.GetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+}
+
+void HeroWindow::SaveSettings(const wchar_t *folder)
+{
+    ToolboxUIPlugin::SaveSettings(folder);
+    ini.SetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
+    PLUGIN_ASSERT(ini.SaveFile(GetSettingFile(folder).c_str()) == SI_OK);
 }
 
 void HeroWindow::StartFollowing()
@@ -869,6 +885,7 @@ void HeroWindow::ResetData()
     follow_pos = GW::GamePos{};
     following_active = false;
     hero_data.hero_vec.clear();
+    target_agent_id = 0U;
 }
 
 void HeroWindow::HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size)
@@ -905,6 +922,17 @@ void HeroWindow::HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &tog
     static auto time_dist = std::uniform_int_distribution<long>(-10, 10);
 
     auto added_color_follow = false;
+
+    if (following_active && target_agent_id)
+    {
+        const auto *target_agent = GW::Agents::GetAgentByID(target_agent_id);
+        if (target_agent)
+        {
+            const auto dist = GW::GetDistance(target_agent->pos, player_data.pos);
+            if (dist < GW::Constants::Range::Spellcast)
+                StopFollowing();
+        }
+    }
 
     if (following_active)
     {
@@ -1115,18 +1143,21 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
     ImGui::End();
 
 #ifdef _DEBUG
+    if (show_debug_map)
+    {
+        const auto enemies_in_aggro_of_player = AgentLivingData::AgentsInRange(player_data.pos,
+                                                                               GW::Constants::Allegiance::Enemy,
+                                                                               GW::Constants::Range::Compass);
 
-    const auto enemies_in_aggro_of_player = AgentLivingData::AgentsInRange(player_data.pos,
-                                                                           GW::Constants::Allegiance::Enemy,
-                                                                           GW::Constants::Range::Spellcast);
+        const auto enemy_center_pos = AgentLivingData::ComputeCenterOfMass(enemies_in_aggro_of_player);
+        const auto player_pos = player_data.pos;
+        const auto [center_player_m, center_player_b] = ComputeLine(enemy_center_pos, player_pos);
+        const auto [dividing_m, dividing_b] =
+            ComputePerpendicularLineAtPos(center_player_m, center_player_b, player_pos);
+        const auto a = ComputePositionOnLine(player_pos, center_player_m, center_player_b, 500.0F);
 
-    const auto enemy_center_pos = AgentLivingData::ComputeCenterOfMass(enemies_in_aggro_of_player);
-    const auto player_pos = player_data.pos;
-    const auto [center_player_m, center_player_b] = ComputeLine(enemy_center_pos, player_pos);
-    const auto [dividing_m, dividing_b] = ComputePerpendicularLineAtPos(center_player_m, center_player_b, player_pos);
-    const auto a = ComputePositionOnLine(player_pos, center_player_m, center_player_b, 500.0F);
-
-    DrawFlaggingFeature(player_data.pos, enemies_in_aggro_of_player, "Flagging");
+        DrawFlaggingFeature(player_data.pos, enemies_in_aggro_of_player, "Flagging");
+    }
 #endif
 }
 
