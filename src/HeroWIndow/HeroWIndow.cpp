@@ -65,6 +65,30 @@ void PingLogic(const uint32_t agent_id)
     }
 }
 
+void OnSkillOnEnemy(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
+{
+    auto *instance = static_cast<HeroWindow *>(ToolboxPluginInstance());
+    if (!instance)
+        return;
+
+    const struct Payload
+    {
+        uint32_t agent_id;
+        GW::Constants::SkillID skill_id;
+    } *packet = static_cast<Payload *>(wparam);
+
+    if (!packet || !packet->agent_id || packet->skill_id == GW::Constants::SkillID::No_Skill)
+        return;
+
+    const auto target = GW::Agents::GetAgentByID(packet->agent_id);
+
+    const auto dist = GW::GetDistance(target->pos, instance->player_data.pos);
+    if (dist < GW::Constants::Range::Spellcast + 200.0F)
+        return;
+
+    PingLogic(packet->agent_id);
+}
+
 void OnEnemyInteract(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
 {
     const auto packet = static_cast<GW::UI::UIPacket::kInteractAgent *>(wparam);
@@ -98,6 +122,7 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
     }
 
     GW::UI::RegisterUIMessageCallback(&AgentCalled_Entry, GW::UI::UIMessage::kSendInteractEnemy, OnEnemyInteract);
+    GW::UI::RegisterUIMessageCallback(&AgentCalledBySkill_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillOnEnemy);
 
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(&MapLoaded_Entry, OnMapLoad);
 
@@ -782,7 +807,6 @@ void HeroWindow::UseBipOnPlayer()
         if (player_data.energy_perc > enrgy_treshold_perc && player_data.energy > enrgy_treshold_abs)
             return false;
 
-        Log::Info("Needs bip");
         return true;
     };
 
@@ -930,8 +954,15 @@ void HeroWindow::HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &tog
         {
             const auto dist = GW::GetDistance(target_agent->pos, player_data.pos);
             if (dist < GW::Constants::Range::Spellcast)
+            {
                 StopFollowing();
+                target_agent_id = 0;
+            }
         }
+    }
+    else if (target_agent_id)
+    {
+        target_agent_id = 0;
     }
 
     if (following_active)
