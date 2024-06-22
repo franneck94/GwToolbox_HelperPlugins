@@ -75,8 +75,6 @@ void OnSkillOnEnemy(const uint32_t value_id, const uint32_t caster_id)
     if (caster_id != instance->player_data.id)
         return;
 
-    auto agent_id = caster_id;
-
     switch (value_id)
     {
     case 45:
@@ -105,7 +103,7 @@ void OnSkillOnEnemy(const uint32_t value_id, const uint32_t caster_id)
     if (dist < GW::Constants::Range::Spellcast + 200.0F)
         return;
 
-    PingLogic(agent_id);
+    PingLogic(target_id);
 }
 
 void OnEnemyInteract(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
@@ -1172,6 +1170,9 @@ void HeroWindow::UpdateInternalData()
         target_agent_id = player_data.target->agent_id;
     else
         target_agent_id = 0U;
+
+    if (!IsExplorable())
+        return;
 
     if (!player_data.IsMoving())
         move_time_ms = clock();

@@ -4,7 +4,7 @@ Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugin
 
 ## Features are
 
-- Smart Chat Commands (better useskill e.g.  for dhuum fight)
+- Smart Chat Commands (better useskill e.g. for dhuum fight)
 - UW Helper: Ranger, Mesmer, Emo and DB
 
 ## Smart Hero Commands (This is really helpful for GWAMM'ing)
@@ -25,6 +25,7 @@ Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugin
 - Added energy mapping table for each class for the bip feature
 - Fixed crash on plugin onload while target ping
 - Added plotting funcs for debugging purposes
+- Improved auto follow logic for heroes
 
 ## Known Issues
 
