@@ -682,8 +682,8 @@ void HeroWindow::UseSosInFight()
         if (!player_started_fight)
             return false;
 
-        auto spirits_in_range = std::vector<const GW::AgentLiving *>{};
-        for (const auto *enemy : agents)
+        auto spirits_in_range = std::vector<GW::AgentLiving *>{};
+        for (auto *enemy : agents)
         {
             if (!enemy)
                 continue;
@@ -1126,7 +1126,7 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
     const auto [dividing_m, dividing_b] = ComputePerpendicularLineAtPos(center_player_m, center_player_b, player_pos);
     const auto a = ComputePositionOnLine(player_pos, center_player_m, center_player_b, 500.0F);
 
-    DrawFlaggingFeature(player_data.pos, "Flagging");
+    DrawFlaggingFeature(player_data.pos, enemies_in_aggro_of_player, "Flagging");
 #endif
 }
 

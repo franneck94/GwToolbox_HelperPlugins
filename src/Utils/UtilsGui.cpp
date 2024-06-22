@@ -122,7 +122,6 @@ void PlotPoint(const GW::GamePos &player_pos, const GW::GamePos &p, const ImVec4
 
     const auto v = ImVec2{p_.x * -1.0F, p_.y};
     _PlotPoint(v, 1.0F, color);
-    _PlotPoint({0.0F, 0.0F}, 10.0F, color);
 }
 
 void PlotCircle(const GW::GamePos &player_pos, const ImVec4 &color)
@@ -151,7 +150,7 @@ void PloLine(const GW::GamePos &player_pos, const GW::GamePos p1, const GW::Game
 }
 
 void PlotEnemies(const GW::GamePos &player_pos,
-                 const std::vector<const GW::AgentLiving *> &living_agents,
+                 const std::vector<GW::AgentLiving *> &living_agents,
                  const ImVec4 &color)
 {
     auto idx = 0U;
@@ -169,7 +168,7 @@ void PlotEnemies(const GW::GamePos &player_pos,
 }
 
 void DrawMap(const GW::GamePos &player_pos,
-             const std::vector<const GW::AgentLiving *> &enemies,
+             const std::vector<GW::AgentLiving *> &enemies,
              const GW::GamePos &move_pos,
              std::string_view label)
 {
@@ -207,7 +206,9 @@ void DrawMap(const GW::GamePos &player_pos,
     ImGui::End();
 }
 
-void DrawFlaggingFeature(const GW::GamePos &player_pos, std::string_view label)
+void DrawFlaggingFeature(const GW::GamePos &player_pos,
+                         const std::vector<GW::AgentLiving *> &enemies,
+                         std::string_view label)
 {
     const auto cam = GW::CameraMgr::GetCamera();
     if (!cam)
@@ -223,6 +224,8 @@ void DrawFlaggingFeature(const GW::GamePos &player_pos, std::string_view label)
         DrawCanvas(player_pos);
 
         PlotPoint(player_pos, player_pos, ImVec4{1.0F, 1.0F, 1.0F, 1.0F}, 5.0F);
+
+        PlotEnemies(player_pos, enemies, ImVec4{1.0, 0.0, 0.0, 1.0});
     }
     ImGui::End();
 }

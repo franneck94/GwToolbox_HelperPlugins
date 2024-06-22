@@ -19,9 +19,9 @@ void AgentLivingData::Update()
     spirits = UpdateType(GW::Constants::Allegiance::Spirit_Pet);
 }
 
-std::vector<const GW::AgentLiving *> AgentLivingData::UpdateType(const GW::Constants::Allegiance type)
+std::vector<GW::AgentLiving *> AgentLivingData::UpdateType(const GW::Constants::Allegiance type)
 {
-    auto filtered_agents = std::vector<const GW::AgentLiving *>{};
+    auto filtered_agents = std::vector<GW::AgentLiving *>{};
 
     const auto agents_ptr = GW::Agents::GetAgentArray();
     if (!agents_ptr || !agents_ptr->valid())

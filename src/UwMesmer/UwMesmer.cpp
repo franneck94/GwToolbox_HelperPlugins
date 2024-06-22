@@ -250,7 +250,7 @@ void UwMesmer::Terminate()
     GW::StoC::RemoveCallbacks(&uw_metadata.ObjectiveDone_Entry);
 }
 
-void UwMesmer::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
+void UwMesmer::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
                                   const ImVec4 color,
                                   std::string_view label)
 {

@@ -390,7 +390,7 @@ bool EmoRoutine::RoutineEscortSpirits() const
     if (!livings_data || livings_data->npcs.size() == 0)
         return false;
 
-    auto spirits_livings = std::vector<const GW::AgentLiving *>{};
+    auto spirits_livings = std::vector<GW::AgentLiving *>{};
     FilterByIdsAndDistances(player_data->pos, livings_data->npcs, spirits_livings, ESCORT_IDS);
 
     if (spirits_livings.size() == 0)
@@ -428,7 +428,7 @@ bool EmoRoutine::RoutineCanthaGuards() const
 
     const auto filtered_enemies = FilterAgentsByRange(livings_data->enemies, *player_data, 2500.0F);
 
-    auto filtered_canthas = std::vector<const GW::AgentLiving *>{};
+    auto filtered_canthas = std::vector<GW::AgentLiving *>{};
     FilterByIdsAndDistances(player_data->pos,
                             livings_data->npcs,
                             filtered_canthas,

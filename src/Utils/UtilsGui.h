@@ -80,13 +80,15 @@ void PlotCircle(const GW::GamePos &player_pos, const ImVec4 &color);
 void PloLine(const float slope, const float intercept, const GW::GamePos pos1, const GW::GamePos pos2);
 
 void PlotEnemies(const GW::GamePos &player_pos,
-                 const std::vector<const GW::AgentLiving *> &living_agents,
+                 const std::vector<GW::AgentLiving *> &living_agents,
                  const ImVec4 &color);
 
 void DrawMap(const GW::GamePos &player_pos,
-             const std::vector<const GW::AgentLiving *> &enemies,
+             const std::vector<GW::AgentLiving *> &enemies,
              const GW::GamePos &move_pos,
              std::string_view label);
 
-void DrawFlaggingFeature(const GW::GamePos &player_pos, std::string_view label);
+void DrawFlaggingFeature(const GW::GamePos &player_pos,
+                         const std::vector<GW::AgentLiving *> &enemies,
+                         std::string_view label);
 #endif

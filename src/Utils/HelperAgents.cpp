@@ -67,7 +67,7 @@ const GW::EffectArray *GetEffects(const uint32_t agent_id)
 }
 
 bool TargetNearest(const GW::GamePos &player_pos,
-                   const std::vector<const GW::AgentLiving *> &livings,
+                   const std::vector<GW::AgentLiving *> &livings,
                    const float max_distance)
 {
     auto distance = max_distance;
@@ -168,7 +168,7 @@ bool AgentHasBuff(const GW::Constants::SkillID buff_skill_id, const uint32_t tar
 }
 
 void TargetAndAttackEnemyInAggro(const DataPlayer &player_data,
-                                 const std::vector<const GW::AgentLiving *> &enemies,
+                                 const std::vector<GW::AgentLiving *> &enemies,
                                  const float range)
 {
     if (!player_data.target || !player_data.target->agent_id || !player_data.target->GetIsLivingType() ||
@@ -202,7 +202,7 @@ bool CastBondIfNotAvailable(const DataSkill &skill_data, const uint32_t target_i
 }
 
 std::pair<const GW::AgentLiving *, float> GetClosestEnemy(const DataPlayer *player_data,
-                                                          const std::vector<const GW::AgentLiving *> &enemies)
+                                                          const std::vector<GW::AgentLiving *> &enemies)
 {
     const GW::AgentLiving *closest = nullptr;
     auto closest_dist = FLT_MAX;
@@ -227,7 +227,7 @@ std::pair<const GW::AgentLiving *, float> GetClosestEnemy(const DataPlayer *play
 }
 
 uint32_t GetClosestToPosition(const GW::GamePos &pos,
-                              const std::vector<const GW::AgentLiving *> &livings,
+                              const std::vector<GW::AgentLiving *> &livings,
                               const uint32_t target_id)
 {
     auto closest_id = uint32_t{0U};
@@ -250,7 +250,7 @@ uint32_t GetClosestToPosition(const GW::GamePos &pos,
 }
 
 
-uint32_t GetMostDistantEnemy(const GW::GamePos &pos, const std::vector<const GW::AgentLiving *> &livings)
+uint32_t GetMostDistantEnemy(const GW::GamePos &pos, const std::vector<GW::AgentLiving *> &livings)
 {
     auto distant_id = uint32_t{0U};
     auto distant_dist = 0.0F;
@@ -272,7 +272,7 @@ uint32_t GetMostDistantEnemy(const GW::GamePos &pos, const std::vector<const GW:
 }
 
 uint32_t GetClosestById(const DataPlayer &player_data,
-                        const std::vector<const GW::AgentLiving *> &livings,
+                        const std::vector<GW::AgentLiving *> &livings,
                         const uint32_t id)
 {
     auto closest_id = uint32_t{0U};
@@ -295,28 +295,28 @@ uint32_t GetClosestById(const DataPlayer &player_data,
 }
 
 uint32_t GetClosestEnemyById(const DataPlayer &player_data,
-                             const std::vector<const GW::AgentLiving *> &enemies,
+                             const std::vector<GW::AgentLiving *> &enemies,
                              const uint32_t id)
 {
     return GetClosestById(player_data, enemies, id);
 }
 
 uint32_t GetClosestAllyById(const DataPlayer &player_data,
-                            const std::vector<const GW::AgentLiving *> &allies,
+                            const std::vector<GW::AgentLiving *> &allies,
                             const uint32_t id)
 {
     return GetClosestById(player_data, allies, id);
 }
 
 uint32_t GetClosestNpcbyId(const DataPlayer &player_data,
-                           const std::vector<const GW::AgentLiving *> &npcs,
+                           const std::vector<GW::AgentLiving *> &npcs,
                            const uint32_t id)
 {
     return GetClosestById(player_data, npcs, id);
 }
 
 uint32_t TargetClosestEnemyById(DataPlayer &player_data,
-                                const std::vector<const GW::AgentLiving *> &enemies,
+                                const std::vector<GW::AgentLiving *> &enemies,
                                 const uint32_t id)
 {
     const auto target_id = GetClosestEnemyById(player_data, enemies, id);
@@ -329,7 +329,7 @@ uint32_t TargetClosestEnemyById(DataPlayer &player_data,
 }
 
 uint32_t TargetClosestAllyById(DataPlayer &player_data,
-                               const std::vector<const GW::AgentLiving *> &allies,
+                               const std::vector<GW::AgentLiving *> &allies,
                                const uint32_t id)
 {
     const auto target_id = GetClosestAllyById(player_data, allies, id);
@@ -342,7 +342,7 @@ uint32_t TargetClosestAllyById(DataPlayer &player_data,
 }
 
 uint32_t TargetClosestNpcById(DataPlayer &player_data,
-                              const std::vector<const GW::AgentLiving *> &npcs,
+                              const std::vector<GW::AgentLiving *> &npcs,
                               const uint32_t id)
 {
     const auto target_id = GetClosestNpcbyId(player_data, npcs, id);
@@ -354,7 +354,7 @@ uint32_t TargetClosestNpcById(DataPlayer &player_data,
     return target_id;
 }
 
-void SortByDistance(const DataPlayer &player_data, std::vector<const GW::AgentLiving *> &filtered_livings)
+void SortByDistance(const DataPlayer &player_data, std::vector<GW::AgentLiving *> &filtered_livings)
 {
     const auto player_pos = player_data.pos;
 
@@ -365,11 +365,11 @@ void SortByDistance(const DataPlayer &player_data, std::vector<const GW::AgentLi
     });
 }
 
-std::vector<const GW::AgentLiving *> FilterAgentsByRange(const std::vector<const GW::AgentLiving *> &livings,
+std::vector<GW::AgentLiving *> FilterAgentsByRange(const std::vector<GW::AgentLiving *> &livings,
                                                          const DataPlayer &player_data,
                                                          const float dist_threshold)
 {
-    auto filtered_livings = std::vector<const GW::AgentLiving *>{};
+    auto filtered_livings = std::vector<GW::AgentLiving *>{};
 
     for (const auto living : livings)
     {
@@ -402,9 +402,9 @@ uint32_t GetPartyIdxByID(const uint32_t id)
     return idx;
 }
 
-std::vector<const GW::AgentLiving *> FilterById(const std::vector<const GW::AgentLiving *> &livings, const uint32_t id)
+std::vector<GW::AgentLiving *> FilterById(const std::vector<GW::AgentLiving *> &livings, const uint32_t id)
 {
-    auto res = std::vector<const GW::AgentLiving *>{};
+    auto res = std::vector<GW::AgentLiving *>{};
 
     for (auto living : livings)
     {
@@ -416,8 +416,8 @@ std::vector<const GW::AgentLiving *> FilterById(const std::vector<const GW::Agen
 }
 
 void FilterByIdAndDistance(const GW::GamePos &player_pos,
-                           const std::vector<const GW::AgentLiving *> &livings,
-                           std::vector<const GW::AgentLiving *> &filtered_livings,
+                           const std::vector<GW::AgentLiving *> &livings,
+                           std::vector<GW::AgentLiving *> &filtered_livings,
                            const uint32_t id,
                            const float max_distance)
 {
@@ -470,7 +470,7 @@ bool GetPartyMembers(std::vector<PlayerMapping> &party_members)
     return true;
 }
 
-std::set<uint32_t> FilterAgentIDS(const std::vector<const GW::AgentLiving *> &filtered_livings,
+std::set<uint32_t> FilterAgentIDS(const std::vector<GW::AgentLiving *> &filtered_livings,
                                   const std::set<uint32_t> &filter_ids)
 {
     auto set_ids = std::set<uint32_t>{};
@@ -531,7 +531,7 @@ const GW::AgentLiving *GetTargetAsLiving()
 }
 
 bool FoundSpirit(const DataPlayer &player_data,
-                 const std::vector<const GW::AgentLiving *> &spirits,
+                 const std::vector<GW::AgentLiving *> &spirits,
                  const uint32_t spirit_id,
                  const float range)
 {

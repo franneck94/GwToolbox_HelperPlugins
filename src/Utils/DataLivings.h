@@ -16,7 +16,7 @@ struct AgentLivingData
 
     void Update();
 
-    static std::vector<const GW::AgentLiving *> UpdateType(const GW::Constants::Allegiance type);
+    static std::vector<GW::AgentLiving *> UpdateType(const GW::Constants::Allegiance type);
 
     size_t NumEnemiesInRange(const GW::GamePos &player_pos, const float range) const;
 
@@ -30,10 +30,10 @@ struct AgentLivingData
 
     static GW::GamePos ComputeCenterOfMass(const std::vector<GW::AgentLiving *> &agents);
 
-    std::vector<const GW::AgentLiving *> allies;
-    std::vector<const GW::AgentLiving *> neutrals;
-    std::vector<const GW::AgentLiving *> enemies;
-    std::vector<const GW::AgentLiving *> spirits;
-    std::vector<const GW::AgentLiving *> minions;
-    std::vector<const GW::AgentLiving *> npcs;
+    std::vector<GW::AgentLiving *> allies;
+    std::vector<GW::AgentLiving *> neutrals;
+    std::vector<GW::AgentLiving *> enemies;
+    std::vector<GW::AgentLiving *> spirits;
+    std::vector<GW::AgentLiving *> minions;
+    std::vector<GW::AgentLiving *> npcs;
 };

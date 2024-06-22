@@ -36,9 +36,9 @@ GW::GamePos RotatePoint(const GW::GamePos &player_pos, GW::GamePos pos, const fl
 
 bool IsNearToGamePos(const GW::GamePos &player_pos, const GW::GamePos &pos, const float r);
 
-std::vector<const GW::AgentLiving *> GetEnemiesInGameRectangle(
+std::vector<GW::AgentLiving *> GetEnemiesInGameRectangle(
     const GameRectangle &rectangle,
-    const std::vector<const GW::AgentLiving *> &living_agents);
+    const std::vector<GW::AgentLiving *> &living_agents);
 
 bool PointIsBelowLine(const float slope, const float intercept, const GW::GamePos &point);
 
