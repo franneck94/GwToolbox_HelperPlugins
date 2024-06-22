@@ -32,6 +32,7 @@
 #include "HeroWindow.h"
 #include "Logger.h"
 #include "Utils.h"
+#include "UtilsGui.h"
 #include "UtilsMath.h"
 
 #include <imgui.h>
@@ -834,31 +835,31 @@ void HeroWindow::AttackTarget()
 
 void HeroWindow::SmartInFightFlagging()
 {
-    static auto last_flag_time_ms = clock();
+    // static auto last_flag_time_ms = clock();
 
-    if (TIMER_DIFF(last_flag_time_ms) > 800)
-        return;
-    last_flag_time_ms = clock();
+    // const auto enemies_in_aggro_of_player = AgentLivingData::AgentsInRange(player_data.pos,
+    //                                                                        GW::Constants::Allegiance::Enemy,
+    //                                                                        GW::Constants::Range::Spellcast);
 
-    const auto enemies_in_aggro_of_player = AgentLivingData::AgentsInRange(player_data.pos,
-                                                                           GW::Constants::Allegiance::Enemy,
-                                                                           GW::Constants::Range::Spellcast);
+    // const auto enemy_center_pos = AgentLivingData::ComputeCenterOfMass(enemies_in_aggro_of_player);
+    // const auto player_pos = player_data.pos;
+    // const auto [center_player_m, center_player_b] = ComputeLine(enemy_center_pos, player_pos);
+    // const auto [dividing_m, dividing_b] = ComputePerpendicularLineAtPos(center_player_m, center_player_b, player_pos);
+    // const auto a = ComputePositionOnLine(player_pos, center_player_m, center_player_b, 500.0F);
 
-    if (enemies_in_aggro_of_player.size() < 4)
-        return; // No need for advanced flagging in this case
+    // if (TIMER_DIFF(last_flag_time_ms) > 800)
+    //     return;
+    // last_flag_time_ms = clock();
 
-    // const auto rit_heros = hero_class_idx_map.at(GW::Constants::Profession::Ritualist);
-    // const auto rit_heros = hero_class_idx_map.at(GW::Constants::Profession::Necromancer);
-    // const auto rit_heros = hero_class_idx_map.at(GW::Constants::Profession::Monk);
+    // if (enemies_in_aggro_of_player.size() < 4)
+    //     return; // No need for advanced flagging in this case
 
-    const auto enemy_center_pos = AgentLivingData::ComputeCenterOfMass(enemies_in_aggro_of_player);
-    const auto player_pos = player_data.pos;
-    const auto center_to_player_line = ComputeLine(enemy_center_pos, player_pos);
-    const auto dividing_line = ComputePerpendicularLineAtPos(center_to_player_line, player_pos);
+    // const auto rit_heros = hero_data.hero_class_idx_map.at(GW::Constants::Profession::Ritualist);
+    // // get ST hero
 
     // for (const auto &hero : hero_data.hero_vec)
     // {
-    //     GW::PartyMgr::FlagHeroAgent(hero.hero_living->agent_id, );
+    //     GW::PartyMgr::FlagHeroAgent(hero.hero_living->agent_id, player_pos);
     // }
 }
 
@@ -1112,6 +1113,21 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
         HeroSpike_DrawAndLogic(im_button_size);
     }
     ImGui::End();
+
+#ifdef _DEBUG
+
+    const auto enemies_in_aggro_of_player = AgentLivingData::AgentsInRange(player_data.pos,
+                                                                           GW::Constants::Allegiance::Enemy,
+                                                                           GW::Constants::Range::Spellcast);
+
+    const auto enemy_center_pos = AgentLivingData::ComputeCenterOfMass(enemies_in_aggro_of_player);
+    const auto player_pos = player_data.pos;
+    const auto [center_player_m, center_player_b] = ComputeLine(enemy_center_pos, player_pos);
+    const auto [dividing_m, dividing_b] = ComputePerpendicularLineAtPos(center_player_m, center_player_b, player_pos);
+    const auto a = ComputePositionOnLine(player_pos, center_player_m, center_player_b, 500.0F);
+
+    DrawFlaggingFeature(player_data.pos, "Flagging");
+#endif
 }
 
 void HeroWindow::Update(float)

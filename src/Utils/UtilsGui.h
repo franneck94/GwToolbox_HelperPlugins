@@ -15,7 +15,6 @@
 #include "UtilsMath.h"
 
 #include <imgui.h>
-#include <implot.h>
 
 namespace
 {
@@ -71,25 +70,23 @@ void DrawMovingButtons(const std::array<MoveABC *, N> &moves, bool &move_ongoing
     }
 }
 
-void PlotRectangleLine(const GW::GamePos &player_pos,
-                       const GW::GamePos &p1,
-                       const GW::GamePos &p2,
-                       std::string_view label);
+#ifdef _DEBUG
+void PlotRectangleLine(const GW::GamePos &player_pos, const GW::GamePos &p1, const GW::GamePos &p2);
 
-void PlotPoint(const GW::GamePos &player_pos,
-               const GW::GamePos &p,
-               std::string_view label,
-               const ImVec4 &color,
-               const float width = 5.0F);
+void PlotPoint(const GW::GamePos &player_pos, const GW::GamePos &p, const ImVec4 &color, const float width = 5.0F);
 
-void PlotCircle(const GW::GamePos &player_pos, std::string_view label, const ImVec4 &color);
+void PlotCircle(const GW::GamePos &player_pos, const ImVec4 &color);
+
+void PloLine(const float slope, const float intercept, const GW::GamePos pos1, const GW::GamePos pos2);
 
 void PlotEnemies(const GW::GamePos &player_pos,
                  const std::vector<const GW::AgentLiving *> &living_agents,
-                 std::string_view label,
                  const ImVec4 &color);
 
 void DrawMap(const GW::GamePos &player_pos,
              const std::vector<const GW::AgentLiving *> &enemies,
              const GW::GamePos &move_pos,
              std::string_view label);
+
+void DrawFlaggingFeature(const GW::GamePos &player_pos, std::string_view label);
+#endif

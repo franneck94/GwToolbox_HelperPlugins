@@ -149,12 +149,32 @@ std::pair<float, float> ComputeLine(const GW::GamePos &pos1, const GW::GamePos &
     return {slope, y_intercept};
 }
 
-std::pair<float, float> ComputePerpendicularLineAtPos(const std::pair<float, float> &original_line,
-                                                      const GW::GamePos &pos)
+std::pair<float, float> ComputePerpendicularLineAtPos(float orig_slope, float orig_y_intercept, const GW::GamePos &pos)
 {
-    float original_slope = original_line.first;
-    float perpendicular_slope = -1.0F / original_slope;
-    float y_intercept = pos.y - perpendicular_slope * pos.x;
+    const auto original_slope = orig_slope;
+    const auto perpendicular_slope = -1.0F / orig_y_intercept;
+    const auto y_intercept = pos.y - perpendicular_slope * pos.x;
 
     return {perpendicular_slope, y_intercept};
+}
+
+std::pair<GW::GamePos, GW::GamePos> ComputePositionOnLine(const GW::GamePos &player_pos,
+                                                          float slope,
+                                                          float y_intercept,
+                                                          float distance)
+{
+    const auto A = 1.0F + powf(slope, 2);
+    const auto B = 2.0F * slope * y_intercept - 2.0F * slope * player_pos.y - 2.0F * player_pos.x;
+    const auto C = powf(player_pos.x, 2) + powf(player_pos.y, 2) - 2.0F * y_intercept * player_pos.y +
+                   powf(y_intercept, 2) - powf(distance, 2);
+
+    const auto discriminant = sqrtf(powf(B, 2) - 4.0F * A * C);
+
+    const auto x1 = (-B + discriminant) / (2.0F * A);
+    const auto x2 = (-B - discriminant) / (2.0F * A);
+
+    const auto y1 = slope * x1 + y_intercept;
+    const auto y2 = slope * x2 + y_intercept;
+
+    return {GW::GamePos{x1, y1, 0}, GW::GamePos{x2, y2, 0}};
 }

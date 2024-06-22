@@ -39,7 +39,6 @@ endif()
 
 # Third Party Libs
 include(gwtoolboxpp)
-include(implot)
 
 # First Party Libs
 add_library(Stdafx STATIC "src/stdafx.h" "src/stdafx.cpp")
@@ -50,7 +49,7 @@ file(GLOB UTIL_SOURCES "src/Utils/*.cpp" "src/Utils/*.cc" "src/Utils/*.hpp"
      "src/Utils/*.h")
 add_library(helper_utils STATIC ${UTIL_SOURCES})
 target_include_directories(helper_utils PUBLIC "src/Utils")
-target_link_libraries(helper_utils PUBLIC imgui implot gwca Stdafx)
+target_link_libraries(helper_utils PUBLIC imgui gwca Stdafx)
 
 include(gwtoolboxdll_plugins)
 

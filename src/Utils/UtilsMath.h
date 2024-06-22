@@ -44,7 +44,13 @@ bool PointIsBelowLine(const float slope, const float intercept, const GW::GamePo
 
 std::pair<float, float> GetLineBasedOnPointAndAngle(const GW::GamePos &player_pos, const float theta);
 
+void PloLine(const GW::GamePos &player_pos, std::string_view label, const GW::GamePos p1, const GW::GamePos p2);
+
 std::pair<float, float> ComputeLine(const GW::GamePos &pos1, const GW::GamePos &pos2);
 
-std::pair<float, float> ComputePerpendicularLineAtPos(const std::pair<float, float> &original_line,
-                                                      const GW::GamePos &pos);
+std::pair<float, float> ComputePerpendicularLineAtPos(float slope, float y_intercept, const GW::GamePos &pos);
+
+std::pair<GW::GamePos, GW::GamePos> ComputePositionOnLine(const GW::GamePos &player_pos,
+                                                          float slope,
+                                                          float y_intercept,
+                                                          float distance);
