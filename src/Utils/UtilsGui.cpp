@@ -21,14 +21,16 @@
 namespace
 {
 constexpr static auto MAP_SIZE = (2.0F * GW::Constants::Range::Compass) / 20.0F;
-constexpr static auto MAP_SIZE_OFFSET = 20.0F;
+
+constexpr static auto WHITE = ImVec4{1.0F, 1.0F, 1.0F, 1.0F};
+constexpr static auto RED = ImVec4{1.0F, 0.0F, 0.0F, 1.0F};
 
 ImVec2 _TransformGamePos(const ImVec2 &p)
 {
     const auto window_pos = ImGui::GetWindowPos();
+    const auto window_size = ImGui::GetWindowSize();
 
-    return {p.x + (MAP_SIZE / 2.0F) + MAP_SIZE_OFFSET / 2.0F + window_pos.x,
-            p.y + (MAP_SIZE / 2.0F) + MAP_SIZE_OFFSET / 2.0F + window_pos.y};
+    return {p.x + window_pos.x + window_size.x / 2.0F, p.y + window_pos.y + window_size.y / 2.0F};
 }
 
 void _PlotLine(const ImVec2 &p1,
@@ -57,9 +59,8 @@ void DrawCanvas(const GW::GamePos &player_pos)
     constexpr static auto border_thickness = 1.5F;
 
     const auto window_pos = ImGui::GetWindowPos();
-    const auto global_border_min = ImVec2(window_pos.x + MAP_SIZE_OFFSET / 2.0F, window_pos.y + MAP_SIZE_OFFSET / 2.0F);
-    const auto global_border_max =
-        ImVec2(window_pos.x + MAP_SIZE + MAP_SIZE_OFFSET / 2.0F, window_pos.y + MAP_SIZE + MAP_SIZE_OFFSET / 2.0F);
+    const auto global_border_min = ImVec2(window_pos.x / 2.0F, window_pos.y / 2.0F);
+    const auto global_border_max = ImVec2(window_pos.x + MAP_SIZE / 2.0F, window_pos.y + MAP_SIZE / 2.0F);
 
     auto *draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(global_border_min,
@@ -120,7 +121,7 @@ void PlotPoint(const GW::GamePos &player_pos, const GW::GamePos &p, const ImVec4
     const auto angle = (cam->GetCurrentYaw() + static_cast<float>(M_PI_2));
     const auto p_ = RotatePoint(player_pos, p, angle);
 
-    const auto v = ImVec2{p_.x * -1.0F, p_.y};
+    const auto v = ImVec2{p_.x * -1.0F - player_pos.x, p_.y - player_pos.y};
     _PlotPoint(v, 1.0F, color);
 }
 
@@ -179,7 +180,7 @@ void DrawMap(const GW::GamePos &player_pos,
     if (std::isnan(theta))
         return;
 
-    ImGui::SetNextWindowSize(ImVec2{MAP_SIZE + MAP_SIZE_OFFSET, MAP_SIZE + MAP_SIZE_OFFSET}, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2{MAP_SIZE, MAP_SIZE}, ImGuiCond_Always);
     const auto label_window = std::format("{}Window", label.data());
     if (ImGui::Begin(label_window.data(), nullptr, ImGuiWindowFlags_None))
     {
@@ -201,7 +202,7 @@ void DrawMap(const GW::GamePos &player_pos,
         PlotEnemies(player_pos, enemies, ImVec4{1.0F, 0.65F, 0.0, 1.0});
 
         const auto filtered_livings = GetEnemiesInGameRectangle(rect, enemies);
-        PlotEnemies(player_pos, filtered_livings, ImVec4{1.0, 0.0, 0.0, 1.0});
+        PlotEnemies(player_pos, filtered_livings, RED);
     }
     ImGui::End();
 }
@@ -217,15 +218,18 @@ void DrawFlaggingFeature(const GW::GamePos &player_pos,
     if (std::isnan(theta))
         return;
 
-    ImGui::SetNextWindowSize(ImVec2{MAP_SIZE + MAP_SIZE_OFFSET, MAP_SIZE + MAP_SIZE_OFFSET}, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2{MAP_SIZE, MAP_SIZE}, ImGuiCond_Always);
     const auto label_window = std::format("{}Window", label.data());
     if (ImGui::Begin(label_window.data(), nullptr, ImGuiWindowFlags_None))
     {
         DrawCanvas(player_pos);
 
-        PlotPoint(player_pos, player_pos, ImVec4{1.0F, 1.0F, 1.0F, 1.0F}, 5.0F);
+        const auto t = GW::GamePos{player_pos.x + 100.0F, player_pos.y + 100.0F, 0};
+        PlotPoint(player_pos, player_pos, WHITE, 5.0F);
+        PlotPoint(player_pos, t, WHITE, 5.0F);
 
-        PlotEnemies(player_pos, enemies, ImVec4{1.0, 0.0, 0.0, 1.0});
+        if (IsExplorable())
+            PlotEnemies(player_pos, enemies, RED);
     }
     ImGui::End();
 }
