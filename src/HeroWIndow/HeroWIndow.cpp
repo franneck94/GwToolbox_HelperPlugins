@@ -17,6 +17,7 @@
 #include <GWCA/GameEntities/Player.h>
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
+#include <GWCA/Managers/StoCMgr.h>
 #include <GWCA/Managers/UIMgr.h>
 #include <GWCA/Utilities/Hooker.h>
 #include <GWCA/Utilities/Scanner.h>
@@ -65,28 +66,46 @@ void PingLogic(const uint32_t agent_id)
     }
 }
 
-void OnSkillOnEnemy(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
+void OnSkillOnEnemy(const uint32_t value_id, const uint32_t caster_id)
 {
     auto *instance = static_cast<HeroWindow *>(ToolboxPluginInstance());
     if (!instance)
         return;
 
-    const struct Payload
-    {
-        uint32_t agent_id;
-        GW::Constants::SkillID skill_id;
-    } *packet = static_cast<Payload *>(wparam);
-
-    if (!packet || !packet->agent_id || packet->skill_id == GW::Constants::SkillID::No_Skill)
+    if (caster_id != instance->player_data.id)
         return;
 
-    const auto target = GW::Agents::GetAgentByID(packet->agent_id);
+    auto agent_id = caster_id;
+
+    switch (value_id)
+    {
+    case 45:
+    {
+        break;
+    }
+    default:
+    {
+        return;
+    }
+    }
+
+    const auto target_id = GW::Agents::GetTargetId();
+    if (!target_id)
+        return;
+
+    const auto target = GW::Agents::GetAgentByID(target_id);
+    if (!target_id)
+        return;
+
+    const auto target_agent = target->GetAsAgentLiving();
+    if (!target_agent || target_agent->allegiance != GW::Constants::Allegiance::Enemy)
+        return;
 
     const auto dist = GW::GetDistance(target->pos, instance->player_data.pos);
     if (dist < GW::Constants::Range::Spellcast + 200.0F)
         return;
 
-    PingLogic(packet->agent_id);
+    PingLogic(agent_id);
 }
 
 void OnEnemyInteract(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
@@ -122,7 +141,13 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
     }
 
     GW::UI::RegisterUIMessageCallback(&AgentCalled_Entry, GW::UI::UIMessage::kSendInteractEnemy, OnEnemyInteract);
-    GW::UI::RegisterUIMessageCallback(&AgentCalledBySkill_Entry, GW::UI::UIMessage::kSkillActivated, OnSkillOnEnemy);
+    GW::StoC::RegisterPacketCallback<GW::Packet::StoC::GenericValue>(
+        &GenericValueTarget_Entry,
+        [this](const GW::HookStatus *, const GW::Packet::StoC::GenericValue *packet) -> void {
+            const uint32_t value_id = packet->value_id;
+            const uint32_t caster_id = packet->agent_id;
+            OnSkillOnEnemy(value_id, caster_id);
+        });
 
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::MapLoaded>(&MapLoaded_Entry, OnMapLoad);
 
@@ -906,10 +931,10 @@ void HeroWindow::SmartInFightFlagging()
 void HeroWindow::ResetData()
 {
     target_agent_id = 0U;
+    ping_target_id = 0U;
     follow_pos = GW::GamePos{};
     following_active = false;
     hero_data.hero_vec.clear();
-    target_agent_id = 0U;
 }
 
 void HeroWindow::HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size)
@@ -947,22 +972,22 @@ void HeroWindow::HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &tog
 
     auto added_color_follow = false;
 
-    if (following_active && target_agent_id)
+    if (following_active && ping_target_id)
     {
-        const auto *target_agent = GW::Agents::GetAgentByID(target_agent_id);
+        const auto *target_agent = GW::Agents::GetAgentByID(ping_target_id);
         if (target_agent)
         {
             const auto dist = GW::GetDistance(target_agent->pos, player_data.pos);
             if (dist < GW::Constants::Range::Spellcast)
             {
                 StopFollowing();
-                target_agent_id = 0;
+                ping_target_id = 0;
             }
         }
     }
-    else if (target_agent_id)
+    else
     {
-        target_agent_id = 0;
+        ping_target_id = 0;
     }
 
     if (following_active)
@@ -1124,6 +1149,8 @@ void HeroWindow::HeroFollow_StopConditions()
 
 void HeroWindow::UpdateInternalData()
 {
+    static auto move_time_ms = clock();
+
     const auto *const party_info = GW::PartyMgr::GetPartyInfo();
     if (party_info)
         hero_data.Update(party_info->heroes);
@@ -1145,6 +1172,12 @@ void HeroWindow::UpdateInternalData()
         target_agent_id = player_data.target->agent_id;
     else
         target_agent_id = 0U;
+
+    if (!player_data.IsMoving())
+        move_time_ms = clock();
+
+    if (TIMER_DIFF(move_time_ms) > 5'000)
+        following_active = true;
 }
 
 void HeroWindow::Draw(IDirect3DDevice9 *)

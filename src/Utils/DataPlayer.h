@@ -28,6 +28,7 @@ public:
     bool IsCasting() const;
     bool IsAttacking() const;
     bool IsFighting() const;
+    bool IsMoving() const;
 
     bool HasBuff(const GW::Constants::SkillID buff_skill_id) const;
     bool HasEffect(const GW::Constants::SkillID effect_skill_id) const;

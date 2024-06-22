@@ -148,6 +148,14 @@ bool DataPlayer::IsFighting() const
     return standing_for_ms > 2'000; // Assuming standing in enemies
 }
 
+bool DataPlayer::IsMoving() const
+{
+    if (!living)
+        return false;
+
+    return living->GetIsMoving();
+}
+
 bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id) const
 {
     const auto *const me_buffs = GW::Effects::GetPlayerBuffs();

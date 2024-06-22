@@ -98,7 +98,7 @@ public:
     bool following_active = false;
 
     GW::HookEntry AgentCalled_Entry;
-    GW::HookEntry AgentCalledBySkill_Entry;
+    GW::HookEntry GenericValueTarget_Entry;
     uint32_t ping_target_id = 0;
 
     GW::HookEntry MapLoaded_Entry;
