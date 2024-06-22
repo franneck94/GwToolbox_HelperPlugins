@@ -24,6 +24,7 @@ Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugin
 
 - Added energy mapping table for each class for the bip feature
 - Fixed crash on plugin onload while target ping
+- Added implot for debugging purposes
 
 ## Known Issues
 

@@ -17,15 +17,12 @@ macro(add_tb_plugin PLUGIN)
   target_link_libraries(
     ${PLUGIN}
     PUBLIC RestClient
-           imgui
            directxtex
-           gwca
            easywsclient
            nlohmann_json::nlohmann_json
            simpleini
            imgui::fonts
-           helper_utils
-           Stdafx)
+           helper_utils)
 
   target_compile_options(${PLUGIN} PRIVATE /W4 /Gy)
   target_compile_options(${PLUGIN} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/GL>)
