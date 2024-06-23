@@ -36,7 +36,7 @@ public:
     uint32_t GetNumberOfPartyBonds() const;
     bool CastEffectIfNotAvailable(const DataSkill &skill_data) const;
     bool CastEffect(const DataSkill &skill_data) const;
-    bool AnyTeamMemberHasEffect(const GW::Constants::SkillID effect_id) const;
+    bool PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id) const;
     bool PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id = false) const;
 
     void ChangeTarget(const uint32_t target_id);

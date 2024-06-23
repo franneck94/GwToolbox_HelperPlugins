@@ -31,10 +31,7 @@ std::vector<GW::AgentLiving *> AgentLivingData::UpdateType(const GW::Constants::
 
     for (const auto agent : agents)
     {
-        if (!agent)
-            continue;
-
-        const auto living = agent->GetAsAgentLiving();
+        const auto living = agent ? agent->GetAsAgentLiving() : nullptr;
         if (!living)
             continue;
 

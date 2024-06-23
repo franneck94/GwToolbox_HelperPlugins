@@ -176,22 +176,17 @@ bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id) const
 
 bool DataPlayer::HasEffect(const GW::Constants::SkillID effect_skill_id) const
 {
-    const auto *const me_effects = GW::Effects::GetPlayerEffectsArray();
-    if (!me_effects)
+    const auto *const effects = GW::Effects::GetPlayerEffects();
+    if (!effects)
         return false;
 
-    for (const auto &effect : me_effects->effects)
+    for (const auto &effect : *effects)
     {
         const auto agent_id = effect.agent_id;
         const auto skill_id = effect.skill_id;
 
-        if (agent_id == id || agent_id == 0)
-        {
-            if (skill_id == effect_skill_id)
-            {
-                return true;
-            }
-        }
+        if ((agent_id == id || agent_id == 0) && (skill_id == effect_skill_id))
+            return true;
     }
 
     return false;
@@ -199,18 +194,14 @@ bool DataPlayer::HasEffect(const GW::Constants::SkillID effect_skill_id) const
 
 uint32_t DataPlayer::GetNumberOfPartyBonds() const
 {
-    const auto *effects = GW::Effects::GetPartyEffectsArray();
-    if (!effects || !effects->valid())
-        return false;
-
-    const auto &buffs = (*effects)[0].buffs;
-    if (!buffs.valid())
+    const auto *player_buffs = GW::Effects::GetPlayerBuffs();
+    if (!player_buffs || !player_buffs->valid())
         return false;
 
     auto num_bonds = uint32_t{0};
-    for (size_t i = 0; i < buffs.size(); ++i)
+    for (const auto &buff : *player_buffs)
     {
-        const auto agent_id = buffs[i].target_agent_id;
+        const auto agent_id = buff.target_agent_id;
 
         if (agent_id != id)
             ++num_bonds;
@@ -293,7 +284,7 @@ bool DataPlayer::SkillStoppedCallback(const GW::Packet::StoC::GenericValue *cons
     return false;
 }
 
-bool DataPlayer::AnyTeamMemberHasEffect(const GW::Constants::SkillID effect_id) const
+bool DataPlayer::PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id) const
 {
     const auto *effects = GetEffects(id);
     if (!effects)
@@ -310,11 +301,11 @@ bool DataPlayer::AnyTeamMemberHasEffect(const GW::Constants::SkillID effect_id) 
 
 bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id) const
 {
-    const auto *effects = GetEffects(id);
-    if (!effects)
+    const auto *player_effects = GW::Effects::GetPlayerEffects();
+    if (!player_effects)
         return false;
 
-    for (const auto effect : *effects)
+    for (const auto &effect : *player_effects)
     {
         if (effect.skill_id == effect_id && (ignore_id || (effect.agent_id == id || effect.agent_id == 0)))
             return true;

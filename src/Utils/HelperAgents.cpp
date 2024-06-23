@@ -52,21 +52,11 @@ bool IsAliveAlly(const GW::Agent *target)
 
 const GW::EffectArray *GetEffects(const uint32_t target_agent_id)
 {
-    if (const auto *agent_effects_array = GW::Effects::GetPartyEffectsArray(); agent_effects_array != nullptr)
-    {
-        for (auto &agent_effects_it : *agent_effects_array)
-        {
-            auto &agent_effects = agent_effects_it.effects;
-            if (!agent_effects.valid())
-                continue;
+    const auto *agent_effects = GW::Effects::GetAgentEffects(target_agent_id);
+    if (!agent_effects)
+        return nullptr;
 
-            const auto agent_id = agent_effects_it.agent_id;
-            if (target_agent_id == agent_id)
-                return &agent_effects;
-        }
-    }
-
-    return nullptr;
+    return agent_effects;
 }
 
 bool TargetNearest(const GW::GamePos &player_pos,
@@ -147,20 +137,15 @@ std::tuple<uint32_t, uint32_t, float> GetHp()
 
 bool AgentHasBuff(const GW::Constants::SkillID buff_skill_id, const uint32_t target_agent_id)
 {
-    if (const auto *agent_effects_array = GW::Effects::GetPartyEffectsArray(); agent_effects_array != nullptr)
+    const auto *agent_effects_array = GW::Effects::GetAgentEffects(target_agent_id);
+    if (!agent_effects_array || !agent_effects_array->valid())
+        return false;
+
+    for (auto &agent_effect : *agent_effects_array)
     {
-        for (auto &agent_effects_it : *agent_effects_array)
-        {
-            auto &agent_effects = agent_effects_it.effects;
-            if (!agent_effects.valid())
-                continue;
-
-            const auto agent_id = agent_effects_it.agent_id;
-            const auto skill_id = static_cast<GW::Constants::SkillID>(agent_effects_it.agent_id);
-
-            if (target_agent_id == agent_id && buff_skill_id == skill_id)
-                return true;
-        }
+        const auto skill_id = static_cast<GW::Constants::SkillID>(agent_effect.agent_id);
+        if (buff_skill_id == skill_id)
+            return true;
     }
 
     return false;
