@@ -21,7 +21,7 @@ bool CanMove();
 
 bool IsAliveAlly(const GW::Agent *target);
 
-const GW::EffectArray *GetEffects(const uint32_t agent_id);
+const GW::EffectArray *GetEffects(const uint32_t target_agent_id);
 
 bool DetectPlayerIsDead();
 

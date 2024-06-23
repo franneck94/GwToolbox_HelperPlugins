@@ -58,11 +58,16 @@ void PingLogic(const uint32_t agent_id)
     const auto ping_close = ping_distance < GW::Constants::Range::Spellcast + 200.0F;
     const auto ping_far = ping_distance > GW::Constants::Range::Spellcast + 200.0F;
     if (ping_close)
+    {
         instance->StopFollowing();
+        instance->ping_target_id = 0U;
+        instance->move_time_ms = 0U;
+    }
     else if (ping_far)
     {
         instance->ping_target_id = ping_agent->agent_id;
         instance->following_active = true;
+        instance->move_time_ms = 0U;
     }
 }
 
@@ -87,23 +92,18 @@ void OnSkillOnEnemy(const uint32_t value_id, const uint32_t caster_id)
     }
     }
 
-    const auto target_id = GW::Agents::GetTargetId();
-    if (!target_id)
+    const auto target_agent = GetTargetAsLiving();
+    if (!target_agent)
         return;
 
-    const auto target = GW::Agents::GetAgentByID(target_id);
-    if (!target_id)
-        return;
-
-    const auto target_agent = target->GetAsAgentLiving();
     if (!target_agent || target_agent->allegiance != GW::Constants::Allegiance::Enemy)
         return;
 
-    const auto dist = GW::GetDistance(target->pos, instance->player_data.pos);
+    const auto dist = GW::GetDistance(target_agent->pos, instance->player_data.pos);
     if (dist < GW::Constants::Range::Spellcast + 200.0F)
         return;
 
-    PingLogic(target_id);
+    PingLogic(target_agent->agent_id);
 }
 
 void OnEnemyInteract(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
@@ -235,9 +235,6 @@ void HeroWindow::FollowPlayer()
 
 bool HeroWindow::HeroSkill_StartConditions(const GW::Constants::SkillID skill_id, const long wait_ms)
 {
-    if (!IsMapReady() || !IsExplorable() || hero_data.hero_vec.size() == 0)
-        return false;
-
     if (!ActionABC::HasWaitedLongEnough(wait_ms))
         return false;
 
@@ -834,7 +831,6 @@ void HeroWindow::UseBipOnPlayer()
     };
 
     auto hero_conditions = [](const DataPlayer &player_data, const Hero &hero) {
-        Log::Info("hero_conditions");
         if (!hero.hero_living)
             return false;
 
@@ -842,7 +838,6 @@ void HeroWindow::UseBipOnPlayer()
         const auto is_close_enough = dist < GW::Constants::Range::Spellcast + 300.0F;
         const auto hero_has_enough_hp = hero.hero_living->hp > 0.50F;
 
-        Log::Info("Can bip: %d %d", is_close_enough, hero_has_enough_hp);
         return is_close_enough && hero_has_enough_hp;
     };
 
@@ -1065,16 +1060,16 @@ void HeroWindow::HeroSpike_DrawAndLogic(const ImVec2 &im_button_size)
 
 void HeroWindow::HeroSmarterSkills_Logic()
 {
-    if (following_active || !IsExplorable())
+    if (following_active || !IsMapReady() || !IsExplorable() || (hero_data.hero_vec.size() == 0))
         return;
 
+    UseBipOnPlayer();
     UseShelterInFight();
     UseUnionInFight();
     UseSosInFight();
     UseSplinterOnPlayer();
     UseVigSpiritOnPlayer();
     RemoveImportantConditions();
-    UseBipOnPlayer();
     UseHonorOnPlayer();
     RuptEnemies();
     SmartInFightFlagging();
@@ -1082,8 +1077,9 @@ void HeroWindow::HeroSmarterSkills_Logic()
 
 void HeroWindow::HeroFollow_StuckCheck()
 {
-    static std::vector<uint32_t> same_position_counters(7U, 0);
-    static std::vector<GW::GamePos> last_positions(7U, {});
+    constexpr static auto max_num_heros = 7U;
+    static auto same_position_counters = std::array<uint32_t, max_num_heros>{};
+    static auto last_positions = std::array<GW::GamePos, max_num_heros>{};
 
     auto hero_idx = 0U;
     for (const auto &hero : hero_data.hero_vec)
@@ -1145,10 +1141,31 @@ void HeroWindow::HeroFollow_StopConditions()
     }
 }
 
+void HeroWindow::StartFollowWhileRunning()
+{
+    if (!IsExplorable())
+        return;
+
+    if (!player_data.IsMoving())
+        move_time_ms = clock();
+
+    const auto target_agent = GetTargetAsLiving();
+    if (!target_agent)
+        return;
+
+    if (!target_agent || target_agent->allegiance != GW::Constants::Allegiance::Enemy)
+        return;
+
+    const auto dist = GW::GetDistance(target_agent->pos, player_data.pos);
+    if (dist < GW::Constants::Range::Spellcast + 200.0F)
+        return;
+
+    if (TIMER_DIFF(move_time_ms) > 5'000)
+        following_active = true;
+}
+
 void HeroWindow::UpdateInternalData()
 {
-    static auto move_time_ms = clock();
-
     const auto *const party_info = GW::PartyMgr::GetPartyInfo();
     if (party_info)
         hero_data.Update(party_info->heroes);
@@ -1171,14 +1188,7 @@ void HeroWindow::UpdateInternalData()
     else
         target_agent_id = 0U;
 
-    if (!IsExplorable())
-        return;
-
-    if (!player_data.IsMoving())
-        move_time_ms = clock();
-
-    if (TIMER_DIFF(move_time_ms) > 5'000)
-        following_active = true;
+    StartFollowWhileRunning();
 }
 
 void HeroWindow::Draw(IDirect3DDevice9 *)

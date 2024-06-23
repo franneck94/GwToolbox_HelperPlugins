@@ -50,17 +50,20 @@ bool IsAliveAlly(const GW::Agent *target)
     return target_living->GetIsAlive();
 }
 
-const GW::EffectArray *GetEffects(const uint32_t agent_id)
+const GW::EffectArray *GetEffects(const uint32_t target_agent_id)
 {
-    const auto agent_effects = GW::Effects::GetPartyEffectsArray();
-
-    if (!agent_effects || !agent_effects->valid())
-        return nullptr;
-
-    for (const auto &agent_effect : *agent_effects)
+    if (const auto *agent_effects_array = GW::Effects::GetPartyEffectsArray(); agent_effects_array != nullptr)
     {
-        if (agent_effect.agent_id == agent_id && agent_effect.effects.valid())
-            return &agent_effect.effects;
+        for (auto &agent_effects_it : *agent_effects_array)
+        {
+            auto &agent_effects = agent_effects_it.effects;
+            if (!agent_effects.valid())
+                continue;
+
+            const auto agent_id = agent_effects_it.agent_id;
+            if (target_agent_id == agent_id)
+                return &agent_effects;
+        }
     }
 
     return nullptr;
@@ -144,22 +147,18 @@ std::tuple<uint32_t, uint32_t, float> GetHp()
 
 bool AgentHasBuff(const GW::Constants::SkillID buff_skill_id, const uint32_t target_agent_id)
 {
-    const auto effects = GW::Effects::GetPartyEffectsArray();
-    if (!effects || !effects->valid())
-        return false;
-
-    const auto &buffs = (*effects)[0].buffs;
-    if (!buffs.valid())
-        return false;
-
-    for (size_t i = 0; i < buffs.size(); ++i)
+    if (const auto *agent_effects_array = GW::Effects::GetPartyEffectsArray(); agent_effects_array != nullptr)
     {
-        const auto agent_id = buffs[i].target_agent_id;
-        const auto skill_id = buffs[i].skill_id;
-
-        if (agent_id == target_agent_id)
+        for (auto &agent_effects_it : *agent_effects_array)
         {
-            if (skill_id == buff_skill_id)
+            auto &agent_effects = agent_effects_it.effects;
+            if (!agent_effects.valid())
+                continue;
+
+            const auto agent_id = agent_effects_it.agent_id;
+            const auto skill_id = static_cast<GW::Constants::SkillID>(agent_effects_it.agent_id);
+
+            if (target_agent_id == agent_id && buff_skill_id == skill_id)
                 return true;
         }
     }
@@ -271,9 +270,7 @@ uint32_t GetMostDistantEnemy(const GW::GamePos &pos, const std::vector<GW::Agent
     return distant_id;
 }
 
-uint32_t GetClosestById(const DataPlayer &player_data,
-                        const std::vector<GW::AgentLiving *> &livings,
-                        const uint32_t id)
+uint32_t GetClosestById(const DataPlayer &player_data, const std::vector<GW::AgentLiving *> &livings, const uint32_t id)
 {
     auto closest_id = uint32_t{0U};
     auto closest_dist = FLT_MAX;
@@ -308,9 +305,7 @@ uint32_t GetClosestAllyById(const DataPlayer &player_data,
     return GetClosestById(player_data, allies, id);
 }
 
-uint32_t GetClosestNpcbyId(const DataPlayer &player_data,
-                           const std::vector<GW::AgentLiving *> &npcs,
-                           const uint32_t id)
+uint32_t GetClosestNpcbyId(const DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs, const uint32_t id)
 {
     return GetClosestById(player_data, npcs, id);
 }
@@ -328,9 +323,7 @@ uint32_t TargetClosestEnemyById(DataPlayer &player_data,
     return target_id;
 }
 
-uint32_t TargetClosestAllyById(DataPlayer &player_data,
-                               const std::vector<GW::AgentLiving *> &allies,
-                               const uint32_t id)
+uint32_t TargetClosestAllyById(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &allies, const uint32_t id)
 {
     const auto target_id = GetClosestAllyById(player_data, allies, id);
     if (!target_id)
@@ -341,9 +334,7 @@ uint32_t TargetClosestAllyById(DataPlayer &player_data,
     return target_id;
 }
 
-uint32_t TargetClosestNpcById(DataPlayer &player_data,
-                              const std::vector<GW::AgentLiving *> &npcs,
-                              const uint32_t id)
+uint32_t TargetClosestNpcById(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs, const uint32_t id)
 {
     const auto target_id = GetClosestNpcbyId(player_data, npcs, id);
     if (!target_id)
@@ -366,8 +357,8 @@ void SortByDistance(const DataPlayer &player_data, std::vector<GW::AgentLiving *
 }
 
 std::vector<GW::AgentLiving *> FilterAgentsByRange(const std::vector<GW::AgentLiving *> &livings,
-                                                         const DataPlayer &player_data,
-                                                         const float dist_threshold)
+                                                   const DataPlayer &player_data,
+                                                   const float dist_threshold)
 {
     auto filtered_livings = std::vector<GW::AgentLiving *>{};
 
@@ -523,11 +514,11 @@ const GW::AgentLiving *GetPlayerAsLiving()
 
 const GW::AgentLiving *GetTargetAsLiving()
 {
-    const auto me = GW::Agents::GetTarget();
-    if (!me)
+    const auto target = GW::Agents::GetTarget();
+    if (!target)
         return nullptr;
 
-    return me->GetAsAgentLiving();
+    return target->GetAsAgentLiving();
 }
 
 bool FoundSpirit(const DataPlayer &player_data,

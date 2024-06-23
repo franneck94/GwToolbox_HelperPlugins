@@ -81,6 +81,7 @@ public:
     void UseFallback();
     void ToggleHeroBehaviour();
     void FollowPlayer();
+    void StartFollowWhileRunning();
     bool MesmerSpikeTarget(const Hero &hero_data) const;
     void AttackTarget();
     void ResetData();
@@ -93,6 +94,7 @@ public:
     GW::HeroBehavior current_hero_behaviour_before_follow = GW::HeroBehavior::Guard;
     GW::GamePos follow_pos = {};
     long ms_with_no_pos_change = 0;
+    long move_time_ms = 0;
     long time_at_last_pos_change;
     uint32_t target_agent_id = 0;
     bool following_active = false;
