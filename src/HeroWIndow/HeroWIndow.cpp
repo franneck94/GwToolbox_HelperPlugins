@@ -341,21 +341,16 @@ void HeroWindow::ShatterImportantHexes()
             return std::find(hex_array.begin(), hex_array.end(), curr_hex.skill_id) != hex_array.end();
         };
 
-        for (const auto effect : *effects)
+        for (const auto &effect : *effects)
         {
             if (effect.agent_id != 0)
                 continue;
 
-            if (player_data.holds_melee_weapon)
-            {
-                if (found_hex(to_remove_hexes_melee, effect))
-                    return true;
-            }
-            else
-            {
-                if (found_hex(to_remove_hexes_caster, effect))
-                    return true;
-            }
+            if (player_data.holds_melee_weapon && found_hex(to_remove_hexes_melee, effect))
+                return true;
+
+            if (!player_data.holds_melee_weapon && found_hex(to_remove_hexes_caster, effect))
+                return true;
 
             if (found_hex(to_remove_hexes_all, effect))
                 return true;
@@ -424,7 +419,7 @@ void HeroWindow::RemoveImportantConditions()
             return std::find(cond_array.begin(), cond_array.end(), curr_cond.skill_id) != cond_array.end();
         };
 
-        for (const auto effect : *effects)
+        for (const auto &effect : *effects)
         {
             if (effect.agent_id != 0)
                 continue;
@@ -791,7 +786,7 @@ void HeroWindow::UseFallback()
     auto player_conditions = [](const DataPlayer &) { return true; };
 
     auto hero_conditions = [](const DataPlayer &player_data, const Hero &) {
-        return !player_data.AnyTeamMemberHasEffect(GW::Constants::SkillID::Fall_Back);
+        return !player_data.PlayerOrHeroHasEffect(GW::Constants::SkillID::Fall_Back);
     };
 
     SmartUseSkill(skill_id, skill_class, "FallBack", player_conditions, hero_conditions, wait_ms, target_logic);
@@ -1149,18 +1144,27 @@ void HeroWindow::StartFollowWhileRunning()
     if (!player_data.IsMoving())
         move_time_ms = clock();
 
+    const auto start_follow_bc_moving = TIMER_DIFF(move_time_ms) > 5'000;
+
     const auto target_agent = GetTargetAsLiving();
     if (!target_agent)
+    {
+        if (start_follow_bc_moving)
+            following_active = true;
         return;
+    }
 
-    if (!target_agent || target_agent->allegiance != GW::Constants::Allegiance::Enemy)
-        return;
+    if (target_agent->allegiance == GW::Constants::Allegiance::Enemy)
+    {
+        const auto dist = GW::GetDistance(target_agent->pos, player_data.pos);
+        if (dist < GW::Constants::Range::Spellcast + 200.0F)
+        {
+            StopFollowing();
+            return;
+        }
+    }
 
-    const auto dist = GW::GetDistance(target_agent->pos, player_data.pos);
-    if (dist < GW::Constants::Range::Spellcast + 200.0F)
-        return;
-
-    if (TIMER_DIFF(move_time_ms) > 5'000)
+    if (start_follow_bc_moving)
         following_active = true;
 }
 
