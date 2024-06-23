@@ -25,9 +25,9 @@ const GW::EffectArray *GetEffects(const uint32_t target_agent_id);
 
 bool DetectPlayerIsDead();
 
-std::tuple<uint32_t, uint32_t, float> GetEnergy();
+std::tuple<uint32_t, uint32_t, float> GetEnergy(const GW::AgentLiving *me_living);
 
-std::tuple<uint32_t, uint32_t, float> GetHp();
+std::tuple<uint32_t, uint32_t, float> GetHp(const GW::AgentLiving *me_living);
 
 bool AgentHasBuff(const GW::Constants::SkillID buff_skill_id, const uint32_t target_agent_id);
 

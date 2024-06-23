@@ -94,42 +94,26 @@ bool DetectPlayerIsDead()
     if (!me)
         return false;
 
-    const auto living_me = me->GetAsAgentLiving();
-    if (!living_me)
+    const auto me_living = me->GetAsAgentLiving();
+    if (!me_living)
         return false;
 
-    return living_me->GetIsDead();
+    return me_living->GetIsDead();
 }
 
-std::tuple<uint32_t, uint32_t, float> GetEnergy()
+std::tuple<uint32_t, uint32_t, float> GetEnergy(const GW::AgentLiving *me_living)
 {
-    const auto me = GW::Agents::GetPlayer();
-    if (!me)
-        return std::make_tuple(0, 0, 0.0F);
-
-    const auto living_me = me->GetAsAgentLiving();
-    if (!living_me)
-        return std::make_tuple(0, 0, 0.0F);
-
-    const auto max_energy = living_me->max_energy;
-    const auto energy_perc = living_me->energy;
+    const auto max_energy = me_living->max_energy;
+    const auto energy_perc = me_living->energy;
     const auto energy = static_cast<float>(max_energy) * energy_perc;
 
     return std::make_tuple(static_cast<uint32_t>(energy), max_energy, energy_perc);
 }
 
-std::tuple<uint32_t, uint32_t, float> GetHp()
+std::tuple<uint32_t, uint32_t, float> GetHp(const GW::AgentLiving *me_living)
 {
-    const auto me = GW::Agents::GetPlayer();
-    if (!me)
-        return std::make_tuple(0, 0, 0.0F);
-
-    const auto living_me = me->GetAsAgentLiving();
-    if (!living_me)
-        return std::make_tuple(0, 0, 0.0F);
-
-    const auto max_hp = living_me->max_hp;
-    const auto hp_perc = living_me->hp;
+    const auto max_hp = me_living->max_hp;
+    const auto hp_perc = me_living->hp;
     const auto hp = static_cast<float>(max_hp) * hp_perc;
 
     return std::make_tuple(static_cast<uint32_t>(hp), max_hp, hp_perc);
