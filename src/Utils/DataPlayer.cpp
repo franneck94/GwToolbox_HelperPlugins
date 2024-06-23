@@ -46,9 +46,11 @@ bool DataPlayer::ValidateData(std::function<bool(bool)> cb_fn, const bool need_p
 void DataPlayer::Update()
 {
     const auto *me_agent = GW::Agents::GetPlayer();
-    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_agent)
+        return;
 
-    if (!me_agent || !me_living)
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
         return;
 
     id = me_agent->agent_id;
@@ -61,12 +63,12 @@ void DataPlayer::Update()
 
     target = GW::Agents::GetTarget();
 
-    const auto energy_tpl = GetEnergy();
+    const auto energy_tpl = GetEnergy(me_living);
     energy = std::get<0>(energy_tpl);
     max_energy = std::get<1>(energy_tpl);
     energy_perc = std::get<2>(energy_tpl);
 
-    const auto hp_tpl = GetHp();
+    const auto hp_tpl = GetHp(me_living);
     hp = std::get<0>(hp_tpl);
     max_hp = std::get<1>(hp_tpl);
     hp_perc = std::get<2>(hp_tpl);
@@ -145,7 +147,7 @@ bool DataPlayer::IsFighting() const
     if (IsAttacking() || IsCasting())
         return true;
 
-    return standing_for_ms > 2'000; // Assuming standing in enemies
+    return standing_for_ms > 2'000 && standing_for_ms < 20'000; // Assuming standing in enemies
 }
 
 bool DataPlayer::IsMoving() const
