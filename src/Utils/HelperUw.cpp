@@ -71,10 +71,7 @@ uint32_t GetEmoId()
     for (const auto &member : party_members)
     {
         const auto agent = GW::Agents::GetAgentByID(member.id);
-        if (!agent)
-            continue;
-
-        const auto living = agent->GetAsAgentLiving();
+        const auto living = agent ? agent->GetAsAgentLiving() : nullptr;
         if (!living)
             continue;
 
@@ -102,10 +99,7 @@ uint32_t GetDhuumBitchId()
     for (const auto &member : party_members)
     {
         const auto agent = GW::Agents::GetAgentByID(member.id);
-        if (!agent)
-            continue;
-
-        const auto living = agent->GetAsAgentLiving();
+        const auto living = agent ? agent->GetAsAgentLiving() : nullptr;
         if (!living)
             continue;
 
@@ -200,10 +194,7 @@ const GW::Agent *GetDhuumAgent()
 
     for (const auto agent : *agents_array)
     {
-        if (!agent)
-            continue;
-
-        const auto living = agent->GetAsAgentLiving();
+        const auto living = agent ? agent->GetAsAgentLiving() : nullptr;
         if (!living)
             continue;
 
