@@ -35,6 +35,7 @@
 #include "Utils.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
+#include "Defines.h"
 
 #include <imgui.h>
 
@@ -139,6 +140,7 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
     }
 
     GW::UI::RegisterUIMessageCallback(&AgentCalled_Entry, GW::UI::UIMessage::kSendInteractEnemy, OnEnemyInteract);
+
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::GenericValue>(
         &GenericValueTarget_Entry,
         [this](const GW::HookStatus *, const GW::Packet::StoC::GenericValue *packet) -> void {
@@ -167,6 +169,7 @@ void HeroWindow::Terminate()
 {
     ToolboxPlugin::Terminate();
     GW::StoC::RemoveCallbacks(&MapLoaded_Entry);
+    GW::StoC::RemoveCallbacks(&GenericValueTarget_Entry);
     GW::UI::RemoveUIMessageCallback(&AgentCalled_Entry);
 }
 

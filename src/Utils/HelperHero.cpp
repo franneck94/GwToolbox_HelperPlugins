@@ -19,6 +19,7 @@
 #include "DataHero.h"
 #include "DataPlayer.h"
 #include "HelperHero.h"
+#include "HelperSkill.h"
 
 bool HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, const uint32_t hero_idx_zero_based)
 {
@@ -96,14 +97,20 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
 
 std::tuple<uint32_t, bool> SkillIdxOfHero(const Hero &hero, const GW::Constants::SkillID skill_id)
 {
+    constexpr static auto invalid_case = std::make_tuple(static_cast<uint32_t>(-1), false);
+
     if (!hero.hero_living)
-        return std::make_tuple(static_cast<uint32_t>(-1), false);
+        return invalid_case;
 
     const auto hero_energy =
         static_cast<uint32_t>(hero.hero_living->energy * static_cast<float>(hero.hero_living->max_energy));
 
     auto skill_idx = 0U;
-    for (const auto &skill : hero.skills)
+    const auto hero_skills = GetAgentSkillbar(hero.hero_living->agent_id);
+    if (!hero_skills)
+        return invalid_case;
+
+    for (const auto &skill : hero_skills->skills)
     {
         const auto has_skill_in_skillbar = skill.skill_id == skill_id;
         if (!has_skill_in_skillbar)
@@ -123,5 +130,5 @@ std::tuple<uint32_t, bool> SkillIdxOfHero(const Hero &hero, const GW::Constants:
         return std::make_tuple(skill_idx, can_cast_skill);
     }
 
-    return std::make_tuple(static_cast<uint32_t>(-1), false);
+    return invalid_case;
 }

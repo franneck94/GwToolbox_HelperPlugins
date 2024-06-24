@@ -16,6 +16,7 @@
 #include "DataHero.h"
 #include "DataLivings.h"
 #include "DataPlayer.h"
+#include "HelperHero.h"
 
 class HeroWindow : public ToolboxUIPlugin
 {

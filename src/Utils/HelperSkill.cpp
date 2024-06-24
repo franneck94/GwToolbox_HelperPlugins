@@ -18,3 +18,19 @@ bool SkillIsMeleeAttack(const GW::Constants::SkillID skill_id)
 
     return false;
 }
+
+const GW::Skillbar *GetAgentSkillbar(const uint32_t agent_id)
+{
+    const auto *skillbar_array = GW::SkillbarMgr::GetSkillbarArray();
+
+    if (!skillbar_array)
+        return nullptr;
+
+    for (const GW::Skillbar &skillbar : *skillbar_array)
+    {
+        if (skillbar.agent_id == agent_id)
+            return &skillbar;
+    }
+
+    return nullptr;
+}
