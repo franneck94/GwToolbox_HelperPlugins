@@ -50,10 +50,13 @@ public:
     void UpdateInternalData();
     void HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size);
     void HeroSpike_DrawAndLogic(const ImVec2 &im_button_size);
+
     void HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &toggled_follow);
     void HeroFollow_StopConditions();
     void HeroFollow_StuckCheck();
+    void HeroFollow_StartWhileRunning();
 
+    bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id, const long wait_time_ms = 0UL);
     bool SmartUseSkill(const GW::Constants::SkillID skill_id,
                        const GW::Constants::Profession skill_class,
                        const std::string_view skill_name,
@@ -63,7 +66,6 @@ public:
                        const TargetLogic target_logic = TargetLogic::NO_TARGET,
                        const uint32_t target_id = 0U);
 
-    bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id, const long wait_time_ms = 0UL);
     void HeroSmarterSkills_Logic();
     void UseBipOnPlayer();
     void UseSplinterOnPlayer();
@@ -82,7 +84,6 @@ public:
     void UseFallback();
     void ToggleHeroBehaviour();
     void FollowPlayer();
-    void StartFollowWhileRunning();
     bool MesmerSpikeTarget(const Hero &hero_data) const;
     void AttackTarget();
     void ResetData();

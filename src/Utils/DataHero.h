@@ -16,7 +16,6 @@ struct Hero
 public:
     const GW::AgentLiving *hero_living;
     const uint32_t hero_idx_zero_based;
-    const std::array<GW::SkillbarSkill, 8U> skills;
 };
 
 class HeroData
@@ -27,5 +26,5 @@ public:
     std::vector<Hero> hero_vec;
     std::map<GW::Constants::Profession, std::vector<uint32_t>> hero_class_idx_map;
 
-    bool Update(const GW::Array<GW::HeroPartyMember> &heroes_array);
+    bool Update();
 };

@@ -875,7 +875,11 @@ bool player_conditions_attack(const DataPlayer &player_data)
 
 void HeroWindow::AttackTarget()
 {
-    if (!player_conditions_attack(player_data))
+    if (!player_data.target)
+        return;
+
+    const auto *target_living = player_data.target->GetAsAgentLiving();
+    if (!target_living || target_living->allegiance != GW::Constants::Allegiance::Enemy)
         return;
 
     if (!HeroSkill_StartConditions(GW::Constants::SkillID::No_Skill))
@@ -1058,7 +1062,7 @@ void HeroWindow::HeroSpike_DrawAndLogic(const ImVec2 &im_button_size)
 
 void HeroWindow::HeroSmarterSkills_Logic()
 {
-    if (following_active || !IsMapReady() || !IsExplorable() || (hero_data.hero_vec.size() == 0))
+    if (!IsMapReady() || !IsExplorable() || following_active || (hero_data.hero_vec.size() == 0))
         return;
 
     UseBipOnPlayer();
@@ -1139,7 +1143,7 @@ void HeroWindow::HeroFollow_StopConditions()
     }
 }
 
-void HeroWindow::StartFollowWhileRunning()
+void HeroWindow::HeroFollow_StartWhileRunning()
 {
     if (!IsExplorable())
         return;
@@ -1173,12 +1177,6 @@ void HeroWindow::StartFollowWhileRunning()
 
 void HeroWindow::UpdateInternalData()
 {
-    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
-    if (party_info)
-        hero_data.Update(party_info->heroes);
-    else
-        hero_data.hero_vec.clear();
-
     if (player_data.pos == follow_pos && following_active)
     {
         ms_with_no_pos_change = TIMER_DIFF(time_at_last_pos_change);
@@ -1195,23 +1193,20 @@ void HeroWindow::UpdateInternalData()
     else
         target_agent_id = 0U;
 
-    StartFollowWhileRunning();
+    HeroFollow_StartWhileRunning();
 }
 
 void HeroWindow::Draw(IDirect3DDevice9 *)
 {
-    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
-
-    if (!player_data.ValidateData(HelperActivationConditions, true) || !party_info || party_info->heroes.size() == 0 ||
-        (*GetVisiblePtr()) == false)
-    {
+    if (!player_data.ValidateData(HelperActivationConditions, true) || (*GetVisiblePtr()) == false)
         return;
-    }
+
+    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+    if (!party_info || party_info->heroes.size() == 0)
+        return;
 
     ImGui::SetNextWindowSize(ImVec2(240.0F, 45.0F), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(Name(),
-                     can_close && show_closebutton ? GetVisiblePtr() : nullptr,
-                     GetWinFlags(ImGuiWindowFlags_NoResize)))
+    if (ImGui::Begin(Name(), show_closebutton ? GetVisiblePtr() : nullptr, GetWinFlags(ImGuiWindowFlags_NoResize)))
     {
         const auto width = ImGui::GetWindowWidth();
         const auto im_button_size = ImVec2{width / 3.0F - 10.0F, 50.0F};
@@ -1252,7 +1247,10 @@ void HeroWindow::Update(float)
     }
 
     player_data.Update();
+    hero_data.Update();
     UpdateInternalData();
+
+    HeroFollow_StartWhileRunning();
 
     HeroSmarterSkills_Logic();
     HeroFollow_StopConditions();
