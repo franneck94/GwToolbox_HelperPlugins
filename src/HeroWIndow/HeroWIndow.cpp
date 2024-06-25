@@ -56,8 +56,8 @@ void PingLogic(const uint32_t agent_id)
         return;
 
     const auto ping_distance = GW::GetDistance(ping_agent->pos, instance->player_data.pos);
-    const auto ping_close = ping_distance < GW::Constants::Range::Spellcast + 200.0F;
-    const auto ping_far = ping_distance > GW::Constants::Range::Spellcast + 200.0F;
+    const auto ping_close = ping_distance < GW::Constants::Range::Spellcast;
+    const auto ping_far = ping_distance > GW::Constants::Range::Spellcast;
     if (ping_close)
     {
         instance->StopFollowing();
@@ -66,8 +66,8 @@ void PingLogic(const uint32_t agent_id)
     }
     else if (ping_far)
     {
+        instance->StartFollowing();
         instance->ping_target_id = ping_agent->agent_id;
-        instance->following_active = true;
         instance->move_time_ms = 0U;
     }
 }
@@ -101,7 +101,7 @@ void OnSkillOnEnemy(const uint32_t value_id, const uint32_t caster_id)
         return;
 
     const auto dist = GW::GetDistance(target_agent->pos, instance->player_data.pos);
-    if (dist < GW::Constants::Range::Spellcast + 200.0F)
+    if (dist < GW::Constants::Range::Spellcast)
         return;
 
     PingLogic(target_agent->agent_id);
@@ -188,7 +188,8 @@ void HeroWindow::SaveSettings(const wchar_t *folder)
 
 void HeroWindow::StartFollowing()
 {
-    Log::Info("Heroes will follow the player!");
+    if (!following_active)
+        Log::Info("Heroes will follow the player!");
     following_active = true;
     current_hero_behaviour_before_follow = current_hero_behaviour;
     current_hero_behaviour = GW::HeroBehavior::AvoidCombat;
@@ -200,13 +201,16 @@ void HeroWindow::StopFollowing()
         Log::Info("Heroes stopped following the player!");
     following_active = false;
     GW::PartyMgr::UnflagAll();
-    current_hero_behaviour = current_hero_behaviour_before_follow;
+    if (current_hero_behaviour != current_hero_behaviour_before_follow)
+    {
+        current_hero_behaviour = current_hero_behaviour_before_follow;
+        SetHerosBehaviour(player_data.living->login_number, current_hero_behaviour);
+    }
 }
 
 void HeroWindow::ToggleHeroBehaviour()
 {
-    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
-    if (!party_info || !player_data.living || !IsMapReady())
+    if (!player_data.living || !IsMapReady() || following_active)
         return;
 
     Log::Info("Toggle hero hehaviour!");
@@ -220,11 +224,7 @@ void HeroWindow::ToggleHeroBehaviour()
     else
         return;
 
-    for (const auto &hero : party_info->heroes)
-    {
-        if (hero.owner_player_id == player_data.living->login_number)
-            GW::PartyMgr::SetHeroBehavior(hero.agent_id, current_hero_behaviour);
-    }
+    SetHerosBehaviour(player_data.living->login_number, current_hero_behaviour);
 }
 
 void HeroWindow::FollowPlayer()
@@ -372,9 +372,8 @@ void HeroWindow::ShatterImportantHexes()
         if (!player_data.living || !hero.hero_living)
             return false;
 
-        const auto spellcast_range = GW::Constants::Range::Spellcast;
         const auto distance = GW::GetDistance(player_data.living->pos, hero.hero_living->pos);
-        return distance <= spellcast_range;
+        return distance <= GW::Constants::Range::Spellcast;
     };
 
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
@@ -453,9 +452,8 @@ void HeroWindow::RemoveImportantConditions()
         if (!player_data.living || !hero.hero_living)
             return false;
 
-        const auto spellcast_range = GW::Constants::Range::Spellcast;
         const auto distance = GW::GetDistance(player_data.living->pos, hero.hero_living->pos);
-        return distance <= spellcast_range;
+        return distance <= GW::Constants::Range::Spellcast;
     };
 
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
@@ -1160,14 +1158,14 @@ void HeroWindow::HeroFollow_StartWhileRunning()
     if (!target_agent)
     {
         if (start_follow_bc_moving)
-            following_active = true;
+            StartFollowing();
         return;
     }
 
     if (target_agent->allegiance == GW::Constants::Allegiance::Enemy)
     {
         const auto dist = GW::GetDistance(target_agent->pos, player_data.pos);
-        if (dist < GW::Constants::Range::Spellcast + 200.0F)
+        if (dist < GW::Constants::Range::Spellcast)
         {
             StopFollowing();
             return;
@@ -1175,7 +1173,7 @@ void HeroWindow::HeroFollow_StartWhileRunning()
     }
 
     if (start_follow_bc_moving)
-        following_active = true;
+        StartFollowing();
 }
 
 void HeroWindow::UpdateInternalData()

@@ -26,3 +26,5 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
                               const uint32_t target_id = 0);
 
 std::tuple<uint32_t, bool> SkillIdxOfHero(const Hero &hero, const GW::Constants::SkillID skill_id);
+
+void SetHerosBehaviour(const uint32_t player_login_number, const GW::HeroBehavior hero_behaviour);
