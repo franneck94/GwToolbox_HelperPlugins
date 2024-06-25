@@ -307,7 +307,7 @@ bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id, const b
 
     for (const auto &effect : *player_effects)
     {
-        if (effect.skill_id == effect_id && (ignore_id || (effect.agent_id == id || effect.agent_id == 0)))
+        if (effect.skill_id == effect_id && (ignore_id || effect.agent_id == id))
             return true;
     }
 
