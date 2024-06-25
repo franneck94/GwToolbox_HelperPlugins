@@ -49,14 +49,7 @@ std::vector<GW::AgentLiving *> AgentLivingData::UpdateType(const GW::Constants::
 
 size_t AgentLivingData::NumEnemiesInRange(const GW::GamePos &player_pos, const float range) const
 {
-    return std::count_if(enemies.begin(), enemies.end(), [=](const auto *enemy_living) {
-        if (!enemy_living)
-            return false;
-
-        const auto dist = GW::GetDistance(enemy_living->pos, player_pos);
-
-        return dist < range;
-    });
+    return NumAgentsInRange(player_pos, GW::Constants::Allegiance::Enemy, range);
 }
 
 size_t AgentLivingData::NumAgentsInRange(const GW::GamePos &player_pos,

@@ -59,8 +59,6 @@ void DataPlayer::Update()
     me = me_agent;
     living = me_living;
 
-    dead = living->GetIsDead() || living->hp == 0.0F || !living->GetIsAlive();
-
     target = GW::Agents::GetTarget();
 
     const auto energy_tpl = GetEnergy(me_living);

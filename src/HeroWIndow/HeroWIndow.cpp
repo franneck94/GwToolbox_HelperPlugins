@@ -25,6 +25,7 @@
 #include "ActionTypes.h"
 #include "ActionsBase.h"
 #include "DataPlayer.h"
+#include "Defines.h"
 #include "Helper.h"
 #include "HelperAgents.h"
 #include "HelperHero.h"
@@ -35,7 +36,6 @@
 #include "Utils.h"
 #include "UtilsGui.h"
 #include "UtilsMath.h"
-#include "Defines.h"
 
 #include <imgui.h>
 
@@ -850,16 +850,6 @@ bool HeroWindow::MesmerSpikeTarget(const Hero &hero) const
     if (!hero.hero_living)
         return false;
 
-    auto hero_conditions = [](const DataPlayer &, const Hero &) { return true; };
-
-    if (hero.hero_living->primary == static_cast<uint8_t>(skill_class))
-        return HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, TargetLogic::PLAYER_TARGET);
-
-    return false;
-}
-
-bool player_conditions_attack(const DataPlayer &player_data)
-{
     if (!player_data.target)
         return false;
 
@@ -870,7 +860,12 @@ bool player_conditions_attack(const DataPlayer &player_data)
     if (target_living->allegiance != GW::Constants::Allegiance::Enemy)
         return false;
 
-    return true;
+    auto hero_conditions = [](const DataPlayer &, const Hero &) { return true; };
+
+    if (hero.hero_living->primary == static_cast<uint8_t>(skill_class))
+        return HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, TargetLogic::PLAYER_TARGET);
+
+    return false;
 }
 
 void HeroWindow::AttackTarget()
@@ -1192,8 +1187,6 @@ void HeroWindow::UpdateInternalData()
         target_agent_id = player_data.target->agent_id;
     else
         target_agent_id = 0U;
-
-    HeroFollow_StartWhileRunning();
 }
 
 void HeroWindow::Draw(IDirect3DDevice9 *)
@@ -1222,18 +1215,18 @@ void HeroWindow::Draw(IDirect3DDevice9 *)
 #ifdef _DEBUG
     if (show_debug_map)
     {
-        const auto enemies_in_aggro_of_player = AgentLivingData::AgentsInRange(player_data.pos,
-                                                                               GW::Constants::Allegiance::Enemy,
-                                                                               GW::Constants::Range::Compass);
+        // const auto enemies_in_aggro_of_player = AgentLivingData::AgentsInRange(player_data.pos,
+        //                                                                        GW::Constants::Allegiance::Enemy,
+        //                                                                        GW::Constants::Range::Compass);
 
-        const auto enemy_center_pos = AgentLivingData::ComputeCenterOfMass(enemies_in_aggro_of_player);
-        const auto player_pos = player_data.pos;
-        const auto [center_player_m, center_player_b] = ComputeLine(enemy_center_pos, player_pos);
-        const auto [dividing_m, dividing_b] =
-            ComputePerpendicularLineAtPos(center_player_m, center_player_b, player_pos);
-        const auto a = ComputePositionOnLine(player_pos, center_player_m, center_player_b, 500.0F);
+        // const auto enemy_center_pos = AgentLivingData::ComputeCenterOfMass(enemies_in_aggro_of_player);
+        // const auto player_pos = player_data.pos;
+        // const auto [center_player_m, center_player_b] = ComputeLine(enemy_center_pos, player_pos);
+        // const auto [dividing_m, dividing_b] =
+        //     ComputePerpendicularLineAtPos(center_player_m, center_player_b, player_pos);
+        // const auto a = ComputePositionOnLine(player_pos, center_player_m, center_player_b, 500.0F);
 
-        DrawFlaggingFeature(player_data.pos, enemies_in_aggro_of_player, "Flagging");
+        // DrawFlaggingFeature(player_data.pos, enemies_in_aggro_of_player, "Flagging");
     }
 #endif
 }
@@ -1251,7 +1244,6 @@ void HeroWindow::Update(float)
     UpdateInternalData();
 
     HeroFollow_StartWhileRunning();
-
     HeroSmarterSkills_Logic();
     HeroFollow_StopConditions();
     HeroFollow_StuckCheck();

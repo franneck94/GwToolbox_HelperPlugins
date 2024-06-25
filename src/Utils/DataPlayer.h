@@ -59,7 +59,6 @@ public:
     uint32_t hp = 0U;
     uint32_t max_hp = 0U;
     float hp_perc = 0.0F;
-    bool dead = false;
 
     GW::Constants::Profession primary = GW::Constants::Profession::None;
     GW::Constants::Profession secondary = GW::Constants::Profession::None;
