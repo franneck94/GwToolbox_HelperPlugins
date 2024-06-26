@@ -186,12 +186,171 @@ void HeroWindow::SaveSettings(const wchar_t *folder)
     PLUGIN_ASSERT(ini.SaveFile(GetSettingFile(folder).c_str()) == SI_OK);
 }
 
+void HeroWindow::Draw(IDirect3DDevice9 *)
+{
+    if (!player_data.ValidateData(HelperActivationConditions, true) || (*GetVisiblePtr()) == false)
+        return;
+
+    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+    if (!party_info || party_info->heroes.size() == 0)
+        return;
+
+    ImGui::SetNextWindowSize(ImVec2(240.0F, 45.0F), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin(Name(), show_closebutton ? GetVisiblePtr() : nullptr, GetWinFlags(ImGuiWindowFlags_NoResize)))
+    {
+        const auto width = ImGui::GetWindowWidth();
+        const auto im_button_size = ImVec2{width / 3.0F - 10.0F, 50.0F};
+
+        toggled_follow = false;
+
+        HeroBehaviour_DrawAndLogic(im_button_size);
+        HeroFollow_DrawAndLogic(im_button_size);
+        HeroSpike_DrawAndLogic(im_button_size);
+    }
+    ImGui::End();
+
+#ifdef _DEBUG
+    if (show_debug_map)
+    {
+        // const auto enemies_in_aggro_of_player = AgentLivingData::AgentsInRange(player_data.pos,
+        //                                                                        GW::Constants::Allegiance::Enemy,
+        //                                                                        GW::Constants::Range::Compass);
+
+        // const auto enemy_center_pos = AgentLivingData::ComputeCenterOfMass(enemies_in_aggro_of_player);
+        // const auto player_pos = player_data.pos;
+        // const auto [center_player_m, center_player_b] = ComputeLine(enemy_center_pos, player_pos);
+        // const auto [dividing_m, dividing_b] =
+        //     ComputePerpendicularLineAtPos(center_player_m, center_player_b, player_pos);
+        // const auto a = ComputePositionOnLine(player_pos, center_player_m, center_player_b, 500.0F);
+
+        // DrawFlaggingFeature(player_data.pos, enemies_in_aggro_of_player, "Flagging");
+    }
+#endif
+}
+
+void HeroWindow::Update(float)
+{
+    if (!player_data.ValidateData(HelperActivationConditions, true))
+    {
+        ResetData();
+        return;
+    }
+
+    player_data.Update();
+    hero_data.Update();
+    UpdateInternalData();
+
+    HeroSmarterFollow_Main();
+    HeroSmarterFlagging_Main();
+    HeroSmarterSkills_Main();
+}
+
+/* MAIN CYCLE FUNCTIONS */
+
+
+void HeroWindow::UpdateInternalData()
+{
+    if (player_data.pos == follow_pos && following_active)
+    {
+        ms_with_no_pos_change = TIMER_DIFF(time_at_last_pos_change);
+    }
+    else
+    {
+        ms_with_no_pos_change = 0U;
+        time_at_last_pos_change = TIMER_INIT();
+    }
+    follow_pos = player_data.pos;
+
+    if (player_data.target && player_data.target->agent_id)
+        target_agent_id = player_data.target->agent_id;
+    else
+        target_agent_id = 0U;
+}
+
+void HeroWindow::ResetData()
+{
+    target_agent_id = 0U;
+    ping_target_id = 0U;
+    follow_pos = GW::GamePos{};
+    following_active = false;
+    hero_data.hero_vec.clear();
+}
+
+void HeroWindow::HeroSmarterFollow_Main()
+{
+    static auto last_follow_trigger_ms = clock();
+    static auto gen = std::mt19937{};
+    static auto time_dist = std::uniform_int_distribution<long>(-10, 10);
+
+    HeroFollow_StartWhileRunning();
+    HeroFollow_StopConditions();
+    HeroFollow_StuckCheck();
+
+    if (IsExplorable() && following_active && TIMER_DIFF(last_follow_trigger_ms) > 800 + time_dist(gen))
+    {
+        FollowPlayer();
+        last_follow_trigger_ms = clock();
+
+        UseFallback();
+    }
+    else if (IsMapReady() && IsExplorable() && toggled_follow)
+    {
+        GW::PartyMgr::UnflagAll();
+    }
+}
+
+void HeroWindow::HeroSmarterFlagging_Main()
+{
+}
+
+bool HeroWindow::HeroSmarterSkills_Main()
+{
+    if (!IsMapReady() || !IsExplorable() || following_active || (hero_data.hero_vec.size() == 0))
+        return false;
+
+    if (UseBipOnPlayer())
+        return true;
+    // if (UseShelterInFight())
+    //     return true;
+    // if (UseUnionInFight())
+    //     return true;
+    // if (UseSosInFight())
+    //     return true;
+    // if (UseSplinterOnPlayer())
+    //     return true;
+    // if (UseVigSpiritOnPlayer())
+    //     return true;
+    // if (RemoveImportantConditions())
+    //     return true;
+    // if (ShatterImportantHexes())
+    //     return true;
+    // if (UseHonorOnPlayer())
+    //     return true;
+    // if (RuptEnemies())
+    //     return true;
+
+    return false;
+}
+
+/* INTERNAL FUNCTIONS FOLLOW */
+
+void HeroWindow::FollowPlayer()
+{
+    if (!IsMapReady() || !IsExplorable() || !player_data.living || (follow_pos.x == 0.0F && follow_pos.y == 0.0F) ||
+        !GW::PartyMgr::GetIsPartyLoaded() || GW::PartyMgr::GetIsPartyDefeated())
+        return;
+
+    GW::PartyMgr::FlagAll(follow_pos);
+}
+
 void HeroWindow::StartFollowing()
 {
     if (!following_active)
+    {
         Log::Info("Heroes will follow the player!");
+        current_hero_behaviour_before_follow = current_hero_behaviour;
+    }
     following_active = true;
-    current_hero_behaviour_before_follow = current_hero_behaviour;
     current_hero_behaviour = GW::HeroBehavior::AvoidCombat;
 }
 
@@ -206,6 +365,181 @@ void HeroWindow::StopFollowing()
         current_hero_behaviour = current_hero_behaviour_before_follow;
         SetHerosBehaviour(player_data.living->login_number, current_hero_behaviour);
     }
+}
+
+void HeroWindow::HeroFollow_DrawAndLogic(const ImVec2 &im_button_size)
+{
+    auto added_color_follow = false;
+
+    if (following_active)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
+        added_color_follow = true;
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Follow###followPlayer", im_button_size))
+    {
+        if (IsExplorable())
+        {
+            following_active = !following_active;
+            toggled_follow = true;
+
+            if (following_active)
+                StartFollowing();
+            else
+                StopFollowing();
+        }
+    }
+
+    if (added_color_follow)
+        ImGui::PopStyleColor();
+}
+
+void HeroWindow::HeroFollow_StopConditions()
+{
+    if (!IsExplorable() || !following_active)
+    {
+        ms_with_no_pos_change = 0U;
+        time_at_last_pos_change = TIMER_INIT();
+        return;
+    }
+
+    if (ms_with_no_pos_change >= 10'000)
+    {
+        StopFollowing();
+        ms_with_no_pos_change = 0U;
+        time_at_last_pos_change = TIMER_INIT();
+    }
+
+    if (player_data.IsAttacking() && following_active)
+    {
+        StopFollowing();
+        ms_with_no_pos_change = 0U;
+        time_at_last_pos_change = TIMER_INIT();
+    }
+
+    if (following_active && ping_target_id)
+    {
+        const auto *target_agent = GW::Agents::GetAgentByID(ping_target_id);
+        if (target_agent)
+        {
+            const auto dist = GW::GetDistance(target_agent->pos, player_data.pos);
+            if (dist < GW::Constants::Range::Spellcast)
+            {
+                StopFollowing();
+                ping_target_id = 0;
+            }
+        }
+    }
+    else
+    {
+        ping_target_id = 0;
+    }
+}
+
+void HeroWindow::HeroFollow_StartWhileRunning()
+{
+    if (!IsExplorable())
+        return;
+
+    if (!player_data.IsMoving())
+        move_time_ms = clock();
+
+    const auto start_follow_bc_moving = TIMER_DIFF(move_time_ms) > 5'000;
+
+    const auto target_agent = GetTargetAsLiving();
+    if (!target_agent)
+    {
+        if (start_follow_bc_moving)
+            StartFollowing();
+        return;
+    }
+
+    if (target_agent->allegiance == GW::Constants::Allegiance::Enemy)
+    {
+        const auto dist = GW::GetDistance(target_agent->pos, player_data.pos);
+        if (dist < GW::Constants::Range::Spellcast)
+        {
+            StopFollowing();
+            return;
+        }
+    }
+
+    if (start_follow_bc_moving)
+        StartFollowing();
+}
+
+void HeroWindow::HeroFollow_StuckCheck()
+{
+    constexpr static auto max_num_heros = 7U;
+    static auto same_position_counters = std::array<uint32_t, max_num_heros>{};
+    static auto last_positions = std::array<GW::GamePos, max_num_heros>{};
+
+    auto hero_idx = 0U;
+    for (const auto &hero : hero_data.hero_vec)
+    {
+        if (!hero.hero_living || !hero.hero_living->agent_id || !player_data.living ||
+            !player_data.living->GetIsMoving())
+        {
+            same_position_counters.at(hero_idx) = 0U;
+            ++hero_idx;
+            continue;
+        }
+
+        const auto *hero_agent = GW::Agents::GetAgentByID(hero.hero_living->agent_id);
+        if (!hero_agent || GW::GetDistance(player_data.pos, hero_agent->pos) > (GW::Constants::Range::Compass - 500.0F))
+        {
+            same_position_counters.at(hero_idx) = 0U;
+            ++hero_idx;
+            continue;
+        }
+
+        if (hero_agent->pos == last_positions.at(hero_idx))
+            ++same_position_counters.at(hero_idx);
+        else
+            same_position_counters.at(hero_idx) = 0U;
+
+        if (same_position_counters.at(hero_idx) >= 1'000U)
+        {
+            Log::Info("Hero at position %d might be stuck!", hero_idx + 1U);
+            same_position_counters.at(hero_idx) = 0U;
+        }
+
+        last_positions.at(hero_idx) = hero_agent->pos;
+
+        ++hero_idx;
+    }
+}
+
+/* INTERNAL FUNCTIONS BEHAVIOUR */
+
+void HeroWindow::HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size)
+{
+    switch (current_hero_behaviour)
+    {
+    case GW::HeroBehavior::Guard:
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_BLUE);
+        break;
+    }
+    case GW::HeroBehavior::AvoidCombat:
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
+        break;
+    }
+    case GW::HeroBehavior::Fight:
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_RED);
+        break;
+    }
+    }
+
+    if (ImGui::Button("Behaviour###toggleState", im_button_size))
+        ToggleHeroBehaviour();
+
+    ImGui::PopStyleColor();
 }
 
 void HeroWindow::ToggleHeroBehaviour()
@@ -227,71 +561,93 @@ void HeroWindow::ToggleHeroBehaviour()
     SetHerosBehaviour(player_data.living->login_number, current_hero_behaviour);
 }
 
-void HeroWindow::FollowPlayer()
+/* INTERNAL FUNCTIONS ATTACK */
+
+
+void HeroWindow::HeroSpike_DrawAndLogic(const ImVec2 &im_button_size)
 {
-    if (!IsMapReady() || !IsExplorable() || !player_data.living || (follow_pos.x == 0.0F && follow_pos.y == 0.0F) ||
-        !GW::PartyMgr::GetIsPartyLoaded() || GW::PartyMgr::GetIsPartyDefeated())
+    ImGui::SameLine();
+
+    if (ImGui::Button("Attack###attackTarget", im_button_size))
+    {
+        StopFollowing();
+
+        if (!IsExplorable())
+            return;
+
+        if (!player_data.target)
+            return;
+
+        const auto target_distance = GW::GetDistance(player_data.pos, player_data.target->pos);
+
+        const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+        if (!party_info)
+            return;
+
+        for (const auto &hero : party_info->heroes)
+        {
+            const auto *hero_living = GW::Agents::GetAgentByID(hero.agent_id);
+            if (!hero_living)
+                continue;
+
+            if (GW::GetDistance(player_data.pos, hero_living->pos) > 800.0F || target_distance > 800.0F)
+            {
+                UseFallback();
+                break;
+            }
+        }
+
+        AttackTarget();
+    }
+}
+
+bool HeroWindow::MesmerSpikeTarget(const Hero &hero) const
+{
+    constexpr static auto skill_id = GW::Constants::SkillID::Energy_Surge;
+    constexpr static auto skill_class = GW::Constants::Profession::Mesmer;
+
+    if (!hero.hero_living)
+        return false;
+
+    if (!player_data.target)
+        return false;
+
+    const auto *target_living = player_data.target->GetAsAgentLiving();
+    if (!target_living)
+        return false;
+
+    if (target_living->allegiance != GW::Constants::Allegiance::Enemy)
+        return false;
+
+    auto hero_conditions = [](const DataPlayer &, const Hero &) { return true; };
+
+    if (hero.hero_living->primary == static_cast<uint8_t>(skill_class))
+        return HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, TargetLogic::PLAYER_TARGET);
+
+    return false;
+}
+
+void HeroWindow::AttackTarget()
+{
+    if (!player_data.target)
         return;
 
-    GW::PartyMgr::FlagAll(follow_pos);
-}
+    const auto *target_living = player_data.target->GetAsAgentLiving();
+    if (!target_living || target_living->allegiance != GW::Constants::Allegiance::Enemy)
+        return;
 
-bool HeroWindow::HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
-                                           const long wait_ms,
-                                           const bool ignore_effect_agent_id)
-{
-    if (!ActionABC::HasWaitedLongEnough(wait_ms))
-        return false;
+    if (!HeroSkill_StartConditions(GW::Constants::SkillID::No_Skill))
+        return;
 
-    if (skill_id != GW::Constants::SkillID::No_Skill)
-        return true;
+    Log::Info("Mesmer Heroes will attack the players target!");
 
-    if (DataPlayer::PlayerHasEffect(skill_id, ignore_effect_agent_id))
-        return false;
-
-    return true;
-}
-
-bool HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
-                               const GW::Constants::Profession skill_class,
-                               const std::string_view skill_name,
-                               std::function<bool(const DataPlayer &)> player_conditions,
-                               std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
-                               const long wait_ms,
-                               const TargetLogic target_logic,
-                               const uint32_t current_target_id,
-                               const bool ignore_effect_agent_id)
-{
-    if (!HeroSkill_StartConditions(skill_id, wait_ms, ignore_effect_agent_id))
-        return false;
-
-    if (!player_conditions(player_data))
-        return false;
-
-    if (hero_data.hero_class_idx_map.find(skill_class) == hero_data.hero_class_idx_map.end())
-        return false;
-
-    auto hero_idxs_zero_based = hero_data.hero_class_idx_map.at(skill_class);
-    if (hero_idxs_zero_based.size() == 0)
-        return false;
-
-    for (const auto hero_idx_zero_based : hero_idxs_zero_based)
+    for (const auto &hero : hero_data.hero_vec)
     {
-        const auto &hero = hero_data.hero_vec.at(hero_idx_zero_based);
-
-        if (HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, target_logic, current_target_id))
-        {
-#ifdef _DEBUG
-            Log::Info("Casted %s.", skill_name);
-#else
-            (void)skill_name;
-#endif
-            return true;
-        }
+        MesmerSpikeTarget(hero);
     }
-
-    return true;
 }
+
+/* INTERNAL SMART SKILLS */
 
 bool HeroWindow::ShatterImportantHexes()
 {
@@ -840,7 +1196,7 @@ bool HeroWindow::UseFallback()
 
     auto player_conditions = [](const DataPlayer &) { return true; };
 
-    auto hero_conditions = [](const DataPlayer &player_data, const Hero &) {
+    auto hero_conditions = [](const DataPlayer &, const Hero &) {
         return !DataPlayer::PlayerOrHeroHasEffect(GW::Constants::SkillID::Fall_Back);
     };
 
@@ -908,422 +1264,59 @@ bool HeroWindow::UseBipOnPlayer()
                          false);
 }
 
-bool HeroWindow::MesmerSpikeTarget(const Hero &hero) const
+bool HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
+                               const GW::Constants::Profession skill_class,
+                               const std::string_view skill_name,
+                               std::function<bool(const DataPlayer &)> player_conditions,
+                               std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
+                               const long wait_ms,
+                               const TargetLogic target_logic,
+                               const uint32_t current_target_id,
+                               const bool ignore_effect_agent_id)
 {
-    constexpr static auto skill_id = GW::Constants::SkillID::Energy_Surge;
-    constexpr static auto skill_class = GW::Constants::Profession::Mesmer;
-
-    if (!hero.hero_living)
+    if (!HeroSkill_StartConditions(skill_id, wait_ms, ignore_effect_agent_id))
         return false;
 
-    if (!player_data.target)
+    if (!player_conditions(player_data))
         return false;
 
-    const auto *target_living = player_data.target->GetAsAgentLiving();
-    if (!target_living)
+    if (hero_data.hero_class_idx_map.find(skill_class) == hero_data.hero_class_idx_map.end())
         return false;
 
-    if (target_living->allegiance != GW::Constants::Allegiance::Enemy)
+    auto hero_idxs_zero_based = hero_data.hero_class_idx_map.at(skill_class);
+    if (hero_idxs_zero_based.size() == 0)
         return false;
 
-    auto hero_conditions = [](const DataPlayer &, const Hero &) { return true; };
-
-    if (hero.hero_living->primary == static_cast<uint8_t>(skill_class))
-        return HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, TargetLogic::PLAYER_TARGET);
-
-    return false;
-}
-
-void HeroWindow::AttackTarget()
-{
-    if (!player_data.target)
-        return;
-
-    const auto *target_living = player_data.target->GetAsAgentLiving();
-    if (!target_living || target_living->allegiance != GW::Constants::Allegiance::Enemy)
-        return;
-
-    if (!HeroSkill_StartConditions(GW::Constants::SkillID::No_Skill))
-        return;
-
-    Log::Info("Mesmer Heroes will attack the players target!");
-
-    for (const auto &hero : hero_data.hero_vec)
+    for (const auto hero_idx_zero_based : hero_idxs_zero_based)
     {
-        MesmerSpikeTarget(hero);
-    }
-}
+        const auto &hero = hero_data.hero_vec.at(hero_idx_zero_based);
 
-void HeroWindow::SmartInFightFlagging()
-{
-    // static auto last_flag_time_ms = clock();
-
-    // const auto enemies_in_aggro_of_player = AgentLivingData::AgentsInRange(player_data.pos,
-    //                                                                        GW::Constants::Allegiance::Enemy,
-    //                                                                        GW::Constants::Range::Spellcast);
-
-    // const auto enemy_center_pos = AgentLivingData::ComputeCenterOfMass(enemies_in_aggro_of_player);
-    // const auto player_pos = player_data.pos;
-    // const auto [center_player_m, center_player_b] = ComputeLine(enemy_center_pos, player_pos);
-    // const auto [dividing_m, dividing_b] = ComputePerpendicularLineAtPos(center_player_m, center_player_b, player_pos);
-    // const auto a = ComputePositionOnLine(player_pos, center_player_m, center_player_b, 500.0F);
-
-    // if (TIMER_DIFF(last_flag_time_ms) > 800)
-    //     return;
-    // last_flag_time_ms = clock();
-
-    // if (enemies_in_aggro_of_player.size() < 4)
-    //     return; // No need for advanced flagging in this case
-
-    // const auto rit_heros = hero_data.hero_class_idx_map.at(GW::Constants::Profession::Ritualist);
-    // // get ST hero
-
-    // for (const auto &hero : hero_data.hero_vec)
-    // {
-    //     GW::PartyMgr::FlagHeroAgent(hero.hero_living->agent_id, player_pos);
-    // }
-}
-
-void HeroWindow::ResetData()
-{
-    target_agent_id = 0U;
-    ping_target_id = 0U;
-    follow_pos = GW::GamePos{};
-    following_active = false;
-    hero_data.hero_vec.clear();
-}
-
-void HeroWindow::HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size)
-{
-    switch (current_hero_behaviour)
-    {
-    case GW::HeroBehavior::Guard:
-    {
-        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_BLUE);
-        break;
-    }
-    case GW::HeroBehavior::AvoidCombat:
-    {
-        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
-        break;
-    }
-    case GW::HeroBehavior::Fight:
-    {
-        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_RED);
-        break;
-    }
-    }
-
-    if (ImGui::Button("Behaviour###toggleState", im_button_size))
-        ToggleHeroBehaviour();
-
-    ImGui::PopStyleColor();
-}
-
-void HeroWindow::HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &toggled_follow)
-{
-    static auto last_follow_trigger_ms = clock();
-    static auto gen = std::mt19937{};
-    static auto time_dist = std::uniform_int_distribution<long>(-10, 10);
-
-    auto added_color_follow = false;
-
-    if (following_active && ping_target_id)
-    {
-        const auto *target_agent = GW::Agents::GetAgentByID(ping_target_id);
-        if (target_agent)
+        if (HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, target_logic, current_target_id))
         {
-            const auto dist = GW::GetDistance(target_agent->pos, player_data.pos);
-            if (dist < GW::Constants::Range::Spellcast)
-            {
-                StopFollowing();
-                ping_target_id = 0;
-            }
-        }
-    }
-    else
-    {
-        ping_target_id = 0;
-    }
-
-    if (following_active)
-    {
-        ImGui::PushStyleColor(ImGuiCol_Button, IM_COLOR_GREEN);
-        added_color_follow = true;
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Follow###followPlayer", im_button_size))
-    {
-        if (IsExplorable())
-        {
-            following_active = !following_active;
-            toggled_follow = true;
-
-            if (following_active)
-                StartFollowing();
-            else
-                StopFollowing();
-        }
-    }
-
-    if (IsExplorable() && following_active && TIMER_DIFF(last_follow_trigger_ms) > 800 + time_dist(gen))
-    {
-        FollowPlayer();
-        last_follow_trigger_ms = clock();
-
-        UseFallback();
-    }
-    else if (IsMapReady() && IsExplorable() && toggled_follow)
-    {
-        GW::PartyMgr::UnflagAll();
-    }
-
-    if (added_color_follow)
-        ImGui::PopStyleColor();
-}
-
-void HeroWindow::HeroSpike_DrawAndLogic(const ImVec2 &im_button_size)
-{
-    ImGui::SameLine();
-
-    if (ImGui::Button("Attack###attackTarget", im_button_size))
-    {
-        StopFollowing();
-
-        if (IsExplorable())
-        {
-            if (!player_data.target)
-                return;
-
-            const auto target_distance = GW::GetDistance(player_data.pos, player_data.target->pos);
-
-            const auto *const party_info = GW::PartyMgr::GetPartyInfo();
-            if (party_info)
-            {
-                for (const auto &hero : party_info->heroes)
-                {
-                    const auto *hero_living = GW::Agents::GetAgentByID(hero.agent_id);
-                    if (!hero_living)
-                        continue;
-
-                    if (GW::GetDistance(player_data.pos, hero_living->pos) > 800.0F || target_distance > 800.0F)
-                    {
-                        UseFallback();
-                        break;
-                    }
-                }
-            }
-
-            AttackTarget();
-        }
-    }
-}
-
-bool HeroWindow::HeroSmarterSkills_Logic()
-{
-    if (!IsMapReady() || !IsExplorable() || following_active || (hero_data.hero_vec.size() == 0))
-        return false;
-
-    if (UseBipOnPlayer())
-        return true;
-    if (UseShelterInFight())
-        return true;
-    if (UseUnionInFight())
-        return true;
-    if (UseSosInFight())
-        return true;
-    if (UseSplinterOnPlayer())
-        return true;
-    if (UseVigSpiritOnPlayer())
-        return true;
-    if (RemoveImportantConditions())
-        return true;
-    if (ShatterImportantHexes())
-        return true;
-    if (UseHonorOnPlayer())
-        return true;
-    if (RuptEnemies())
-        return true;
-}
-
-void HeroWindow::HeroFollow_StuckCheck()
-{
-    constexpr static auto max_num_heros = 7U;
-    static auto same_position_counters = std::array<uint32_t, max_num_heros>{};
-    static auto last_positions = std::array<GW::GamePos, max_num_heros>{};
-
-    auto hero_idx = 0U;
-    for (const auto &hero : hero_data.hero_vec)
-    {
-        if (!hero.hero_living || !hero.hero_living->agent_id || !player_data.living ||
-            !player_data.living->GetIsMoving())
-        {
-            same_position_counters.at(hero_idx) = 0U;
-            ++hero_idx;
-            continue;
-        }
-
-        const auto *hero_agent = GW::Agents::GetAgentByID(hero.hero_living->agent_id);
-        if (!hero_agent || GW::GetDistance(player_data.pos, hero_agent->pos) > (GW::Constants::Range::Compass - 500.0F))
-        {
-            same_position_counters.at(hero_idx) = 0U;
-            ++hero_idx;
-            continue;
-        }
-
-        if (hero_agent->pos == last_positions.at(hero_idx))
-            ++same_position_counters.at(hero_idx);
-        else
-            same_position_counters.at(hero_idx) = 0U;
-
-        if (same_position_counters.at(hero_idx) >= 1'000U)
-        {
-            Log::Info("Hero at position %d might be stuck!", hero_idx + 1U);
-            same_position_counters.at(hero_idx) = 0U;
-        }
-
-        last_positions.at(hero_idx) = hero_agent->pos;
-
-        ++hero_idx;
-    }
-}
-
-void HeroWindow::HeroFollow_StopConditions()
-{
-    if (!IsExplorable() || !following_active)
-    {
-        ms_with_no_pos_change = 0U;
-        time_at_last_pos_change = TIMER_INIT();
-        return;
-    }
-
-    if (ms_with_no_pos_change >= 10'000)
-    {
-        StopFollowing();
-        ms_with_no_pos_change = 0U;
-        time_at_last_pos_change = TIMER_INIT();
-    }
-
-    if (player_data.IsAttacking() && following_active)
-    {
-        StopFollowing();
-        ms_with_no_pos_change = 0U;
-        time_at_last_pos_change = TIMER_INIT();
-    }
-}
-
-void HeroWindow::HeroFollow_StartWhileRunning()
-{
-    if (!IsExplorable())
-        return;
-
-    if (!player_data.IsMoving())
-        move_time_ms = clock();
-
-    const auto start_follow_bc_moving = TIMER_DIFF(move_time_ms) > 5'000;
-
-    const auto target_agent = GetTargetAsLiving();
-    if (!target_agent)
-    {
-        if (start_follow_bc_moving)
-            StartFollowing();
-        return;
-    }
-
-    if (target_agent->allegiance == GW::Constants::Allegiance::Enemy)
-    {
-        const auto dist = GW::GetDistance(target_agent->pos, player_data.pos);
-        if (dist < GW::Constants::Range::Spellcast)
-        {
-            StopFollowing();
-            return;
-        }
-    }
-
-    if (start_follow_bc_moving)
-        StartFollowing();
-}
-
-void HeroWindow::UpdateInternalData()
-{
-    if (player_data.pos == follow_pos && following_active)
-    {
-        ms_with_no_pos_change = TIMER_DIFF(time_at_last_pos_change);
-    }
-    else
-    {
-        ms_with_no_pos_change = 0U;
-        time_at_last_pos_change = TIMER_INIT();
-    }
-    follow_pos = player_data.pos;
-
-    if (player_data.target && player_data.target->agent_id)
-        target_agent_id = player_data.target->agent_id;
-    else
-        target_agent_id = 0U;
-}
-
-void HeroWindow::Draw(IDirect3DDevice9 *)
-{
-    if (!player_data.ValidateData(HelperActivationConditions, true) || (*GetVisiblePtr()) == false)
-        return;
-
-    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
-    if (!party_info || party_info->heroes.size() == 0)
-        return;
-
-    ImGui::SetNextWindowSize(ImVec2(240.0F, 45.0F), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(Name(), show_closebutton ? GetVisiblePtr() : nullptr, GetWinFlags(ImGuiWindowFlags_NoResize)))
-    {
-        const auto width = ImGui::GetWindowWidth();
-        const auto im_button_size = ImVec2{width / 3.0F - 10.0F, 50.0F};
-
-        auto toggled_follow = false;
-
-        HeroBehaviour_DrawAndLogic(im_button_size);
-        HeroFollow_DrawAndLogic(im_button_size, toggled_follow);
-        HeroSpike_DrawAndLogic(im_button_size);
-    }
-    ImGui::End();
-
 #ifdef _DEBUG
-    if (show_debug_map)
-    {
-        // const auto enemies_in_aggro_of_player = AgentLivingData::AgentsInRange(player_data.pos,
-        //                                                                        GW::Constants::Allegiance::Enemy,
-        //                                                                        GW::Constants::Range::Compass);
-
-        // const auto enemy_center_pos = AgentLivingData::ComputeCenterOfMass(enemies_in_aggro_of_player);
-        // const auto player_pos = player_data.pos;
-        // const auto [center_player_m, center_player_b] = ComputeLine(enemy_center_pos, player_pos);
-        // const auto [dividing_m, dividing_b] =
-        //     ComputePerpendicularLineAtPos(center_player_m, center_player_b, player_pos);
-        // const auto a = ComputePositionOnLine(player_pos, center_player_m, center_player_b, 500.0F);
-
-        // DrawFlaggingFeature(player_data.pos, enemies_in_aggro_of_player, "Flagging");
-    }
+            Log::Info("Casted %s.", skill_name);
+#else
+            (void)skill_name;
 #endif
+            return true;
+        }
+    }
+
+    return true;
 }
 
-void HeroWindow::Update(float)
+bool HeroWindow::HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
+                                           const long wait_ms,
+                                           const bool ignore_effect_agent_id)
 {
-    if (!player_data.ValidateData(HelperActivationConditions, true))
-    {
-        ResetData();
-        return;
-    }
+    if (!ActionABC::HasWaitedLongEnough(wait_ms))
+        return false;
 
-    player_data.Update();
-    hero_data.Update();
-    UpdateInternalData();
+    if (skill_id != GW::Constants::SkillID::No_Skill)
+        return true;
 
-    HeroFollow_StartWhileRunning();
-    HeroFollow_StopConditions();
-    HeroFollow_StuckCheck();
+    if (DataPlayer::PlayerHasEffect(skill_id, ignore_effect_agent_id))
+        return false;
 
-    SmartInFightFlagging();
-
-    HeroSmarterSkills_Logic();
+    return true;
 }

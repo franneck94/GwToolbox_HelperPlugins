@@ -38,39 +38,48 @@ public:
     void SignalTerminate() override;
     bool CanTerminate() override;
     void Terminate() override;
-    void Draw(IDirect3DDevice9 *) override;
     bool HasSettings() const override
     {
         return true;
     }
-    void Update(float delta) override;
     void LoadSettings(const wchar_t *folder);
     void SaveSettings(const wchar_t *folder);
+
+    void Draw(IDirect3DDevice9 *) override;
+    void Update(float delta) override;
+
+    /* MAIN CYCLE FUNCTIONS */
 
     void UpdateInternalData();
     void ResetData();
 
+    void HeroSmarterFollow_Main();
+    void HeroSmarterFlagging_Main();
+    bool HeroSmarterSkills_Main();
+
+    /* INTERNAL FUNCTIONS FOLLOW */
+
+    void FollowPlayer();
+    void StartFollowing();
+    void StopFollowing();
+    void HeroFollow_DrawAndLogic(const ImVec2 &im_button_size);
+    void HeroFollow_StopConditions();
+    void HeroFollow_StartWhileRunning();
+    void HeroFollow_StuckCheck();
+
+    /* INTERNAL FUNCTIONS BEHAVIOUR */
+
     void HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size);
     void ToggleHeroBehaviour();
+
+    /* INTERNAL FUNCTIONS ATTACK */
 
     void HeroSpike_DrawAndLogic(const ImVec2 &im_button_size);
     bool MesmerSpikeTarget(const Hero &hero_data) const;
     void AttackTarget();
 
-    bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
-                                   const long wait_ms = 0UL,
-                                   const bool ignore_effect_agent_id = true);
-    bool SmartUseSkill(const GW::Constants::SkillID skill_id,
-                       const GW::Constants::Profession skill_class,
-                       const std::string_view skill_name,
-                       std::function<bool(const DataPlayer &)> player_conditions,
-                       std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
-                       const long wait_ms,
-                       const TargetLogic target_logic = TargetLogic::NO_TARGET,
-                       const uint32_t target_id = 0U,
-                       const bool ignore_effect_agent_id = false);
+    /* INTERNAL SMART SKILLS */
 
-    bool HeroSmarterSkills_Logic();
     bool UseBipOnPlayer();
     bool UseSplinterOnPlayer();
     bool UseVigSpiritOnPlayer();
@@ -83,15 +92,21 @@ public:
     bool RuptEnemies();
     bool UseFallback();
 
-    void SmartInFightFlagging();
+    bool SmartUseSkill(const GW::Constants::SkillID skill_id,
+                       const GW::Constants::Profession skill_class,
+                       const std::string_view skill_name,
+                       std::function<bool(const DataPlayer &)> player_conditions,
+                       std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
+                       const long wait_ms,
+                       const TargetLogic target_logic = TargetLogic::NO_TARGET,
+                       const uint32_t target_id = 0U,
+                       const bool ignore_effect_agent_id = false);
 
-    void FollowPlayer();
-    void StartFollowing();
-    void StopFollowing();
-    void HeroFollow_DrawAndLogic(const ImVec2 &im_button_size, bool &toggled_follow);
-    void HeroFollow_StopConditions();
-    void HeroFollow_StuckCheck();
-    void HeroFollow_StartWhileRunning();
+    /* GLOBAL FUNCTIONS */
+
+    static bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
+                                          const long wait_ms = 0UL,
+                                          const bool ignore_effect_agent_id = true);
 
 public:
     DataPlayer player_data;
@@ -106,6 +121,7 @@ public:
     long time_at_last_pos_change;
     uint32_t target_agent_id = 0;
     bool following_active = false;
+    bool toggled_follow = false;
 
     GW::HookEntry AgentCalled_Entry;
     GW::HookEntry GenericValueTarget_Entry;
