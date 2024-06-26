@@ -270,7 +270,7 @@ bool DbRoutine::RoutineKillSkele() const
 
 bool DbRoutine::RoutineKillEnemiesStandard() const
 {
-    const auto found_honor = player_data->HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
+    const auto found_honor = DataPlayer::HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
 
     if (!found_honor && RoutineState::FINISHED == skillbar->honor.Cast(player_data->energy))
         return true;
@@ -293,9 +293,9 @@ bool DbRoutine::RoutineKillEnemiesStandard() const
 
 bool DbRoutine::RoutineValeSpirits() const
 {
-    const auto found_honor = player_data->HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
-    const auto found_eoe = player_data->HasEffect(GW::Constants::SkillID::Edge_of_Extinction);
-    const auto found_winnow = player_data->HasEffect(GW::Constants::SkillID::Winnowing);
+    const auto found_honor = DataPlayer::HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
+    const auto found_eoe = DataPlayer::HasEffect(GW::Constants::SkillID::Edge_of_Extinction);
+    const auto found_winnow = DataPlayer::HasEffect(GW::Constants::SkillID::Winnowing);
 
     if (!found_honor && RoutineState::FINISHED == skillbar->honor.Cast(player_data->energy))
         return true;
@@ -323,7 +323,7 @@ bool DbRoutine::RoutineDhuumRecharge() const
 {
     static auto qz_timer = clock();
 
-    const auto found_qz = player_data->HasEffect(GW::Constants::SkillID::Quickening_Zephyr);
+    const auto found_qz = DataPlayer::HasEffect(GW::Constants::SkillID::Quickening_Zephyr);
 
     const auto qz_diff_ms = TIMER_DIFF(qz_timer);
     if (qz_diff_ms > 36'000 || !found_qz)
@@ -343,8 +343,8 @@ bool DbRoutine::RoutineDhuumRecharge() const
 
 bool DbRoutine::RoutineDhuumDamage() const
 {
-    const auto found_honor = player_data->HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
-    const auto found_winnow = player_data->HasEffect(GW::Constants::SkillID::Winnowing);
+    const auto found_honor = DataPlayer::HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
+    const auto found_winnow = DataPlayer::HasEffect(GW::Constants::SkillID::Winnowing);
 
     if (!found_honor && player_data->energy > 33U &&
         RoutineState::FINISHED == skillbar->honor.Cast(player_data->energy))

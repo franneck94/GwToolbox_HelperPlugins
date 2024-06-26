@@ -30,18 +30,17 @@ public:
     bool IsFighting() const;
     bool IsMoving() const;
 
-    bool HasBuff(const GW::Constants::SkillID buff_skill_id) const;
-    bool HasEffect(const GW::Constants::SkillID effect_skill_id) const;
-    float GetRemainingEffectDuration(const GW::Constants::SkillID effect_skill_id) const;
-    uint32_t GetNumberOfPartyBonds() const;
+    void ChangeTarget(const uint32_t target_id);
     bool CastEffectIfNotAvailable(const DataSkill &skill_data) const;
     bool CastEffect(const DataSkill &skill_data) const;
-    bool PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id) const;
-    bool PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id = false) const;
 
-    void ChangeTarget(const uint32_t target_id);
+    static bool HasBuff(const GW::Constants::SkillID buff_skill_id);
+    static bool HasEffect(const GW::Constants::SkillID effect_skill_id);
+    static float GetRemainingEffectDuration(const GW::Constants::SkillID effect_skill_id);
+    static uint32_t GetNumberOfPartyBonds();
+    static bool PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id);
+    static bool PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id = false);
 
-    bool SkillStoppedCallback(const GW::Packet::StoC::GenericValue *const packet) const noexcept;
 
 public:
     uint32_t id = UINT32_MAX;

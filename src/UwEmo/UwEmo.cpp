@@ -352,9 +352,9 @@ bool EmoRoutine::RoutineWhenInRangeBondLT() const
 
 bool EmoRoutine::RoutineSelfBonds() const
 {
-    const auto found_ether = player_data->HasEffect(GW::Constants::SkillID::Ether_Renewal);
-    const auto found_burning = player_data->HasEffect(GW::Constants::SkillID::Burning_Speed);
-    const auto found_sb = player_data->HasEffect(GW::Constants::SkillID::Spirit_Bond);
+    const auto found_ether = DataPlayer::HasEffect(GW::Constants::SkillID::Ether_Renewal);
+    const auto found_burning = DataPlayer::HasEffect(GW::Constants::SkillID::Burning_Speed);
+    const auto found_sb = DataPlayer::HasEffect(GW::Constants::SkillID::Spirit_Bond);
 
     const auto need_sb_right_now = DoNeedEnchNow(player_data, GW::Constants::SkillID::Spirit_Bond, 2.0F);
     const auto need_ether_right_now = DoNeedEnchNow(player_data, GW::Constants::SkillID::Ether_Renewal, 3.0F);
@@ -773,7 +773,7 @@ RoutineState EmoRoutine::Routine()
 
     if (player_data->energy < 20U && TIMER_DIFF(last_warning_ms) > 2000)
     {
-        Log::Warning("Low Energy!, Num bonds: %u", player_data->GetNumberOfPartyBonds());
+        Log::Warning("Low Energy!, Num bonds: %u", DataPlayer::GetNumberOfPartyBonds());
         last_warning_ms = clock();
 
         if (player_data->energy < 5U)

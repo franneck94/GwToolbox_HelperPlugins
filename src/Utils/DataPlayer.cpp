@@ -156,8 +156,23 @@ bool DataPlayer::IsMoving() const
     return living->GetIsMoving();
 }
 
-bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id) const
+void DataPlayer::ChangeTarget(const uint32_t target_id)
 {
+    if (!target_id || !GW::Agents::GetAgentByID(target_id))
+        return;
+
+    GW::GameThread::Enqueue([&, target_id] {
+        GW::Agents::ChangeTarget(target_id);
+        target = GW::Agents::GetTarget();
+    });
+}
+
+bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id)
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
     const auto *const me_buffs = GW::Effects::GetPlayerBuffs();
     if (!me_buffs || !me_buffs->valid())
         return false;
@@ -167,70 +182,11 @@ bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id) const
         const auto agent_id = buff.target_agent_id;
         const auto skill_id = buff.skill_id;
 
-        if (agent_id == id && skill_id == buff_skill_id)
+        if (agent_id == me_living->agent_id && skill_id == buff_skill_id)
             return true;
     }
 
     return false;
-}
-
-bool DataPlayer::HasEffect(const GW::Constants::SkillID effect_skill_id) const
-{
-    const auto *const effects = GW::Effects::GetPlayerEffects();
-    if (!effects)
-        return false;
-
-    for (const auto &effect : *effects)
-    {
-        const auto agent_id = effect.agent_id;
-        const auto skill_id = effect.skill_id;
-
-        if ((agent_id == id || agent_id == 0) && (skill_id == effect_skill_id))
-            return true;
-    }
-
-    return false;
-}
-
-uint32_t DataPlayer::GetNumberOfPartyBonds() const
-{
-    const auto *player_buffs = GW::Effects::GetPlayerBuffs();
-    if (!player_buffs || !player_buffs->valid())
-        return false;
-
-    auto num_bonds = uint32_t{0};
-    for (const auto &buff : *player_buffs)
-    {
-        const auto agent_id = buff.target_agent_id;
-
-        if (agent_id != id)
-            ++num_bonds;
-    }
-
-    return num_bonds;
-}
-
-float DataPlayer::GetRemainingEffectDuration(const GW::Constants::SkillID effect_skill_id) const
-{
-    const auto *me_effects = GW::Effects::GetPlayerEffectsArray();
-    if (!me_effects)
-        return false;
-
-    for (const auto &effect : me_effects->effects)
-    {
-        const auto agent_id = effect.agent_id;
-        const auto skill_id = effect.skill_id;
-
-        if (agent_id == id || agent_id == 0)
-        {
-            if (skill_id == effect_skill_id)
-            {
-                return GetTimeRemaining(effect.duration, effect.timestamp);
-            }
-        }
-    }
-
-    return 0.0F;
 }
 
 bool DataPlayer::CastEffectIfNotAvailable(const DataSkill &skill_data) const
@@ -258,35 +214,86 @@ bool DataPlayer::CastEffect(const DataSkill &skill_data) const
     return false;
 }
 
-void DataPlayer::ChangeTarget(const uint32_t target_id)
+/* START STATIC FUNCTIONS */
+
+bool DataPlayer::HasEffect(const GW::Constants::SkillID effect_skill_id)
 {
-    if (!target_id || !GW::Agents::GetAgentByID(target_id))
-        return;
-
-    GW::GameThread::Enqueue([&, target_id] {
-        GW::Agents::ChangeTarget(target_id);
-        target = GW::Agents::GetTarget();
-    });
-}
-
-
-bool DataPlayer::SkillStoppedCallback(const GW::Packet::StoC::GenericValue *const packet) const noexcept
-{
-    const auto value_id = packet->value_id;
-    const auto caster_id = packet->agent_id;
-
-    if (caster_id != id)
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
         return false;
 
-    if (value_id == GW::Packet::StoC::GenericValueID::skill_stopped)
-        return true;
+    const auto *const effects = GW::Effects::GetPlayerEffects();
+    if (!effects)
+        return false;
+
+    for (const auto &effect : *effects)
+    {
+        const auto agent_id = effect.agent_id;
+        const auto skill_id = effect.skill_id;
+
+        if ((agent_id == me_living->agent_id || agent_id == 0) && (skill_id == effect_skill_id))
+            return true;
+    }
 
     return false;
 }
 
-bool DataPlayer::PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id) const
+uint32_t DataPlayer::GetNumberOfPartyBonds()
 {
-    const auto *effects = GetEffects(id);
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    const auto *player_buffs = GW::Effects::GetPlayerBuffs();
+    if (!player_buffs || !player_buffs->valid())
+        return false;
+
+    auto num_bonds = uint32_t{0};
+    for (const auto &buff : *player_buffs)
+    {
+        const auto agent_id = buff.target_agent_id;
+
+        if (agent_id != me_living->agent_id)
+            ++num_bonds;
+    }
+
+    return num_bonds;
+}
+
+float DataPlayer::GetRemainingEffectDuration(const GW::Constants::SkillID effect_skill_id)
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    const auto *me_effects = GW::Effects::GetPlayerEffectsArray();
+    if (!me_effects)
+        return false;
+
+    for (const auto &effect : me_effects->effects)
+    {
+        const auto agent_id = effect.agent_id;
+        const auto skill_id = effect.skill_id;
+
+        if (agent_id == me_living->agent_id || agent_id == 0)
+        {
+            if (skill_id == effect_skill_id)
+            {
+                return GetTimeRemaining(effect.duration, effect.timestamp);
+            }
+        }
+    }
+
+    return 0.0F;
+}
+
+bool DataPlayer::PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id)
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    const auto *effects = GetEffects(me_living->agent_id);
     if (!effects)
         return false;
 
@@ -299,15 +306,19 @@ bool DataPlayer::PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id) c
     return false;
 }
 
-bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id) const
+bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id)
 {
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
     const auto *player_effects = GW::Effects::GetPlayerEffects();
     if (!player_effects)
         return false;
 
     for (const auto &effect : *player_effects)
     {
-        if (effect.skill_id == effect_id && (ignore_id || effect.agent_id == id))
+        if (effect.skill_id == effect_id && (ignore_id || effect.agent_id == me_living->agent_id))
             return true;
     }
 

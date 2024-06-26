@@ -243,7 +243,10 @@ bool HeroWindow::HeroSkill_StartConditions(const GW::Constants::SkillID skill_id
     if (!ActionABC::HasWaitedLongEnough(wait_ms))
         return false;
 
-    if (skill_id != GW::Constants::SkillID::No_Skill && player_data.PlayerHasEffect(skill_id, ignore_effect_agent_id))
+    if (skill_id != GW::Constants::SkillID::No_Skill)
+        return true;
+
+    if (DataPlayer::PlayerHasEffect(skill_id, ignore_effect_agent_id))
         return false;
 
     return true;
@@ -259,10 +262,10 @@ bool HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
                                const uint32_t current_target_id,
                                const bool ignore_effect_agent_id)
 {
-    if (!player_conditions(player_data))
+    if (!HeroSkill_StartConditions(skill_id, wait_ms, ignore_effect_agent_id))
         return false;
 
-    if (!HeroSkill_StartConditions(skill_id, wait_ms, ignore_effect_agent_id))
+    if (!player_conditions(player_data))
         return false;
 
     if (hero_data.hero_class_idx_map.find(skill_class) == hero_data.hero_class_idx_map.end())
@@ -290,7 +293,7 @@ bool HeroWindow::SmartUseSkill(const GW::Constants::SkillID skill_id,
     return true;
 }
 
-void HeroWindow::ShatterImportantHexes()
+bool HeroWindow::ShatterImportantHexes()
 {
     constexpr static auto to_remove_hexes_melee = std::array{
         // Mesmer
@@ -386,11 +389,13 @@ void HeroWindow::ShatterImportantHexes()
                           wait_ms,
                           target_logic,
                           false))
-            return;
+            return true;
     }
+
+    return false;
 }
 
-void HeroWindow::RemoveImportantConditions()
+bool HeroWindow::RemoveImportantConditions()
 {
     constexpr static auto to_remove_conditions_melee = std::array{
         GW::Constants::SkillID::Blind,
@@ -458,18 +463,21 @@ void HeroWindow::RemoveImportantConditions()
 
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
     {
-        SmartUseSkill(skill_id,
-                      skill_class,
-                      "Remove Cond",
-                      player_conditions,
-                      hero_conditions,
-                      wait_ms,
-                      target_logic,
-                      false);
+        if (SmartUseSkill(skill_id,
+                          skill_class,
+                          "Remove Cond",
+                          player_conditions,
+                          hero_conditions,
+                          wait_ms,
+                          target_logic,
+                          false))
+            return true;
     }
+
+    return false;
 }
 
-void HeroWindow::RuptEnemies()
+bool HeroWindow::RuptEnemies()
 {
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
         {GW::Constants::SkillID::Cry_of_Frustration, GW::Constants::Profession::Mesmer},
@@ -572,11 +580,15 @@ void HeroWindow::RuptEnemies()
                 GW::GameThread::Enqueue([&, player_target] { GW::Agents::ChangeTarget(player_target); });
                 last_time_target_changed = clock();
             }
+
+            return true;
         }
     }
+
+    return false;
 }
 
-void HeroWindow::UseSplinterOnPlayer()
+bool HeroWindow::UseSplinterOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Splinter_Weapon;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
@@ -603,10 +615,17 @@ void HeroWindow::UseSplinterOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
     };
 
-    SmartUseSkill(skill_id, skill_class, "Splinter", player_conditions, hero_conditions, wait_ms, target_logic, false);
+    return SmartUseSkill(skill_id,
+                         skill_class,
+                         "Splinter",
+                         player_conditions,
+                         hero_conditions,
+                         wait_ms,
+                         target_logic,
+                         false);
 }
 
-void HeroWindow::UseVigSpiritOnPlayer()
+bool HeroWindow::UseVigSpiritOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Vigorous_Spirit;
     constexpr static auto skill_class = GW::Constants::Profession::Monk;
@@ -629,10 +648,17 @@ void HeroWindow::UseVigSpiritOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
     };
 
-    SmartUseSkill(skill_id, skill_class, "Splinter", player_conditions, hero_conditions, wait_ms, target_logic, false);
+    return SmartUseSkill(skill_id,
+                         skill_class,
+                         "Splinter",
+                         player_conditions,
+                         hero_conditions,
+                         wait_ms,
+                         target_logic,
+                         false);
 }
 
-void HeroWindow::UseHonorOnPlayer()
+bool HeroWindow::UseHonorOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Strength_of_Honor;
     constexpr static auto skill_class = GW::Constants::Profession::Monk;
@@ -655,10 +681,17 @@ void HeroWindow::UseHonorOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
     };
 
-    SmartUseSkill(skill_id, skill_class, "Honor", player_conditions, hero_conditions, wait_ms, target_logic, false);
+    return SmartUseSkill(skill_id,
+                         skill_class,
+                         "Honor",
+                         player_conditions,
+                         hero_conditions,
+                         wait_ms,
+                         target_logic,
+                         false);
 }
 
-void HeroWindow::UseShelterInFight()
+bool HeroWindow::UseShelterInFight()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Shelter;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
@@ -672,7 +705,7 @@ void HeroWindow::UseShelterInFight()
                                               GW::Constants::Range::Spellcast + 200.0F);
 
         const auto player_started_fight = num_enemies_in_aggro_of_player >= 3 && player_data.IsFighting();
-        const auto has_skill_already = player_data.PlayerHasEffect(GW::Constants::SkillID::Shelter);
+        const auto has_skill_already = DataPlayer::PlayerHasEffect(GW::Constants::SkillID::Shelter);
 
         return !has_skill_already && player_started_fight;
     };
@@ -686,10 +719,17 @@ void HeroWindow::UseShelterInFight()
         return dist < GW::Constants::Range::Spirit - 100.0F;
     };
 
-    SmartUseSkill(skill_id, skill_class, "Shelter", player_conditions, hero_conditions, wait_ms, target_logic, true);
+    return SmartUseSkill(skill_id,
+                         skill_class,
+                         "Shelter",
+                         player_conditions,
+                         hero_conditions,
+                         wait_ms,
+                         target_logic,
+                         true);
 }
 
-void HeroWindow::UseUnionInFight()
+bool HeroWindow::UseUnionInFight()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Union;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
@@ -703,7 +743,7 @@ void HeroWindow::UseUnionInFight()
                                               GW::Constants::Range::Spellcast + 200.0F);
 
         const auto player_started_fight = num_enemies_in_aggro_of_player >= 3 && player_data.IsFighting();
-        const auto has_skill_already = player_data.PlayerHasEffect(GW::Constants::SkillID::Union);
+        const auto has_skill_already = DataPlayer::PlayerHasEffect(GW::Constants::SkillID::Union);
 
         return !has_skill_already && player_started_fight;
     };
@@ -717,10 +757,17 @@ void HeroWindow::UseUnionInFight()
         return dist < GW::Constants::Range::Spirit - 100.0F;
     };
 
-    SmartUseSkill(skill_id, skill_class, "Union", player_conditions, hero_conditions, wait_ms, target_logic, true);
+    return SmartUseSkill(skill_id,
+                         skill_class,
+                         "Union",
+                         player_conditions,
+                         hero_conditions,
+                         wait_ms,
+                         target_logic,
+                         true);
 }
 
-void HeroWindow::UseSosInFight()
+bool HeroWindow::UseSosInFight()
 {
     constexpr static auto SOS1_AGENT_ID = uint32_t{4229};
     constexpr static auto SOS2_AGENT_ID = uint32_t{4230};
@@ -781,10 +828,10 @@ void HeroWindow::UseSosInFight()
         return dist < GW::Constants::Range::Spellcast;
     };
 
-    SmartUseSkill(skill_id, skill_class, "SoS", player_conditions, hero_conditions, wait_ms, target_logic, true);
+    return SmartUseSkill(skill_id, skill_class, "SoS", player_conditions, hero_conditions, wait_ms, target_logic, true);
 }
 
-void HeroWindow::UseFallback()
+bool HeroWindow::UseFallback()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Fall_Back;
     constexpr static auto skill_class = GW::Constants::Profession::Paragon;
@@ -794,13 +841,20 @@ void HeroWindow::UseFallback()
     auto player_conditions = [](const DataPlayer &) { return true; };
 
     auto hero_conditions = [](const DataPlayer &player_data, const Hero &) {
-        return !player_data.PlayerOrHeroHasEffect(GW::Constants::SkillID::Fall_Back);
+        return !DataPlayer::PlayerOrHeroHasEffect(GW::Constants::SkillID::Fall_Back);
     };
 
-    SmartUseSkill(skill_id, skill_class, "FallBack", player_conditions, hero_conditions, wait_ms, target_logic, true);
+    return SmartUseSkill(skill_id,
+                         skill_class,
+                         "FallBack",
+                         player_conditions,
+                         hero_conditions,
+                         wait_ms,
+                         target_logic,
+                         true);
 }
 
-void HeroWindow::UseBipOnPlayer()
+bool HeroWindow::UseBipOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Blood_is_Power;
     constexpr static auto skill_class = GW::Constants::Profession::Necromancer;
@@ -844,7 +898,14 @@ void HeroWindow::UseBipOnPlayer()
         return is_close_enough && hero_has_enough_hp;
     };
 
-    SmartUseSkill(skill_id, skill_class, "BiP", player_conditions, hero_conditions, wait_ms, target_logic, false);
+    return SmartUseSkill(skill_id,
+                         skill_class,
+                         "BiP",
+                         player_conditions,
+                         hero_conditions,
+                         wait_ms,
+                         target_logic,
+                         false);
 }
 
 bool HeroWindow::MesmerSpikeTarget(const Hero &hero) const
@@ -1060,22 +1121,31 @@ void HeroWindow::HeroSpike_DrawAndLogic(const ImVec2 &im_button_size)
     }
 }
 
-void HeroWindow::HeroSmarterSkills_Logic()
+bool HeroWindow::HeroSmarterSkills_Logic()
 {
     if (!IsMapReady() || !IsExplorable() || following_active || (hero_data.hero_vec.size() == 0))
-        return;
+        return false;
 
-    UseBipOnPlayer();
-    UseShelterInFight();
-    UseUnionInFight();
-    UseSosInFight();
-    // UseSplinterOnPlayer();
-    // UseVigSpiritOnPlayer();
-    // RemoveImportantConditions();
-    // ShatterImportantHexes();
-    // UseHonorOnPlayer();
-    RuptEnemies();
-    SmartInFightFlagging();
+    if (UseBipOnPlayer())
+        return true;
+    if (UseShelterInFight())
+        return true;
+    if (UseUnionInFight())
+        return true;
+    if (UseSosInFight())
+        return true;
+    if (UseSplinterOnPlayer())
+        return true;
+    if (UseVigSpiritOnPlayer())
+        return true;
+    if (RemoveImportantConditions())
+        return true;
+    if (ShatterImportantHexes())
+        return true;
+    if (UseHonorOnPlayer())
+        return true;
+    if (RuptEnemies())
+        return true;
 }
 
 void HeroWindow::HeroFollow_StuckCheck()
@@ -1250,7 +1320,10 @@ void HeroWindow::Update(float)
     UpdateInternalData();
 
     HeroFollow_StartWhileRunning();
-    HeroSmarterSkills_Logic();
     HeroFollow_StopConditions();
     HeroFollow_StuckCheck();
+
+    SmartInFightFlagging();
+
+    HeroSmarterSkills_Logic();
 }

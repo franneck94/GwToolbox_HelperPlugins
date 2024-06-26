@@ -509,10 +509,10 @@ bool FoundSpirit(const DataPlayer &player_data,
 
 bool DoNeedEnchNow(const DataPlayer *player_data, const GW::Constants::SkillID ench_id, const float time_offset_s)
 {
-    const auto found = player_data->HasEffect(ench_id);
+    const auto found = DataPlayer::HasEffect(ench_id);
     const auto data = GW::SkillbarMgr::GetSkillConstantData(ench_id);
 
-    const auto remain_duration_s = player_data->GetRemainingEffectDuration(ench_id) / 1000.0F;
+    const auto remain_duration_s = DataPlayer::GetRemainingEffectDuration(ench_id) / 1000.0F;
     const auto trigger_time_s = data ? data->activation + data->aftercast : 1.0F;
 
     if (!found || remain_duration_s <= (trigger_time_s + time_offset_s))
