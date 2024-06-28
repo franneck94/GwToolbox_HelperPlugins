@@ -53,8 +53,6 @@ void DataPlayer::Update()
     pos = me_living->pos;
     me_living = me_living;
 
-    target = GW::Agents::GetTarget();
-
     const auto energy_tpl = GetEnergy(me_living);
     energy = std::get<0>(energy_tpl);
     max_energy = std::get<1>(energy_tpl);
@@ -67,24 +65,47 @@ void DataPlayer::Update()
 
     primary = static_cast<GW::Constants::Profession>(me_living->primary);
     secondary = static_cast<GW::Constants::Profession>(me_living->secondary);
+}
 
+bool DataPlayer::IsMeleeClass()
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    const auto primary = static_cast<GW::Constants::Profession>(me_living->primary);
+
+    const auto is_melee_class =
+        primary == GW::Constants::Profession::Assassin || primary == GW::Constants::Profession::Dervish ||
+        primary == GW::Constants::Profession::Warrior || primary == GW::Constants::Profession::Paragon ||
+        primary == GW::Constants::Profession::Ranger;
+}
+
+bool DataPlayer::IsCasterClass()
+{
+    return DataPlayer::IsMeleeClass();
+}
+
+bool DataPlayer::HoldsMeleeWeapon()
+{
     const auto equipped_items_bag = GW::Items::GetBag(GW::Constants::Bag::Equipped_Items);
     if (!equipped_items_bag)
-        return;
-    weapon_main_hand = GW::Items::GetItemBySlot(equipped_items_bag, 1);
+        return false;
+    const auto weapon_main_hand = GW::Items::GetItemBySlot(equipped_items_bag, 1);
 
-    holds_melee_weapon = weapon_main_hand && (weapon_main_hand->type == GW::Constants::ItemType::Axe ||
-                                              weapon_main_hand->type == GW::Constants::ItemType::Hammer ||
-                                              weapon_main_hand->type == GW::Constants::ItemType::Sword ||
-                                              weapon_main_hand->type == GW::Constants::ItemType::Daggers ||
-                                              weapon_main_hand->type == GW::Constants::ItemType::Scythe ||
-                                              weapon_main_hand->type == GW::Constants::ItemType::Spear);
-    holds_caster_weapon = !holds_melee_weapon;
+    const auto holds_melee_weapon = weapon_main_hand && (weapon_main_hand->type == GW::Constants::ItemType::Axe ||
+                                                         weapon_main_hand->type == GW::Constants::ItemType::Hammer ||
+                                                         weapon_main_hand->type == GW::Constants::ItemType::Sword ||
+                                                         weapon_main_hand->type == GW::Constants::ItemType::Daggers ||
+                                                         weapon_main_hand->type == GW::Constants::ItemType::Scythe ||
+                                                         weapon_main_hand->type == GW::Constants::ItemType::Spear);
 
-    is_melee_class = primary == GW::Constants::Profession::Assassin || primary == GW::Constants::Profession::Dervish ||
-                     primary == GW::Constants::Profession::Warrior || primary == GW::Constants::Profession::Paragon ||
-                     primary == GW::Constants::Profession::Ranger;
-    is_caster_class = !is_melee_class;
+    return holds_melee_weapon;
+}
+
+bool DataPlayer::HoldsCasterWeapon()
+{
+    return !DataPlayer::HoldsMeleeWeapon();
 }
 
 bool DataPlayer::CanCast()
@@ -165,7 +186,6 @@ void DataPlayer::ChangeTarget(const uint32_t target_id)
 
     GW::GameThread::Enqueue([&, target_id] {
         GW::Agents::ChangeTarget(target_id);
-        target = GW::Agents::GetTarget();
     });
 }
 

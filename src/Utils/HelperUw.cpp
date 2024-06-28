@@ -288,10 +288,10 @@ bool TankIsSoloLT()
 
 bool TargetIsReaper(DataPlayer &player_data)
 {
-    if (!player_data.target)
+    if (!GW::Agents::GetTarget())
         return false;
 
-    const auto *living_target = player_data.target->GetAsAgentLiving();
+    const auto *living_target = GW::Agents::GetTarget()->GetAsAgentLiving();
 
     if (!living_target)
         return false;

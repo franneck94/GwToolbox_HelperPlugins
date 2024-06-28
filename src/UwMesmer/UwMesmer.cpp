@@ -120,7 +120,8 @@ RoutineState LtRoutine::Routine()
             return RoutineState::FINISHED;
         }
 
-        if (!player_data->target)
+        const auto target = GW::Agents::GetTarget();
+        if (!target)
         {
             if (agent_id)
             {
@@ -199,7 +200,8 @@ void LtRoutine::Update()
     }
 
 #ifdef _DEBUG
-    if (IsOnSpawnPlateau(player_data->pos) && !TankIsFullteamLT() && !player_data->target) // && load_cb_triggered)
+    const auto target = GW::Agents::GetTarget();
+    if (IsOnSpawnPlateau(player_data->pos) && !TankIsFullteamLT() && !target) // && load_cb_triggered)
     {
         starting_active = true;
         action_state = ActionState::ACTIVE;
@@ -250,9 +252,7 @@ void UwMesmer::Terminate()
     GW::StoC::RemoveCallbacks(&uw_metadata.ObjectiveDone_Entry);
 }
 
-void UwMesmer::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
-                                  const ImVec4 color,
-                                  std::string_view label)
+void UwMesmer::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings, const ImVec4 color, std::string_view label)
 {
     auto idx = uint32_t{0};
 

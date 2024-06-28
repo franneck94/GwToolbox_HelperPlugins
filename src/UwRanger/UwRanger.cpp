@@ -311,9 +311,9 @@ void UwRanger::Update(float)
         {
             player_data.ChangeTarget(living->agent_id);
             if (attack_at_auto_target && (!player_data.living->GetIsMoving() && !player_data.living->GetIsCasting()) &&
-                player_data.target)
+                GW::Agents::GetTarget())
             {
-                AttackAgent(player_data.target);
+                AttackAgent(GW::Agents::GetTarget());
             }
         }
     }

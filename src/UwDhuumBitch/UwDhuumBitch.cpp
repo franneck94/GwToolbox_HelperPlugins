@@ -237,10 +237,11 @@ void UwDhuumBitch::Update(float)
 
 bool DbRoutine::CastPiOnTarget() const
 {
-    if (!player_data->target)
+    const auto target = GW::Agents::GetTarget();
+    if (!target)
         return false;
 
-    const auto target_living = player_data->target->GetAsAgentLiving();
+    const auto target_living = target->GetAsAgentLiving();
     if (!target_living || target_living->allegiance != GW::Constants::Allegiance::Enemy)
         return false;
 
@@ -494,9 +495,10 @@ bool DbRoutine::PauseRoutine() noexcept
     if (player_data->living->GetIsMoving())
         return true;
 
-    if (player_data->target)
+    const auto target = GW::Agents::GetTarget();
+    if (target)
     {
-        if (TargetIsReaper(*player_data) && (GW::GetDistance(player_data->pos, player_data->target->pos) < 300.0F))
+        if (TargetIsReaper(*player_data) && (GW::GetDistance(player_data->pos, target->pos) < 300.0F))
             return true;
     }
 

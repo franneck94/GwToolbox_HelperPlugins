@@ -261,8 +261,9 @@ void HeroWindow::UpdateInternalData()
     }
     follow_pos = player_data.pos;
 
-    if (player_data.target && player_data.target->agent_id)
-        target_agent_id = player_data.target->agent_id;
+    const auto target = GW::Agents::GetTarget();
+    if (target && target->agent_id)
+        target_agent_id = target->agent_id;
     else
         target_agent_id = 0U;
 }
@@ -519,10 +520,11 @@ void HeroWindow::HeroFollow_StuckCheck()
 
 void HeroWindow::HeroFollow_AttackTarget()
 {
-    if (!player_data.target)
+    const auto target = GW::Agents::GetTarget();
+    if (!target)
         return;
 
-    const auto target_distance = GW::GetDistance(player_data.pos, player_data.target->pos);
+    const auto target_distance = GW::GetDistance(player_data.pos, target->pos);
 
     const auto *const party_info = GW::PartyMgr::GetPartyInfo();
     if (!party_info || !party_info->heroes.valid())
@@ -618,10 +620,11 @@ bool HeroWindow::MesmerSpikeTarget(const Hero &hero) const
     if (!hero.hero_living)
         return false;
 
-    if (!player_data.target)
+    const auto target = GW::Agents::GetTarget();
+    if (!target)
         return false;
 
-    const auto *target_living = player_data.target->GetAsAgentLiving();
+    const auto *target_living = target->GetAsAgentLiving();
     if (!target_living)
         return false;
 
@@ -638,10 +641,11 @@ bool HeroWindow::MesmerSpikeTarget(const Hero &hero) const
 
 void HeroWindow::AttackTarget()
 {
-    if (!player_data.target)
+    const auto target = GW::Agents::GetTarget();
+    if (!target)
         return;
 
-    const auto *target_living = player_data.target->GetAsAgentLiving();
+    const auto *target_living = target->GetAsAgentLiving();
     if (!target_living || target_living->allegiance != GW::Constants::Allegiance::Enemy)
         return;
 
@@ -720,10 +724,10 @@ bool HeroWindow::ShatterImportantHexes()
             if (effect.agent_id != 0)
                 continue;
 
-            if (player_data.holds_melee_weapon && found_hex(to_remove_hexes_melee, effect))
+            if (DataPlayer::HoldsMeleeWeapon() && found_hex(to_remove_hexes_melee, effect))
                 return true;
 
-            if (!player_data.holds_melee_weapon && found_hex(to_remove_hexes_caster, effect))
+            if (!DataPlayer::HoldsMeleeWeapon() && found_hex(to_remove_hexes_caster, effect))
                 return true;
 
             if (found_hex(to_remove_hexes_all, effect))
@@ -802,7 +806,7 @@ bool HeroWindow::RemoveImportantConditions()
             if (effect.agent_id != 0)
                 continue;
 
-            if (player_data.holds_melee_weapon)
+            if (DataPlayer::HoldsMeleeWeapon())
             {
                 if (found_cond(to_remove_conditions_melee, effect))
                     return true;
@@ -870,7 +874,8 @@ bool HeroWindow::RuptEnemies()
     constexpr static auto target_logic = TargetLogic::SEARCH_TARGET;
     static auto last_time_target_changed = clock();
 
-    auto player_target = player_data.target ? player_data.target->agent_id : 0;
+    const auto target = GW::Agents::GetTarget();
+    auto player_target = target ? target->agent_id : 0;
     auto change_target_to_id = 0U;
 
     auto player_conditions = [&change_target_to_id](const DataPlayer &player_data) {
@@ -904,8 +909,8 @@ bool HeroWindow::RuptEnemies()
             if (std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_id) != skills_to_rupt.end())
             {
                 const auto new_target_id = enemy->agent_id;
-                if (player_data.target && player_data.target->agent_id != new_target_id &&
-                    TIMER_DIFF(_last_time_target_changed) > 10)
+                const auto target = GW::Agents::GetTarget();
+                if (target && target->agent_id != new_target_id && TIMER_DIFF(_last_time_target_changed) > 10)
                 {
                     change_target_to_id = new_target_id;
                     _last_time_target_changed = clock();
@@ -971,8 +976,8 @@ bool HeroWindow::UseSplinterOnPlayer()
                                                                              GW::Constants::Allegiance::Enemy,
                                                                              GW::Constants::Range::Nearby);
 
-        const auto player_is_melee_attacking = player_data.holds_melee_weapon;
-        const auto player_is_melee_class = player_data.is_melee_class;
+        const auto player_is_melee_attacking = DataPlayer::HoldsMeleeWeapon();
+        const auto player_is_melee_class = DataPlayer::IsMeleeClass;
 
         return num_enemies_at_player >= 2 && player_is_melee_attacking && player_is_melee_class;
     };
@@ -1005,9 +1010,9 @@ bool HeroWindow::UseVigSpiritOnPlayer()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data) {
-        const auto player_is_melee_attacking = player_data.holds_melee_weapon;
-        const auto player_is_melee_class = player_data.is_melee_class;
+    auto player_conditions = [](const DataPlayer &) {
+        const auto player_is_melee_attacking = DataPlayer::HoldsMeleeWeapon();
+        const auto player_is_melee_class = DataPlayer::IsMeleeClass;
 
         return player_is_melee_attacking && player_is_melee_class;
     };
@@ -1040,9 +1045,9 @@ bool HeroWindow::UseHonorOnPlayer()
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
-    auto player_conditions = [](const DataPlayer &player_data) {
-        const auto player_is_melee_attacking = player_data.holds_melee_weapon;
-        const auto player_is_melee_class = player_data.is_melee_class;
+    auto player_conditions = [](const DataPlayer &) {
+        const auto player_is_melee_attacking = DataPlayer::HoldsMeleeWeapon();
+        const auto player_is_melee_class = DataPlayer::IsMeleeClass;
 
         return player_is_melee_attacking && player_is_melee_class;
     };

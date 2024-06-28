@@ -80,9 +80,11 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
         case TargetLogic::SEARCH_TARGET:
         case TargetLogic::PLAYER_TARGET:
         {
-            const auto is_player_target_valid = player_data.target && player_data.target->agent_id;
-            const auto skill_target = is_player_target_valid ? player_data.target->agent_id : player_data.id;
-            return HeroUseSkill(skill_target, skill_idx, hero.hero_idx_zero_based);
+            const auto target = GW::Agents::GetTarget();
+            if (target)
+                return HeroUseSkill(target->agent_id, skill_idx, hero.hero_idx_zero_based);
+            else
+                return HeroUseSkill(player_data.id, skill_idx, hero.hero_idx_zero_based);
         }
         case TargetLogic::NO_TARGET:
         default:

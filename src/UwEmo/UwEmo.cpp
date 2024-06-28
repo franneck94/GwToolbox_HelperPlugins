@@ -474,16 +474,17 @@ bool EmoRoutine::RoutineLtAtFusePulls() const
 {
     static auto last_time_sb_ms = clock();
 
-    if (!lt_agent || !player_data->target || player_data->target->agent_id != lt_agent->agent_id)
+    const auto target = GW::Agents::GetTarget();
+    if (!lt_agent || !target || target->agent_id != lt_agent->agent_id)
         return false;
 
-    const auto *target_living = player_data->target->GetAsAgentLiving();
+    const auto *target_living = target->GetAsAgentLiving();
     if (!target_living || target_living->GetIsMoving() || player_data->living->GetIsMoving() ||
         target_living->GetIsDead() || target_living->hp == 0.00F ||
         target_living->primary != static_cast<uint8_t>(GW::Constants::Profession::Mesmer))
         return false;
 
-    const auto dist = GW::GetDistance(player_data->pos, player_data->target->pos);
+    const auto dist = GW::GetDistance(player_data->pos, target->pos);
     const auto min_range_fuse = 1220.0F;
     if (dist < min_range_fuse || dist > GW::Constants::Range::Spellcast)
         return false;
@@ -913,9 +914,10 @@ bool EmoRoutine::PauseRoutine() noexcept
     if (player_data->living->GetIsMoving())
         return true;
 
-    if (player_data->target && TargetIsReaper(*player_data))
+    const auto target = GW::Agents::GetTarget();
+    if (target && TargetIsReaper(*player_data))
     {
-        const auto dist_reaper = GW::GetDistance(player_data->pos, player_data->target->pos);
+        const auto dist_reaper = GW::GetDistance(player_data->pos, target->pos);
         if (dist_reaper < GW::Constants::Range::Nearby && player_data->energy > 30U)
             return true;
     }

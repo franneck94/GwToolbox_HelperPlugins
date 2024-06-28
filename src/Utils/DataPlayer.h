@@ -27,6 +27,11 @@ public:
     bool CastEffectIfNotAvailable(const DataSkill &skill_data) const;
     bool CastEffect(const DataSkill &skill_data) const;
 
+    static bool HoldsMeleeWeapon();
+    static bool HoldsCasterWeapon();
+    static bool IsMeleeClass();
+    static bool IsCasterClass();
+
     static bool CanCast();
     static bool CanAttack();
     static bool IsCasting();
@@ -44,10 +49,7 @@ public:
 
 public:
     uint32_t id = UINT32_MAX;
-    const GW::Agent *me = nullptr;
     const GW::AgentLiving *living = nullptr;
-
-    const GW::Agent *target = nullptr;
 
     GW::GamePos pos;
 
@@ -58,13 +60,6 @@ public:
     uint32_t hp = 0U;
     uint32_t max_hp = 0U;
     float hp_perc = 0.0F;
-
     GW::Constants::Profession primary = GW::Constants::Profession::None;
     GW::Constants::Profession secondary = GW::Constants::Profession::None;
-    bool is_melee_class = false;
-    bool is_caster_class = false;
-
-    GW::Item *weapon_main_hand = nullptr;
-    bool holds_melee_weapon = false;
-    bool holds_caster_weapon = false;
 };

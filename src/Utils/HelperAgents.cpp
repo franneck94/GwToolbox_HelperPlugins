@@ -139,15 +139,16 @@ void TargetAndAttackEnemyInAggro(const DataPlayer &player_data,
                                  const std::vector<GW::AgentLiving *> &enemies,
                                  const float range)
 {
-    if (!player_data.target || !player_data.target->agent_id || !player_data.target->GetIsLivingType() ||
-        player_data.target->GetAsAgentLiving()->allegiance != GW::Constants::Allegiance::Enemy)
+    const auto target = GW::Agents::GetTarget();
+    if (!target || !target->agent_id || !target->GetIsLivingType() ||
+        target->GetAsAgentLiving()->allegiance != GW::Constants::Allegiance::Enemy)
         TargetNearest(player_data.pos, enemies, range);
 
-    if (player_data.target && player_data.target->agent_id)
+    if (target && target->agent_id)
     {
-        const auto dist = GW::GetDistance(player_data.pos, player_data.target->pos);
+        const auto dist = GW::GetDistance(player_data.pos, target->pos);
         if (dist < range)
-            AttackAgent(player_data.target);
+            AttackAgent(target);
     }
 }
 
