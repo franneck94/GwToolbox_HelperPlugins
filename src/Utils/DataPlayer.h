@@ -23,16 +23,16 @@ public:
     bool ValidateData(std::function<bool(bool)> cb_fn, const bool need_party_loaded) const;
     void Update();
 
-    bool CanCast() const;
-    bool CanAttack() const;
-    bool IsCasting() const;
-    bool IsAttacking() const;
-    bool IsFighting() const;
-    bool IsMoving() const;
-
     void ChangeTarget(const uint32_t target_id);
     bool CastEffectIfNotAvailable(const DataSkill &skill_data) const;
     bool CastEffect(const DataSkill &skill_data) const;
+
+    static bool CanCast();
+    static bool CanAttack();
+    static bool IsCasting();
+    static bool IsAttacking();
+    static bool IsFighting();
+    static bool IsMoving();
 
     static bool HasBuff(const GW::Constants::SkillID buff_skill_id);
     static bool HasEffect(const GW::Constants::SkillID effect_skill_id);
@@ -67,6 +67,4 @@ public:
     GW::Item *weapon_main_hand = nullptr;
     bool holds_melee_weapon = false;
     bool holds_caster_weapon = false;
-
-    long standing_for_ms = 0;
 };

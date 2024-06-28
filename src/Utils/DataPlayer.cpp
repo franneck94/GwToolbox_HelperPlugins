@@ -85,15 +85,9 @@ void DataPlayer::Update()
                      primary == GW::Constants::Profession::Warrior || primary == GW::Constants::Profession::Paragon ||
                      primary == GW::Constants::Profession::Ranger;
     is_caster_class = !is_melee_class;
-
-    static auto standing_timer_start_ms = clock();
-    if (me_living->GetIsMoving())
-        standing_timer_start_ms = clock();
-
-    standing_for_ms = TIMER_DIFF(standing_timer_start_ms);
 }
 
-bool DataPlayer::CanCast() const
+bool DataPlayer::CanCast()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -109,7 +103,7 @@ bool DataPlayer::CanCast() const
     return true;
 }
 
-bool DataPlayer::CanAttack() const
+bool DataPlayer::CanAttack()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -125,7 +119,7 @@ bool DataPlayer::CanAttack() const
     return true;
 }
 
-bool DataPlayer::IsAttacking() const
+bool DataPlayer::IsAttacking()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -134,7 +128,7 @@ bool DataPlayer::IsAttacking() const
     return me_living->GetIsAttacking();
 }
 
-bool DataPlayer::IsCasting() const
+bool DataPlayer::IsCasting()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -143,7 +137,7 @@ bool DataPlayer::IsCasting() const
     return me_living->GetIsCasting();
 }
 
-bool DataPlayer::IsFighting() const
+bool DataPlayer::IsFighting()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -152,10 +146,10 @@ bool DataPlayer::IsFighting() const
     if (IsAttacking() || IsCasting())
         return true;
 
-    return standing_for_ms > 2'000 && standing_for_ms < 20'000; // Assuming standing in enemies
+    return false;
 }
 
-bool DataPlayer::IsMoving() const
+bool DataPlayer::IsMoving()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
