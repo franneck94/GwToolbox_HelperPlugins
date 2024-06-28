@@ -66,6 +66,7 @@ public:
     void HeroFollow_StopConditions();
     void HeroFollow_StartWhileRunning();
     void HeroFollow_StuckCheck();
+    void HeroFollow_AttackTarget();
 
     /* INTERNAL FUNCTIONS BEHAVIOUR */
 

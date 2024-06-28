@@ -310,13 +310,13 @@ bool HeroWindow::HeroSmarterSkills_Main()
 
     if (UseBipOnPlayer())
         return true;
+    if (UseSplinterOnPlayer())
+        return true;
     // if (UseShelterInFight())
     //     return true;
     // if (UseUnionInFight())
     //     return true;
     // if (UseSosInFight())
-    //     return true;
-    // if (UseSplinterOnPlayer())
     //     return true;
     // if (UseVigSpiritOnPlayer())
     //     return true;
@@ -513,6 +513,31 @@ void HeroWindow::HeroFollow_StuckCheck()
     }
 }
 
+void HeroWindow::HeroFollow_AttackTarget()
+{
+    if (!player_data.target)
+        return;
+
+    const auto target_distance = GW::GetDistance(player_data.pos, player_data.target->pos);
+
+    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+    if (!party_info)
+        return;
+
+    for (const auto &hero : party_info->heroes)
+    {
+        const auto *hero_living = GW::Agents::GetAgentByID(hero.agent_id);
+        if (!hero_living)
+            continue;
+
+        if (GW::GetDistance(player_data.pos, hero_living->pos) > 800.0F || target_distance > 800.0F)
+        {
+            UseFallback();
+            break;
+        }
+    }
+}
+
 /* INTERNAL FUNCTIONS BEHAVIOUR */
 
 void HeroWindow::HeroBehaviour_DrawAndLogic(const ImVec2 &im_button_size)
@@ -575,27 +600,7 @@ void HeroWindow::HeroSpike_DrawAndLogic(const ImVec2 &im_button_size)
         if (!IsExplorable())
             return;
 
-        if (!player_data.target)
-            return;
-
-        const auto target_distance = GW::GetDistance(player_data.pos, player_data.target->pos);
-
-        const auto *const party_info = GW::PartyMgr::GetPartyInfo();
-        if (!party_info)
-            return;
-
-        for (const auto &hero : party_info->heroes)
-        {
-            const auto *hero_living = GW::Agents::GetAgentByID(hero.agent_id);
-            if (!hero_living)
-                continue;
-
-            if (GW::GetDistance(player_data.pos, hero_living->pos) > 800.0F || target_distance > 800.0F)
-            {
-                UseFallback();
-                break;
-            }
-        }
+        HeroFollow_AttackTarget();
 
         AttackTarget();
     }
