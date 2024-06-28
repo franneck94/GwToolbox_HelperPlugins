@@ -93,22 +93,6 @@ public:
     bool RuptEnemies();
     bool UseFallback();
 
-    bool SmartUseSkill(const GW::Constants::SkillID skill_id,
-                       const GW::Constants::Profession skill_class,
-                       const std::string_view skill_name,
-                       std::function<bool(const DataPlayer &)> player_conditions,
-                       std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
-                       const long wait_ms,
-                       const TargetLogic target_logic = TargetLogic::NO_TARGET,
-                       const uint32_t target_id = 0U,
-                       const bool ignore_effect_agent_id = false);
-
-    /* GLOBAL FUNCTIONS */
-
-    static bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
-                                          const long wait_ms = 0UL,
-                                          const bool ignore_effect_agent_id = true);
-
 public:
     DataPlayer player_data;
     AgentLivingData livings_data;

@@ -28,3 +28,20 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
 std::tuple<uint32_t, bool> SkillIdxOfHero(const Hero &hero, const GW::Constants::SkillID skill_id);
 
 void SetHerosBehaviour(const uint32_t player_login_number, const GW::HeroBehavior hero_behaviour);
+
+
+bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
+                               const long wait_ms = 0UL,
+                               const bool ignore_effect_agent_id = true);
+
+bool SmartUseSkill(const GW::Constants::SkillID skill_id,
+                   const GW::Constants::Profession skill_class,
+                   const std::string_view skill_name,
+                   const DataPlayer &player_data,
+                   const HeroData &hero_data,
+                   std::function<bool(const DataPlayer &)> player_conditions,
+                   std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
+                   const long wait_ms,
+                   const TargetLogic target_logic = TargetLogic::NO_TARGET,
+                   const uint32_t current_target_id = 0U,
+                   const bool ignore_effect_agent_id = false);

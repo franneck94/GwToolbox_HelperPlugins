@@ -16,6 +16,7 @@
 #include <GWCA/Managers/UIMgr.h>
 #include <GWCA/Utilities/Scanner.h>
 
+#include "ActionsBase.h"
 #include "DataHero.h"
 #include "DataPlayer.h"
 #include "HelperHero.h"
@@ -144,4 +145,63 @@ void SetHerosBehaviour(const uint32_t player_login_number, const GW::HeroBehavio
         if (hero.owner_player_id == player_login_number)
             GW::PartyMgr::SetHeroBehavior(hero.agent_id, hero_behaviour);
     }
+}
+
+bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
+                               const long wait_ms,
+                               const bool ignore_effect_agent_id)
+{
+    if (!ActionABC::HasWaitedLongEnough(wait_ms))
+        return false;
+
+    if (skill_id != GW::Constants::SkillID::No_Skill)
+        return true;
+
+    if (DataPlayer::PlayerHasEffect(skill_id, ignore_effect_agent_id))
+        return false;
+
+    return true;
+}
+
+bool SmartUseSkill(const GW::Constants::SkillID skill_id,
+                   const GW::Constants::Profession skill_class,
+                   const std::string_view skill_name,
+                   const DataPlayer &player_data,
+                   const HeroData &hero_data,
+                   std::function<bool(const DataPlayer &)> player_conditions,
+                   std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
+                   const long wait_ms,
+                   const TargetLogic target_logic,
+                   const uint32_t current_target_id,
+                   const bool ignore_effect_agent_id)
+{
+    if (!HeroSkill_StartConditions(skill_id, wait_ms, ignore_effect_agent_id))
+        return false;
+
+    if (!player_conditions(player_data))
+        return false;
+
+    if (hero_data.hero_class_idx_map.find(skill_class) == hero_data.hero_class_idx_map.end())
+        return false;
+
+    auto hero_idxs_zero_based = hero_data.hero_class_idx_map.at(skill_class);
+    if (hero_idxs_zero_based.size() == 0)
+        return false;
+
+    for (const auto hero_idx_zero_based : hero_idxs_zero_based)
+    {
+        const auto &hero = hero_data.hero_vec.at(hero_idx_zero_based);
+
+        if (HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, target_logic, current_target_id))
+        {
+#ifdef _DEBUG
+            Log::Info("Casted %s.", skill_name);
+#else
+            (void)skill_name;
+#endif
+            return true;
+        }
+    }
+
+    return true;
 }
