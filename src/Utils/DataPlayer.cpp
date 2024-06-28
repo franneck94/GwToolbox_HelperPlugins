@@ -45,19 +45,13 @@ bool DataPlayer::ValidateData(std::function<bool(bool)> cb_fn, const bool need_p
 
 void DataPlayer::Update()
 {
-    const auto *me_agent = GW::Agents::GetPlayer();
-    if (!me_agent)
-        return;
-
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
         return;
 
-    id = me_agent->agent_id;
+    id = me_living->agent_id;
     pos = me_living->pos;
-
-    me = me_agent;
-    living = me_living;
+    me_living = me_living;
 
     target = GW::Agents::GetTarget();
 
@@ -71,8 +65,8 @@ void DataPlayer::Update()
     max_hp = std::get<1>(hp_tpl);
     hp_perc = std::get<2>(hp_tpl);
 
-    primary = static_cast<GW::Constants::Profession>(living->primary);
-    secondary = static_cast<GW::Constants::Profession>(living->secondary);
+    primary = static_cast<GW::Constants::Profession>(me_living->primary);
+    secondary = static_cast<GW::Constants::Profession>(me_living->secondary);
 
     const auto equipped_items_bag = GW::Items::GetBag(GW::Constants::Bag::Equipped_Items);
     if (!equipped_items_bag)
@@ -93,7 +87,7 @@ void DataPlayer::Update()
     is_caster_class = !is_melee_class;
 
     static auto standing_timer_start_ms = clock();
-    if (living->GetIsMoving())
+    if (me_living->GetIsMoving())
         standing_timer_start_ms = clock();
 
     standing_for_ms = TIMER_DIFF(standing_timer_start_ms);
@@ -101,10 +95,15 @@ void DataPlayer::Update()
 
 bool DataPlayer::CanCast() const
 {
-    if (!living)
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
         return false;
 
-    if (living->GetIsDead() || living->GetIsKnockedDown() || living->GetIsCasting() || living->GetIsMoving())
+    if (!me_living)
+        return false;
+
+    if (me_living->GetIsDead() || me_living->GetIsKnockedDown() || me_living->GetIsCasting() ||
+        me_living->GetIsMoving())
         return false;
 
     return true;
@@ -112,10 +111,15 @@ bool DataPlayer::CanCast() const
 
 bool DataPlayer::CanAttack() const
 {
-    if (!living)
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
         return false;
 
-    if (living->GetIsDead() || living->GetIsKnockedDown() || living->GetIsCasting() || living->GetIsMoving())
+    if (!me_living)
+        return false;
+
+    if (me_living->GetIsDead() || me_living->GetIsKnockedDown() || me_living->GetIsCasting() ||
+        me_living->GetIsMoving())
         return false;
 
     return true;
@@ -123,23 +127,26 @@ bool DataPlayer::CanAttack() const
 
 bool DataPlayer::IsAttacking() const
 {
-    if (!living)
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
         return false;
 
-    return living->GetIsAttacking();
+    return me_living->GetIsAttacking();
 }
 
 bool DataPlayer::IsCasting() const
 {
-    if (!living)
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
         return false;
 
-    return living->GetIsCasting();
+    return me_living->GetIsCasting();
 }
 
 bool DataPlayer::IsFighting() const
 {
-    if (!living)
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
         return false;
 
     if (IsAttacking() || IsCasting())
@@ -150,10 +157,11 @@ bool DataPlayer::IsFighting() const
 
 bool DataPlayer::IsMoving() const
 {
-    if (!living)
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
         return false;
 
-    return living->GetIsMoving();
+    return me_living->GetIsMoving();
 }
 
 void DataPlayer::ChangeTarget(const uint32_t target_id)

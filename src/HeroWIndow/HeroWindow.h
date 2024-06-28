@@ -64,6 +64,7 @@ public:
     void StopFollowing();
     void HeroFollow_DrawAndLogic(const ImVec2 &im_button_size);
     void HeroFollow_StopConditions();
+    void HeroFollow_Flagging();
     void HeroFollow_StartWhileRunning();
     void HeroFollow_StuckCheck();
     void HeroFollow_AttackTarget();

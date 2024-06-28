@@ -31,12 +31,11 @@ HeroData::HeroData()
 
 bool HeroData::Update()
 {
-
     hero_vec.clear();
     hero_class_idx_map.clear();
 
     const auto *const party_info = GW::PartyMgr::GetPartyInfo();
-    if (!party_info)
+    if (!party_info || !party_info->heroes.valid())
         return false;
 
     auto hero_idx_zero_based = 0U;

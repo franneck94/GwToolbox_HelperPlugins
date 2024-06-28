@@ -137,7 +137,7 @@ std::tuple<uint32_t, bool> SkillIdxOfHero(const Hero &hero, const GW::Constants:
 void SetHerosBehaviour(const uint32_t player_login_number, const GW::HeroBehavior hero_behaviour)
 {
     const auto *const party_info = GW::PartyMgr::GetPartyInfo();
-    if (!party_info)
+    if (!party_info || !party_info->heroes.valid())
         return;
 
     for (const auto &hero : party_info->heroes)
