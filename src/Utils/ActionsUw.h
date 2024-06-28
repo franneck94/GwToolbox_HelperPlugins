@@ -11,8 +11,8 @@
 class EmoActionABC : public ActionABC
 {
 public:
-    EmoActionABC(DataPlayer *p, std::string_view t, EmoSkillbarData *s) : ActionABC(p, t), skillbar(s){};
-    virtual ~EmoActionABC(){};
+    EmoActionABC(std::string_view t, EmoSkillbarData *s) : ActionABC(t), skillbar(s) {};
+    virtual ~EmoActionABC() {};
 
     EmoSkillbarData *skillbar = nullptr;
 };
@@ -20,8 +20,8 @@ public:
 class MesmerActionABC : public ActionABC
 {
 public:
-    MesmerActionABC(DataPlayer *p, std::string_view t, MesmerSkillbarData *s) : ActionABC(p, t), skillbar(s){};
-    virtual ~MesmerActionABC(){};
+    MesmerActionABC(std::string_view t, MesmerSkillbarData *s) : ActionABC(t), skillbar(s) {};
+    virtual ~MesmerActionABC() {};
 
     MesmerSkillbarData *skillbar = nullptr;
 };
@@ -29,8 +29,8 @@ public:
 class DbActionABC : public ActionABC
 {
 public:
-    DbActionABC(DataPlayer *p, std::string_view t, DbSkillbarData *s) : ActionABC(p, t), skillbar(s){};
-    virtual ~DbActionABC(){};
+    DbActionABC(std::string_view t, DbSkillbarData *s) : ActionABC(t), skillbar(s) {};
+    virtual ~DbActionABC() {};
 
     DbSkillbarData *skillbar = nullptr;
 };

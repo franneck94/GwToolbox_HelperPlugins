@@ -18,7 +18,7 @@
 class AutoTargetAction : public ActionABC
 {
 public:
-    AutoTargetAction(DataPlayer *p) : ActionABC(p, "Auto Target"){};
+    AutoTargetAction() : ActionABC("Auto Target") {};
 
     RoutineState Routine() override;
     void Update() override;
@@ -30,9 +30,9 @@ class UwRanger : public ToolboxUIPlugin
 {
 public:
     UwRanger()
-        : player_data({}), filtered_livings({}), auto_target(&player_data), last_casted_times_ms({}),
-          livings_data({}){};
-    ~UwRanger(){};
+        : filtered_livings({}), auto_target(), last_casted_times_ms({}),
+          livings_data({}) {};
+    ~UwRanger() {};
 
     static UwRanger &Instance()
     {
@@ -74,7 +74,6 @@ private:
     // Settings
     bool attack_at_auto_target = true;
 
-    DataPlayer player_data;
     std::map<uint32_t, clock_t> last_casted_times_ms;
 
     std::vector<GW::AgentLiving *> filtered_livings;

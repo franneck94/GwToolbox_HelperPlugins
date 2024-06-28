@@ -32,7 +32,7 @@ float GetTimeRemaining(const float duration, const DWORD timestamp)
 }
 } // namespace
 
-bool DataPlayer::ValidateData(std::function<bool(bool)> cb_fn, const bool need_party_loaded) const
+bool ValidateData(std::function<bool(bool)> cb_fn, const bool need_party_loaded)
 {
     if (!cb_fn(need_party_loaded))
         return false;
@@ -43,20 +43,7 @@ bool DataPlayer::ValidateData(std::function<bool(bool)> cb_fn, const bool need_p
     return (me_agent != nullptr && me_living != nullptr && me_agent->agent_id != 0 && me_living->agent_id != 0);
 }
 
-void DataPlayer::Update()
-{
-    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
-    if (!me_living)
-        return;
-
-    pos = me_living->pos;
-    me_living = me_living;
-
-    primary = static_cast<GW::Constants::Profession>(me_living->primary);
-    secondary = static_cast<GW::Constants::Profession>(me_living->secondary);
-}
-
-bool DataPlayer::IsMeleeClass()
+bool IsMeleeClass()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -72,12 +59,12 @@ bool DataPlayer::IsMeleeClass()
     return is_melee_class;
 }
 
-bool DataPlayer::IsCasterClass()
+bool IsCasterClass()
 {
-    return DataPlayer::IsMeleeClass();
+    return IsMeleeClass();
 }
 
-bool DataPlayer::HoldsMeleeWeapon()
+bool HoldsMeleeWeapon()
 {
     const auto equipped_items_bag = GW::Items::GetBag(GW::Constants::Bag::Equipped_Items);
     if (!equipped_items_bag)
@@ -94,28 +81,12 @@ bool DataPlayer::HoldsMeleeWeapon()
     return holds_melee_weapon;
 }
 
-bool DataPlayer::HoldsCasterWeapon()
+bool HoldsCasterWeapon()
 {
-    return !DataPlayer::HoldsMeleeWeapon();
+    return !HoldsMeleeWeapon();
 }
 
-bool DataPlayer::CanCast()
-{
-    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
-    if (!me_living)
-        return false;
-
-    if (!me_living)
-        return false;
-
-    if (me_living->GetIsDead() || me_living->GetIsKnockedDown() || me_living->GetIsCasting() ||
-        me_living->GetIsMoving())
-        return false;
-
-    return true;
-}
-
-bool DataPlayer::CanAttack()
+bool CanCast()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -131,7 +102,23 @@ bool DataPlayer::CanAttack()
     return true;
 }
 
-bool DataPlayer::IsAttacking()
+bool CanAttack()
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    if (!me_living)
+        return false;
+
+    if (me_living->GetIsDead() || me_living->GetIsKnockedDown() || me_living->GetIsCasting() ||
+        me_living->GetIsMoving())
+        return false;
+
+    return true;
+}
+
+bool IsAttacking()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -140,7 +127,7 @@ bool DataPlayer::IsAttacking()
     return me_living->GetIsAttacking();
 }
 
-bool DataPlayer::IsCasting()
+bool IsCasting()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -149,7 +136,7 @@ bool DataPlayer::IsCasting()
     return me_living->GetIsCasting();
 }
 
-bool DataPlayer::IsFighting()
+bool IsFighting()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -161,7 +148,7 @@ bool DataPlayer::IsFighting()
     return false;
 }
 
-bool DataPlayer::IsMoving()
+bool IsMoving()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -170,7 +157,7 @@ bool DataPlayer::IsMoving()
     return me_living->GetIsMoving();
 }
 
-void DataPlayer::ChangeTarget(const uint32_t target_id)
+void ChangeTarget(const uint32_t target_id)
 {
     if (!target_id || !GW::Agents::GetAgentByID(target_id))
         return;
@@ -178,7 +165,7 @@ void DataPlayer::ChangeTarget(const uint32_t target_id)
     GW::GameThread::Enqueue([&, target_id] { GW::Agents::ChangeTarget(target_id); });
 }
 
-bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id)
+bool HasBuff(const GW::Constants::SkillID buff_skill_id)
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -200,10 +187,10 @@ bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id)
     return false;
 }
 
-bool DataPlayer::CastEffectIfNotAvailable(const DataSkill &skill_data) const
+bool CastEffectIfNotAvailable(const DataSkill &skill_data)
 {
     const auto has_bond = HasEffect(static_cast<GW::Constants::SkillID>(skill_data.id));
-    const auto player_energy = DataPlayer::GetEnergy();
+    const auto player_energy = GetEnergy();
     const auto bond_avail = skill_data.CanBeCasted(player_energy);
 
     if (!has_bond && bond_avail)
@@ -216,9 +203,9 @@ bool DataPlayer::CastEffectIfNotAvailable(const DataSkill &skill_data) const
     return false;
 }
 
-bool DataPlayer::CastEffect(const DataSkill &skill_data) const
+bool CastEffect(const DataSkill &skill_data)
 {
-    const auto player_energy = DataPlayer::GetEnergy();
+    const auto player_energy = GetEnergy();
     if (skill_data.CanBeCasted(player_energy))
     {
         const auto player_id = GW::Agents::GetPlayerId();
@@ -231,7 +218,7 @@ bool DataPlayer::CastEffect(const DataSkill &skill_data) const
 
 /* START STATIC FUNCTIONS */
 
-bool DataPlayer::HasEffect(const GW::Constants::SkillID effect_skill_id)
+bool HasEffect(const GW::Constants::SkillID effect_skill_id)
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -253,7 +240,7 @@ bool DataPlayer::HasEffect(const GW::Constants::SkillID effect_skill_id)
     return false;
 }
 
-uint32_t DataPlayer::GetNumberOfPartyBonds()
+uint32_t GetNumberOfPartyBonds()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -275,7 +262,7 @@ uint32_t DataPlayer::GetNumberOfPartyBonds()
     return num_bonds;
 }
 
-float DataPlayer::GetRemainingEffectDuration(const GW::Constants::SkillID effect_skill_id)
+float GetRemainingEffectDuration(const GW::Constants::SkillID effect_skill_id)
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -302,7 +289,7 @@ float DataPlayer::GetRemainingEffectDuration(const GW::Constants::SkillID effect
     return 0.0F;
 }
 
-bool DataPlayer::PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id)
+bool PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id)
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -321,7 +308,7 @@ bool DataPlayer::PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id)
     return false;
 }
 
-bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id)
+bool PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id)
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -340,7 +327,7 @@ bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id, const b
     return false;
 }
 
-uint32_t DataPlayer::GetMaxEnergy()
+uint32_t GetMaxEnergy()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -349,7 +336,7 @@ uint32_t DataPlayer::GetMaxEnergy()
     return me_living->max_energy;
 }
 
-uint32_t DataPlayer::GetEnergy()
+uint32_t GetEnergy()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -358,7 +345,7 @@ uint32_t DataPlayer::GetEnergy()
     return static_cast<uint32_t>(me_living->energy * me_living->max_energy);
 }
 
-float DataPlayer::GetEnergyPerc()
+float GetEnergyPerc()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -367,7 +354,7 @@ float DataPlayer::GetEnergyPerc()
     return me_living->energy;
 }
 
-uint32_t DataPlayer::GetMaxHp()
+uint32_t GetMaxHp()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -376,7 +363,7 @@ uint32_t DataPlayer::GetMaxHp()
     return me_living->max_hp;
 }
 
-uint32_t DataPlayer::GetHp()
+uint32_t GetHp()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -384,11 +371,38 @@ uint32_t DataPlayer::GetHp()
 
     return static_cast<uint32_t>(me_living->hp * me_living->max_hp);
 }
-float DataPlayer::GetHpPerc()
+float GetHpPerc()
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
         return false;
 
     return me_living->hp;
+}
+
+GW::Constants::Profession GetPrimaryClass()
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return GW::Constants::Profession::Assassin;
+
+    return static_cast<GW::Constants::Profession>(me_living->primary);
+}
+
+GW::Constants::Profession GetSecondaryClass()
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return GW::Constants::Profession::Assassin;
+
+    return static_cast<GW::Constants::Profession>(me_living->secondary);
+}
+
+GW::GamePos GetPlayerPos()
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return GW::GamePos{};
+
+    return me_living->pos;
 }

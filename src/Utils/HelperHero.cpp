@@ -58,16 +58,16 @@ bool HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, cons
 }
 
 bool HeroCastSkillIfAvailable(const Hero &hero,
-                              const DataPlayer &player_data,
+
                               const GW::Constants::SkillID skill_id,
-                              std::function<bool(const DataPlayer &, const Hero &)> cb_fn,
+                              std::function<bool(const Hero &)> cb_fn,
                               const TargetLogic target_logic,
                               const uint32_t target_id)
 {
     if (!hero.hero_living || !hero.hero_living->agent_id)
         return false;
 
-    if (!cb_fn(player_data, hero))
+    if (!cb_fn(hero))
         return false;
 
     const auto [skill_idx, can_cast_skill] = SkillIdxOfHero(hero, skill_id);
@@ -160,7 +160,7 @@ bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
     if (skill_id != GW::Constants::SkillID::No_Skill)
         return true;
 
-    if (DataPlayer::PlayerHasEffect(skill_id, ignore_effect_agent_id))
+    if (PlayerHasEffect(skill_id, ignore_effect_agent_id))
         return false;
 
     return true;
@@ -169,10 +169,10 @@ bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
 bool SmartUseSkill(const GW::Constants::SkillID skill_id,
                    const GW::Constants::Profession skill_class,
                    const std::string_view skill_name,
-                   const DataPlayer &player_data,
+
                    const HeroData &hero_data,
-                   std::function<bool(const DataPlayer &)> player_conditions,
-                   std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
+                   std::function<bool()> player_conditions,
+                   std::function<bool(const Hero &)> hero_conditions,
                    const long wait_ms,
                    const TargetLogic target_logic,
                    const uint32_t current_target_id,
@@ -181,7 +181,7 @@ bool SmartUseSkill(const GW::Constants::SkillID skill_id,
     if (!HeroSkill_StartConditions(skill_id, wait_ms, ignore_effect_agent_id))
         return false;
 
-    if (!player_conditions(player_data))
+    if (!player_conditions())
         return false;
 
     if (hero_data.hero_class_idx_map.find(skill_class) == hero_data.hero_class_idx_map.end())
@@ -195,7 +195,7 @@ bool SmartUseSkill(const GW::Constants::SkillID skill_id,
     {
         const auto &hero = hero_data.hero_vec.at(hero_idx_zero_based);
 
-        if (HeroCastSkillIfAvailable(hero, player_data, skill_id, hero_conditions, target_logic, current_target_id))
+        if (HeroCastSkillIfAvailable(hero, skill_id, hero_conditions, target_logic, current_target_id))
         {
 #ifdef _DEBUG
             Log::Info("Casted %s.", skill_name);

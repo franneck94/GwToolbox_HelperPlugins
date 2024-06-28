@@ -15,7 +15,7 @@ public:
 
     static bool HasWaitedLongEnough(long timer_threshold_ms = TIMER_THRESHOLD_MS);
 
-    ActionABC(DataPlayer *_player, std::string_view _text) noexcept : player_data(_player), text(_text){};
+    ActionABC(std::string_view _text) noexcept : text(_text) {};
     virtual ~ActionABC() noexcept {};
 
     void Draw(ImVec2 button_size = ImVec2(100.0, 50.0), bool allow_in_outpost = false);
@@ -31,7 +31,6 @@ public:
         return !PauseRoutine();
     }
 
-    DataPlayer *player_data;
     std::string_view text;
 
     ActionState action_state = ActionState::INACTIVE;

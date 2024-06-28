@@ -11,8 +11,8 @@
 class SmartCommands : public ToolboxUIPlugin
 {
 public:
-    SmartCommands(){};
-    ~SmartCommands(){};
+    SmartCommands() {};
+    ~SmartCommands() {};
 
 public:
     struct BaseUseSkill
@@ -48,7 +48,7 @@ public:
         return ICON_FA_COMMENT_DOTS;
     }
 
-    void Initialize(ImGuiContext*, ImGuiAllocFns, HMODULE) override;
+    void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
     void SignalTerminate() override;
     bool CanTerminate() override;
     void Terminate() override;

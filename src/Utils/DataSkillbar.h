@@ -18,7 +18,7 @@ template <uint32_t N>
 class SkillbarDataABC
 {
 public:
-    SkillbarDataABC(){};
+    SkillbarDataABC() {};
 
     void Initialize()
     {

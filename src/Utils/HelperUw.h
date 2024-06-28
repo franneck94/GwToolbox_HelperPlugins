@@ -23,19 +23,19 @@ uint32_t GetEmoId();
 
 uint32_t GetDhuumBitchId();
 
-bool IsEmo(const DataPlayer &player_data);
+bool IsEmo();
 
-bool IsDhuumBitch(const DataPlayer &player_data);
+bool IsDhuumBitch();
 
-bool IsUwMesmer(const DataPlayer &player_data);
+bool IsUwMesmer();
 
-bool IsSpiker(const DataPlayer &player_data);
+bool IsSpiker();
 
-bool IsLT(const DataPlayer &player_data);
+bool IsLT();
 
-bool IsRangerTerra(const DataPlayer &player_data);
+bool IsRangerTerra();
 
-bool IsMesmerTerra(const DataPlayer &player_data);
+bool IsMesmerTerra();
 
 const GW::Agent *GetDhuumAgent();
 
@@ -47,13 +47,13 @@ bool TankIsFullteamLT();
 
 bool TankIsSoloLT();
 
-bool TargetIsReaper(DataPlayer &player_data);
+bool TargetIsReaper();
 
-bool TargetReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs);
+bool TargetReaper(const std::vector<GW::AgentLiving *> &npcs);
 
-bool TalkReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs);
+bool TalkReaper(const std::vector<GW::AgentLiving *> &npcs);
 
-bool TargetClosestKeeper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> enemies);
+bool TargetClosestKeeper(const std::vector<GW::AgentLiving *> enemies);
 
 bool TakeChamber();
 
@@ -71,18 +71,19 @@ bool TakePlanes();
 
 template <uint32_t N>
 void UpdateUwInfo(const std::map<std::string, uint32_t> &reaper_moves,
-                  const DataPlayer &player_data,
+
                   const std::array<MoveABC *, N> &moves,
                   uint32_t &move_idx,
                   const bool first_call,
                   bool &move_ongoing)
 {
-    static auto last_pos = player_data.pos;
+    static auto last_pos = GW::GamePos{};
 
     if (move_idx >= moves.size() - 1)
         return;
 
-    const auto curr_pos = player_data.pos;
+    const auto player_pos = GetPlayerPos();
+    const auto curr_pos = player_pos;
     const auto port_detected = GW::GetDistance(last_pos, curr_pos) > GW::Constants::Range::Compass;
     const auto is_spawn = GW::GetDistance(GW::GamePos{1248.00F, 6965.51F, 0}, curr_pos) < GW::Constants::Range::Compass;
 
@@ -99,10 +100,11 @@ void UpdateUwInfo(const std::map<std::string, uint32_t> &reaper_moves,
         const auto planes_reaper = GW::GamePos{11368.55F, -17974.64F, 0};
         const auto wastes_reaper = GW::GamePos{-235.05F, 18496.461F, 0};
 
-        const auto ported_to_lab = GW::GetDistance(lab_reaper, player_data.pos) < 2000.0F;
-        const auto ported_to_pits = GW::GetDistance(pits_reaper, player_data.pos) < 2000.0F;
-        const auto ported_to_planes = GW::GetDistance(planes_reaper, player_data.pos) < 2000.0F;
-        const auto ported_to_wastes = GW::GetDistance(wastes_reaper, player_data.pos) < 2000.0F;
+        const auto player_pos = GetPlayerPos();
+        const auto ported_to_lab = GW::GetDistance(lab_reaper, player_pos) < 2000.0F;
+        const auto ported_to_pits = GW::GetDistance(pits_reaper, player_pos) < 2000.0F;
+        const auto ported_to_planes = GW::GetDistance(planes_reaper, player_pos) < 2000.0F;
+        const auto ported_to_wastes = GW::GetDistance(wastes_reaper, player_pos) < 2000.0F;
 
         if (TankIsFullteamLT() && !ported_to_wastes)
         {
@@ -145,7 +147,7 @@ bool FoundKeeperAtPos(const std::vector<GW::AgentLiving *> &keeper_livings, cons
 
 bool DhuumIsCastingJudgement(const GW::Agent *dhuum_agent);
 
-bool CheckForAggroFree(const DataPlayer &player_data, const AgentLivingData *livings_data, const GW::GamePos &next_pos);
+bool CheckForAggroFree(const AgentLivingData *livings_data, const GW::GamePos &next_pos);
 
 float GetProgressValue();
 
@@ -153,6 +155,6 @@ bool DhuumFightDone(const uint32_t num_objectives);
 
 uint32_t GetUwTriggerRoleId(const TriggerRole role);
 
-bool TargetTrigger(DataPlayer &player_data, const TriggerRole role);
+bool TargetTrigger(const TriggerRole role);
 
 bool LtIsBonded();

@@ -21,7 +21,7 @@ public:
     DataSkill wisdom = DataSkill{GW::Constants::SkillID::Ebon_Battle_Standard_of_Wisdom, static_cast<uint32_t>(-1)};
     DataSkill pi = DataSkill{GW::Constants::SkillID::Pain_Inverter, static_cast<uint32_t>(-1)};
 
-    EmoSkillbarData() : SkillbarDataABC(){};
+    EmoSkillbarData() : SkillbarDataABC() {};
 
     void Initialize()
     {
@@ -51,7 +51,7 @@ public:
     DataSkill mantra_of_earth = DataSkill{GW::Constants::SkillID::Mantra_of_Earth, static_cast<uint32_t>(-1)};
     DataSkill stonestriker = DataSkill{GW::Constants::SkillID::Stone_Striker, static_cast<uint32_t>(-1)};
 
-    MesmerSkillbarData() : SkillbarDataABC(){};
+    MesmerSkillbarData() : SkillbarDataABC() {};
 
     void Initialize()
     {
@@ -86,7 +86,7 @@ public:
     DataSkill sq = DataSkill{GW::Constants::SkillID::Serpents_Quickness, static_cast<uint32_t>(-1)};
     DataSkill vamp = DataSkill{GW::Constants::SkillID::Vampirism, static_cast<uint32_t>(-1)};
 
-    DbSkillbarData() : SkillbarDataABC(){};
+    DbSkillbarData() : SkillbarDataABC() {};
 
     void Initialize()
     {
@@ -124,7 +124,7 @@ public:
     DataSkill honor = DataSkill{GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor, static_cast<uint32_t>(-1)};
     DataSkill soh = DataSkill{GW::Constants::SkillID::Shadow_of_Haste, static_cast<uint32_t>(-1)};
 
-    RangerSkillbarData() : SkillbarDataABC(){};
+    RangerSkillbarData() : SkillbarDataABC() {};
 
     void Initialize()
     {

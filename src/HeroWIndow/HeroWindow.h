@@ -21,7 +21,7 @@
 class HeroWindow : public ToolboxUIPlugin
 {
 public:
-    HeroWindow() : player_data({}) {};
+    HeroWindow() {};
     ~HeroWindow() {};
 
     const char *Name() const override
@@ -95,7 +95,6 @@ public:
     bool UseFallback();
 
 public:
-    DataPlayer player_data;
     AgentLivingData livings_data;
     HeroData hero_data;
 

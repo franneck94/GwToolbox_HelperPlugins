@@ -13,8 +13,8 @@
 class UwMetadata
 {
 public:
-    UwMetadata(){};
-    ~UwMetadata(){};
+    UwMetadata() {};
+    ~UwMetadata() {};
 
     void Initialize();
 

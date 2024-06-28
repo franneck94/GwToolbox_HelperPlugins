@@ -19,8 +19,8 @@
 class LtRoutine : public MesmerActionABC
 {
 public:
-    LtRoutine(DataPlayer *player, MesmerSkillbarData *skillbar, const AgentLivingData *agents)
-        : MesmerActionABC(player, "LtRoutine", skillbar), livings_data(agents) {};
+    LtRoutine(MesmerSkillbarData *skillbar, const AgentLivingData *agents)
+        : MesmerActionABC("LtRoutine", skillbar), livings_data(agents) {};
 
     RoutineState Routine() override;
     void Update() override;
@@ -47,8 +47,8 @@ class UwMesmer : public ToolboxUIPlugin
 {
 public:
     UwMesmer()
-        : player_data({}), livings_data({}), filtered_livings({}), aatxe_livings({}), dryder_livings({}),
-          skele_livings({}), skillbar({}), uw_metadata({}), lt_routine(&player_data, &skillbar, &livings_data)
+        : livings_data({}), filtered_livings({}), aatxe_livings({}), dryder_livings({}),
+          skele_livings({}), skillbar({}), uw_metadata({}), lt_routine(&skillbar, &livings_data)
     {
         if (skillbar.ValidateData())
             skillbar.Load();
@@ -80,7 +80,6 @@ public:
 private:
     void DrawSplittedAgents(std::vector<GW::AgentLiving *> livings, const ImVec4 color, std::string_view label);
 
-    DataPlayer player_data;
     AgentLivingData livings_data;
     MesmerSkillbarData skillbar;
 

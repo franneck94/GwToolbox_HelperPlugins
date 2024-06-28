@@ -42,7 +42,7 @@ void MoveABC::Execute() const
         cb_fn.value()();
 }
 
-bool Move_CastSkillABC::UpdateMoveState(const DataPlayer &player_data, const AgentLivingData *, bool &move_ongoing)
+bool Move_CastSkillABC::UpdateMoveState(const AgentLivingData *, bool &move_ongoing)
 {
     static auto started_cast = false;
     static auto timer_wait = clock();
@@ -56,18 +56,23 @@ bool Move_CastSkillABC::UpdateMoveState(const DataPlayer &player_data, const Age
 
     move_ongoing = true;
 
-    if (player_data.living->GetIsMoving())
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    if (me_living->GetIsMoving())
         timer_wait = clock();
 
-    const auto reached_pos = GamePosCompare(player_data.pos, pos, 0.1F);
+    const auto player_pos = GetPlayerPos();
+    const auto reached_pos = GamePosCompare(player_pos, pos, 0.1F);
     if (!reached_pos)
         return false;
 
-    const auto cast_cannot_start = (!player_data.CanCast() || timer_diff_wait < 600 || skill_cb->recharge > 0);
+    const auto cast_cannot_start = (!CanCast() || timer_diff_wait < 600 || skill_cb->recharge > 0);
     if (!started_cast && cast_cannot_start)
         return false;
 
-    if (!started_cast && RoutineState::FINISHED == skill_cb->Cast(DataPlayer::GetEnergy()))
+    if (!started_cast && RoutineState::FINISHED == skill_cb->Cast(GetEnergy()))
     {
         timer_casting = clock();
         started_cast = true;
@@ -76,7 +81,7 @@ bool Move_CastSkillABC::UpdateMoveState(const DataPlayer &player_data, const Age
 
     const auto is_timer_exceeded = timer_diff_wait > cast_time_s;
     const auto timer_diff_casting = TIMER_DIFF(timer_casting);
-    const auto is_casting = player_data.living->GetIsCasting() || TIMER_DIFF(timer_diff_casting) < 500;
+    const auto is_casting = me_living->GetIsCasting() || TIMER_DIFF(timer_diff_casting) < 500;
     if (started_cast && (!is_timer_exceeded || is_casting || is_casting))
         return false;
 
@@ -85,14 +90,12 @@ bool Move_CastSkillABC::UpdateMoveState(const DataPlayer &player_data, const Age
     return true;
 }
 
-bool Move_WaitABC::UpdateMoveState(const DataPlayer &player_data,
-                                   const AgentLivingData *livings_data,
-                                   bool &move_ongoing)
+bool Move_WaitABC::UpdateMoveState(const AgentLivingData *livings_data, bool &move_ongoing)
 {
     move_ongoing = true;
 
     static auto canceled_move = false;
-    const auto aggro_free = CheckForAggroFree(player_data, livings_data, pos);
+    const auto aggro_free = CheckForAggroFree(livings_data, pos);
     if (aggro_free)
     {
         Log::Info("Aggro free, moving on");
@@ -111,7 +114,7 @@ bool Move_WaitABC::UpdateMoveState(const DataPlayer &player_data,
     return false;
 }
 
-bool Move_DistanceABC::UpdateMoveState(const DataPlayer &player_data, const AgentLivingData *, bool &move_ongoing)
+bool Move_DistanceABC::UpdateMoveState(const AgentLivingData *, bool &move_ongoing)
 {
     move_ongoing = true;
 
@@ -123,7 +126,8 @@ bool Move_DistanceABC::UpdateMoveState(const DataPlayer &player_data, const Agen
     if (!trigger_agent)
         return false;
 
-    const auto dist = GW::GetDistance(player_data.pos, trigger_agent->pos);
+    const auto player_pos = GetPlayerPos();
+    const auto dist = GW::GetDistance(player_pos, trigger_agent->pos);
     if (dist < dist_threshold)
         return false;
 
@@ -131,13 +135,13 @@ bool Move_DistanceABC::UpdateMoveState(const DataPlayer &player_data, const Agen
     return true;
 }
 
-bool Move_NoWaitABC::UpdateMoveState(const DataPlayer &, const AgentLivingData *, bool &move_ongoing)
+bool Move_NoWaitABC::UpdateMoveState(const AgentLivingData *, bool &move_ongoing)
 {
     move_ongoing = true;
     return true;
 }
 
-bool Move_PositionABC::UpdateMoveState(const DataPlayer &, const AgentLivingData *, bool &move_ongoing)
+bool Move_PositionABC::UpdateMoveState(const AgentLivingData *, bool &move_ongoing)
 {
     move_ongoing = true;
 

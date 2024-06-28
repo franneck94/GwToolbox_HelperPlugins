@@ -119,40 +119,47 @@ uint32_t GetDhuumBitchId()
     return 0;
 }
 
-bool IsEmo(const DataPlayer &player_data)
+bool IsEmo()
 {
-    return (player_data.primary == GW::Constants::Profession::Elementalist &&
-            player_data.secondary == GW::Constants::Profession::Monk);
+    const auto primary = GetPrimaryClass();
+    const auto secondary = GetSecondaryClass();
+
+    return (primary == GW::Constants::Profession::Elementalist && secondary == GW::Constants::Profession::Monk);
 }
 
-bool IsDhuumBitch(const DataPlayer &player_data)
+bool IsDhuumBitch()
 {
-    return ((player_data.primary == GW::Constants::Profession::Ritualist ||
-             player_data.primary == GW::Constants::Profession::Dervish) &&
-            player_data.secondary == GW::Constants::Profession::Ranger);
+    const auto primary = GetPrimaryClass();
+    const auto secondary = GetSecondaryClass();
+
+    return ((primary == GW::Constants::Profession::Ritualist || primary == GW::Constants::Profession::Dervish) &&
+            secondary == GW::Constants::Profession::Ranger);
 }
 
-bool IsUwMesmer(const DataPlayer &player_data)
+bool IsUwMesmer()
 {
-    return (player_data.primary == GW::Constants::Profession::Mesmer &&
-            (player_data.secondary == GW::Constants::Profession::Ranger ||
-             player_data.secondary == GW::Constants::Profession::Elementalist ||
-             player_data.secondary == GW::Constants::Profession::Assassin));
+    const auto primary = GetPrimaryClass();
+    const auto secondary = GetSecondaryClass();
+
+    return (primary == GW::Constants::Profession::Mesmer &&
+            (secondary == GW::Constants::Profession::Ranger || secondary == GW::Constants::Profession::Elementalist ||
+             secondary == GW::Constants::Profession::Assassin));
 }
 
-bool IsSpiker(const DataPlayer &player_data)
+bool IsSpiker()
 {
-    return (player_data.primary == GW::Constants::Profession::Mesmer &&
-            player_data.secondary == GW::Constants::Profession::Ranger);
+    const auto primary = GetPrimaryClass();
+    const auto secondary = GetSecondaryClass();
+
+    return (primary == GW::Constants::Profession::Mesmer && secondary == GW::Constants::Profession::Ranger);
 }
 
-bool IsLT(const DataPlayer &player_data)
+bool IsLT()
 {
-    if (player_data.primary == GW::Constants::Profession::Mesmer &&
-        player_data.secondary == GW::Constants::Profession::Assassin)
-    {
+    const auto primary = GetPrimaryClass();
+    const auto secondary = GetSecondaryClass();
+    if (primary == GW::Constants::Profession::Mesmer && secondary == GW::Constants::Profession::Assassin)
         return true;
-    }
 
     // Check if Me/E has Mantra of Earth => T4 build
     const auto *skillbar = GW::SkillbarMgr::GetPlayerSkillbar();
@@ -165,23 +172,26 @@ bool IsLT(const DataPlayer &player_data)
         }
     }
 
-    return (player_data.primary == GW::Constants::Profession::Mesmer &&
-            player_data.secondary == GW::Constants::Profession::Elementalist);
+    return (primary == GW::Constants::Profession::Mesmer && secondary == GW::Constants::Profession::Elementalist);
 }
 
-bool IsRangerTerra(const DataPlayer &player_data)
+bool IsRangerTerra()
 {
-    return (player_data.primary == GW::Constants::Profession::Ranger &&
-            player_data.secondary == GW::Constants::Profession::Assassin);
+    const auto primary = GetPrimaryClass();
+    const auto secondary = GetSecondaryClass();
+
+    return (primary == GW::Constants::Profession::Ranger && secondary == GW::Constants::Profession::Assassin);
 }
 
-bool IsMesmerTerra(const DataPlayer &player_data)
+bool IsMesmerTerra()
 {
-    if (player_data.primary != GW::Constants::Profession::Mesmer ||
-        player_data.secondary != GW::Constants::Profession::Elementalist)
+    const auto primary = GetPrimaryClass();
+    const auto secondary = GetSecondaryClass();
+
+    if (primary != GW::Constants::Profession::Mesmer || secondary != GW::Constants::Profession::Elementalist)
         return false;
 
-    return !IsLT(player_data);
+    return !IsLT();
 }
 
 const GW::Agent *GetDhuumAgent()
@@ -286,7 +296,7 @@ bool TankIsSoloLT()
     return false;
 }
 
-bool TargetIsReaper(DataPlayer &player_data)
+bool TargetIsReaper()
 {
     if (!GW::Agents::GetTarget())
         return false;
@@ -299,14 +309,14 @@ bool TargetIsReaper(DataPlayer &player_data)
     return living_target->player_number == static_cast<uint32_t>(GW::Constants::ModelID::UW::Reapers);
 }
 
-bool TargetReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs)
+bool TargetReaper(const std::vector<GW::AgentLiving *> &npcs)
 {
-    return TargetClosestNpcById(player_data, npcs, GW::Constants::ModelID::UW::Reapers) != 0U;
+    return TargetClosestNpcById(npcs, GW::Constants::ModelID::UW::Reapers) != 0U;
 }
 
-bool TalkReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs)
+bool TalkReaper(const std::vector<GW::AgentLiving *> &npcs)
 {
-    const auto npc_id = TargetClosestNpcById(player_data, npcs, GW::Constants::ModelID::UW::Reapers);
+    const auto npc_id = TargetClosestNpcById(npcs, GW::Constants::ModelID::UW::Reapers);
     if (!npc_id)
         return true;
 
@@ -319,9 +329,9 @@ bool TalkReaper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &n
     return true;
 }
 
-bool TargetClosestKeeper(DataPlayer &player_data, const std::vector<GW::AgentLiving *> enemies)
+bool TargetClosestKeeper(const std::vector<GW::AgentLiving *> enemies)
 {
-    return TargetClosestEnemyById(player_data, enemies, GW::Constants::ModelID::UW::KeeperOfSouls) != 0;
+    return TargetClosestEnemyById(enemies, GW::Constants::ModelID::UW::KeeperOfSouls) != 0;
 }
 
 bool TakeChamber()
@@ -402,7 +412,7 @@ bool DhuumIsCastingJudgement(const GW::Agent *dhuum_agent)
     return false;
 }
 
-bool CheckForAggroFree(const DataPlayer &player_data, const AgentLivingData *livings_data, const GW::GamePos &next_pos)
+bool CheckForAggroFree(const AgentLivingData *livings_data, const GW::GamePos &next_pos)
 {
     if (!livings_data)
         return true;
@@ -413,16 +423,17 @@ bool CheckForAggroFree(const DataPlayer &player_data, const AgentLivingData *liv
                                                GW::Constants::ModelID::UW::GraspingDarkness,
                                                GW::Constants::ModelID::UW::DyingNightmare};
 
-    const auto livings = FilterAgentsByRange(livings_data->enemies, player_data, GW::Constants::Range::Spellcast);
+    const auto livings = FilterAgentsByRange(livings_data->enemies, GW::Constants::Range::Spellcast);
     const auto result_ids_aggro = FilterAgentIDS(livings, filter_ids);
 
-    if (player_data.pos.x == next_pos.x && player_data.pos.y == next_pos.y)
+    const auto player_pos = GetPlayerPos();
+    if (player_pos.x == next_pos.x && player_pos.y == next_pos.y)
         return result_ids_aggro.size() == 0;
 
     if (result_ids_aggro.size() > 0)
         return false;
 
-    const auto rect = GameRectangle(player_data.pos, next_pos, GW::Constants::Range::Spellcast + 50.0F);
+    const auto rect = GameRectangle(player_pos, next_pos, GW::Constants::Range::Spellcast + 50.0F);
     const auto filtered_livings = GetEnemiesInGameRectangle(rect, livings_data->enemies);
 
     const auto result_ids_rect = FilterAgentIDS(filtered_livings, filter_ids);
@@ -478,14 +489,14 @@ uint32_t GetUwTriggerRoleId(const TriggerRole role)
     return trigger_id;
 }
 
-bool TargetTrigger(DataPlayer &player_data, const TriggerRole role)
+bool TargetTrigger(const TriggerRole role)
 {
     const auto trigger_id = GetUwTriggerRoleId(role);
 
     if (!trigger_id)
         return false;
 
-    player_data.ChangeTarget(trigger_id);
+    ChangeTarget(trigger_id);
 
     return true;
 }

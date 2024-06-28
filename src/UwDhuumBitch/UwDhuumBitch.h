@@ -23,8 +23,7 @@
 class DbRoutine : public DbActionABC
 {
 public:
-    DbRoutine(DataPlayer *p, DbSkillbarData *s, const AgentLivingData *a)
-        : DbActionABC(p, "DbRoutine", s), livings_data(a) {};
+    DbRoutine(DbSkillbarData *s, const AgentLivingData *a) : DbActionABC("DbRoutine", s), livings_data(a) {};
 
     RoutineState Routine() override;
     RoutineState DhuumRoomRoutine();
@@ -84,17 +83,16 @@ private:
     bool show_debug_map = true;
 
     bool first_frame = false;
-    DataPlayer player_data;
     AgentLivingData livings_data;
     DbSkillbarData skillbar;
     UwMetadata uw_metadata;
 
     DbRoutine db_routine;
 
-    std::function<bool()> target_reaper_fn = [&]() { return TargetReaper(player_data, livings_data.npcs); };
-    std::function<bool()> talk_reaper_fn = [&]() { return TalkReaper(player_data, livings_data.npcs); };
+    std::function<bool()> target_reaper_fn = [&]() { return TargetReaper(livings_data.npcs); };
+    std::function<bool()> talk_reaper_fn = [&]() { return TalkReaper(livings_data.npcs); };
     std::function<bool()> cast_sq = [&]() {
-        const auto energy = DataPlayer::GetEnergy();
+        const auto energy = GetEnergy();
         skillbar.sq.Cast(energy);
         return true;
     };

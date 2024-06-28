@@ -96,9 +96,8 @@ bool IsNearToGamePos(const GW::GamePos &player_pos, const GW::GamePos &pos, cons
     return GW::GetDistance(player_pos, pos) < r;
 }
 
-std::vector<GW::AgentLiving *> GetEnemiesInGameRectangle(
-    const GameRectangle &rectangle,
-    const std::vector<GW::AgentLiving *> &living_agents)
+std::vector<GW::AgentLiving *> GetEnemiesInGameRectangle(const GameRectangle &rectangle,
+                                                         const std::vector<GW::AgentLiving *> &living_agents)
 {
     auto filtered_livings = std::vector<GW::AgentLiving *>{};
 

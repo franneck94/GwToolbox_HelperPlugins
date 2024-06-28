@@ -19,9 +19,9 @@ enum class TargetLogic
 bool HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, const uint32_t hero_idx_zero_based);
 
 bool HeroCastSkillIfAvailable(const Hero &hero,
-                              const DataPlayer &player_data,
+
                               const GW::Constants::SkillID skill_id,
-                              std::function<bool(const DataPlayer &, const Hero &)> cb_fn,
+                              std::function<bool(const Hero &)> cb_fn,
                               const TargetLogic target_logic,
                               const uint32_t target_id = 0);
 
@@ -37,10 +37,10 @@ bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
 bool SmartUseSkill(const GW::Constants::SkillID skill_id,
                    const GW::Constants::Profession skill_class,
                    const std::string_view skill_name,
-                   const DataPlayer &player_data,
+
                    const HeroData &hero_data,
-                   std::function<bool(const DataPlayer &)> player_conditions,
-                   std::function<bool(const DataPlayer &, const Hero &)> hero_conditions,
+                   std::function<bool()> player_conditions,
+                   std::function<bool(const Hero &)> hero_conditions,
                    const long wait_ms,
                    const TargetLogic target_logic = TargetLogic::NO_TARGET,
                    const uint32_t current_target_id = 0U,

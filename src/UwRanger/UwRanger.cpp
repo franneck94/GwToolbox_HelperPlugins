@@ -147,6 +147,7 @@ void UwRanger::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
 
         ImGui::TableNextRow();
 
+        const auto player_pos = GetPlayerPos();
         if (living->player_number == static_cast<uint32_t>(GW::Constants::ModelID::UW::ObsidianBehemoth) &&
             living->GetIsCasting() && living->skill == HEALING_SPRING_U16)
         {
@@ -155,9 +156,9 @@ void UwRanger::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
         }
         else if (!draw_time &&
                  living->player_number == static_cast<uint32_t>(GW::Constants::ModelID::UW::ColdfireNight) &&
-                 (GW::GetDistance(player_data.pos, living->pos) > 1800.0F || living->GetIsAttacking()))
+                 (GW::GetDistance(player_pos, living->pos) > 1800.0F || living->GetIsAttacking()))
         {
-            if (GW::GetDistance(player_data.pos, living->pos) > 1800.0F)
+            if (GW::GetDistance(player_pos, living->pos) > 1800.0F)
             {
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0F, 0.0F, 0.0F, 1.0F));
             }
@@ -171,7 +172,8 @@ void UwRanger::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
         {
             ImGui::PushStyleColor(ImGuiCol_Text, color);
         }
-        const auto distance = GW::GetDistance(player_data.pos, living->pos);
+
+        const auto distance = GW::GetDistance(player_pos, living->pos);
         ImGui::TableNextColumn();
         ImGui::Text("%3.0f%%", living->hp * 100.0F);
         ImGui::TableNextColumn();
@@ -198,7 +200,7 @@ void UwRanger::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
         const auto _label = std::format("Target##{}{}", label.data(), idx);
         if (ImGui::Button(_label.data()))
         {
-            player_data.ChangeTarget(living->agent_id);
+            ChangeTarget(living->agent_id);
         }
 
         ++idx;
@@ -212,7 +214,7 @@ void UwRanger::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
 
 void UwRanger::Draw(IDirect3DDevice9 *)
 {
-    if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsRangerTerra(player_data))
+    if (!ValidateData(UwHelperActivationConditions, true) || !IsRangerTerra())
         return;
 
     ImGui::SetNextWindowSize(ImVec2(200.0F, 240.0F), ImGuiCond_FirstUseEver);
@@ -260,22 +262,22 @@ void UwRanger::Update(float)
     skele_livings.clear();
     horseman_livings.clear();
 
-    if (!player_data.ValidateData(UwHelperActivationConditions, true))
+    if (!ValidateData(UwHelperActivationConditions, true))
     {
         last_casted_times_ms.clear();
         return;
     }
 
     livings_data.Update();
-    player_data.Update();
 
-    if (!IsRangerTerra(player_data) || IsLoading())
+    if (!IsRangerTerra() || IsLoading())
     {
         last_casted_times_ms.clear();
         return;
     }
 
-    const auto &pos = player_data.pos;
+    const auto player_pos = GetPlayerPos();
+    const auto &pos = player_pos;
     FilterByIdsAndDistances(pos, livings_data.enemies, filtered_livings, T1_IDS, GW::Constants::Range::Compass);
     FilterByIdsAndDistances(pos, livings_data.enemies, filtered_livings, T2_IDS, 800.0F);
     FilterByIdsAndDistances(pos, livings_data.enemies, filtered_livings, GENERAL_IDS, 1500.0F);
@@ -285,19 +287,21 @@ void UwRanger::Update(float)
     FilterByIdAndDistance(pos, filtered_livings, skele_livings, GW::Constants::ModelID::UW::SkeletonOfDhuum1);
     FilterByIdAndDistance(pos, filtered_livings, skele_livings, GW::Constants::ModelID::UW::SkeletonOfDhuum2);
     FilterByIdAndDistance(pos, filtered_livings, horseman_livings, GW::Constants::ModelID::UW::FourHorseman);
-    SortByDistance(player_data, coldfire_livings);
-    SortByDistance(player_data, behemoth_livings);
-    SortByDistance(player_data, dryder_livings);
-    SortByDistance(player_data, skele_livings);
-    SortByDistance(player_data, horseman_livings);
+    SortByDistance(coldfire_livings);
+    SortByDistance(behemoth_livings);
+    SortByDistance(dryder_livings);
+    SortByDistance(skele_livings);
+    SortByDistance(horseman_livings);
 
     auto_target.behemoth_livings = &behemoth_livings;
     auto_target.Update();
 
     if (!auto_target_active)
-    {
         return;
-    }
+
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return;
 
     for (const auto living : behemoth_livings)
     {
@@ -306,11 +310,11 @@ void UwRanger::Update(float)
             continue;
         }
 
-        const auto dist = GW::GetDistance(player_data.pos, living->pos);
+        const auto dist = GW::GetDistance(player_pos, living->pos);
         if (dist < GW::Constants::Range::Earshot && living->GetIsCasting() && living->skill == HEALING_SPRING_U16)
         {
-            player_data.ChangeTarget(living->agent_id);
-            if (attack_at_auto_target && (!player_data.living->GetIsMoving() && !player_data.living->GetIsCasting()) &&
+            ChangeTarget(living->agent_id);
+            if (attack_at_auto_target && (!me_living->GetIsMoving() && !me_living->GetIsCasting()) &&
                 GW::Agents::GetTarget())
             {
                 AttackAgent(GW::Agents::GetTarget());
