@@ -25,9 +25,9 @@ const GW::EffectArray *GetEffects(const uint32_t target_agent_id);
 
 bool DetectPlayerIsDead();
 
-std::tuple<uint32_t, uint32_t, float> GetEnergy(const GW::AgentLiving *me_living);
+std::tuple<uint32_t, uint32_t, float> GetEnergyData();
 
-std::tuple<uint32_t, uint32_t, float> GetHp(const GW::AgentLiving *me_living);
+std::tuple<uint32_t, uint32_t, float> GetHpData();
 
 bool AgentHasBuff(const GW::Constants::SkillID buff_skill_id, const uint32_t target_agent_id);
 
@@ -101,13 +101,11 @@ uint32_t TargetClosestAllyById(DataPlayer &player_data,
                                const std::vector<GW::AgentLiving *> &allies,
                                const uint32_t id);
 
-uint32_t TargetClosestNpcById(DataPlayer &player_data,
-                              const std::vector<GW::AgentLiving *> &npcs,
-                              const uint32_t id);
+uint32_t TargetClosestNpcById(DataPlayer &player_data, const std::vector<GW::AgentLiving *> &npcs, const uint32_t id);
 
 std::vector<GW::AgentLiving *> FilterAgentsByRange(const std::vector<GW::AgentLiving *> &livings,
-                                                         const DataPlayer &player_data,
-                                                         const float dist_threshold = GW::Constants::Range::Earshot);
+                                                   const DataPlayer &player_data,
+                                                   const float dist_threshold = GW::Constants::Range::Earshot);
 
 struct PlayerMapping
 {

@@ -101,8 +101,12 @@ bool DetectPlayerIsDead()
     return me_living->GetIsDead();
 }
 
-std::tuple<uint32_t, uint32_t, float> GetEnergy(const GW::AgentLiving *me_living)
+std::tuple<uint32_t, uint32_t, float> GetEnergyData()
 {
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return std::make_tuple(0U, 0U, 0.0F);
+
     const auto max_energy = me_living->max_energy;
     const auto energy_perc = me_living->energy;
     const auto energy = static_cast<float>(max_energy) * energy_perc;
@@ -110,8 +114,12 @@ std::tuple<uint32_t, uint32_t, float> GetEnergy(const GW::AgentLiving *me_living
     return std::make_tuple(static_cast<uint32_t>(energy), max_energy, energy_perc);
 }
 
-std::tuple<uint32_t, uint32_t, float> GetHp(const GW::AgentLiving *me_living)
+std::tuple<uint32_t, uint32_t, float> GetHpData()
 {
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return std::make_tuple(0U, 0U, 0.0F);
+
     const auto max_hp = me_living->max_hp;
     const auto hp_perc = me_living->hp;
     const auto hp = static_cast<float>(max_hp) * hp_perc;
@@ -158,7 +166,8 @@ bool CastBondIfNotAvailable(const DataSkill &skill_data, const uint32_t target_i
         return false;
 
     const auto has_bond = AgentHasBuff(static_cast<GW::Constants::SkillID>(skill_data.id), target_id);
-    const auto bond_avail = skill_data.CanBeCasted(player_data->energy);
+    const auto player_energy = DataPlayer::GetEnergy();
+    const auto bond_avail = skill_data.CanBeCasted(player_energy);
     const auto skill_idx = skill_data.idx;
 
     if (!has_bond && bond_avail)

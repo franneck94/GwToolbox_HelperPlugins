@@ -49,19 +49,8 @@ void DataPlayer::Update()
     if (!me_living)
         return;
 
-    id = me_living->agent_id;
     pos = me_living->pos;
     me_living = me_living;
-
-    const auto energy_tpl = GetEnergy(me_living);
-    energy = std::get<0>(energy_tpl);
-    max_energy = std::get<1>(energy_tpl);
-    energy_perc = std::get<2>(energy_tpl);
-
-    const auto hp_tpl = GetHp(me_living);
-    hp = std::get<0>(hp_tpl);
-    max_hp = std::get<1>(hp_tpl);
-    hp_perc = std::get<2>(hp_tpl);
 
     primary = static_cast<GW::Constants::Profession>(me_living->primary);
     secondary = static_cast<GW::Constants::Profession>(me_living->secondary);
@@ -79,6 +68,8 @@ bool DataPlayer::IsMeleeClass()
         primary == GW::Constants::Profession::Assassin || primary == GW::Constants::Profession::Dervish ||
         primary == GW::Constants::Profession::Warrior || primary == GW::Constants::Profession::Paragon ||
         primary == GW::Constants::Profession::Ranger;
+
+    return is_melee_class;
 }
 
 bool DataPlayer::IsCasterClass()
@@ -184,9 +175,7 @@ void DataPlayer::ChangeTarget(const uint32_t target_id)
     if (!target_id || !GW::Agents::GetAgentByID(target_id))
         return;
 
-    GW::GameThread::Enqueue([&, target_id] {
-        GW::Agents::ChangeTarget(target_id);
-    });
+    GW::GameThread::Enqueue([&, target_id] { GW::Agents::ChangeTarget(target_id); });
 }
 
 bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id)
@@ -214,11 +203,13 @@ bool DataPlayer::HasBuff(const GW::Constants::SkillID buff_skill_id)
 bool DataPlayer::CastEffectIfNotAvailable(const DataSkill &skill_data) const
 {
     const auto has_bond = HasEffect(static_cast<GW::Constants::SkillID>(skill_data.id));
-    const auto bond_avail = skill_data.CanBeCasted(energy);
+    const auto player_energy = DataPlayer::GetEnergy();
+    const auto bond_avail = skill_data.CanBeCasted(player_energy);
 
     if (!has_bond && bond_avail)
     {
-        GW::GameThread::Enqueue([&]() { GW::SkillbarMgr::UseSkill(skill_data.idx, id); });
+        const auto player_id = GW::Agents::GetPlayerId();
+        GW::GameThread::Enqueue([&]() { GW::SkillbarMgr::UseSkill(skill_data.idx, player_id); });
         return true;
     }
 
@@ -227,9 +218,11 @@ bool DataPlayer::CastEffectIfNotAvailable(const DataSkill &skill_data) const
 
 bool DataPlayer::CastEffect(const DataSkill &skill_data) const
 {
-    if (skill_data.CanBeCasted(energy))
+    const auto player_energy = DataPlayer::GetEnergy();
+    if (skill_data.CanBeCasted(player_energy))
     {
-        GW::GameThread::Enqueue([&]() { GW::SkillbarMgr::UseSkill(skill_data.idx, id); });
+        const auto player_id = GW::Agents::GetPlayerId();
+        GW::GameThread::Enqueue([&]() { GW::SkillbarMgr::UseSkill(skill_data.idx, player_id); });
         return true;
     }
 
@@ -345,4 +338,57 @@ bool DataPlayer::PlayerHasEffect(const GW::Constants::SkillID effect_id, const b
     }
 
     return false;
+}
+
+uint32_t DataPlayer::GetMaxEnergy()
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    return me_living->max_energy;
+}
+
+uint32_t DataPlayer::GetEnergy()
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    return static_cast<uint32_t>(me_living->energy * me_living->max_energy);
+}
+
+float DataPlayer::GetEnergyPerc()
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    return me_living->energy;
+}
+
+uint32_t DataPlayer::GetMaxHp()
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    return me_living->max_hp;
+}
+
+uint32_t DataPlayer::GetHp()
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    return static_cast<uint32_t>(me_living->hp * me_living->max_hp);
+}
+float DataPlayer::GetHpPerc()
+{
+    const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    return me_living->hp;
 }

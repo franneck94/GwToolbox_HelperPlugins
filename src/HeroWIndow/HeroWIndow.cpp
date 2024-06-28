@@ -78,7 +78,8 @@ void OnSkillOnEnemy(const uint32_t value_id, const uint32_t caster_id)
     if (!instance)
         return;
 
-    if (caster_id != instance->player_data.id)
+    const auto player_id = GW::Agents::GetPlayerId();
+    if (caster_id != player_id)
         return;
 
     switch (value_id)
@@ -1278,7 +1279,8 @@ bool HeroWindow::UseBipOnPlayer()
             return false;
 
         const auto [enrgy_treshold_abs, enrgy_treshold_perc] = energy_class_map.at(player_data.primary);
-        if (player_data.energy_perc > enrgy_treshold_perc && player_data.energy > enrgy_treshold_abs)
+        const auto [energy, _, energy_perc] = GetEnergyData();
+        if (energy_perc > enrgy_treshold_perc && energy > enrgy_treshold_abs)
             return false;
 
         return true;

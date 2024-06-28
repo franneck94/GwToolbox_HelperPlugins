@@ -68,26 +68,27 @@ bool LtRoutine::RoutineSelfEnches() const
     const auto need_mantra = (aatxes.size() || graspings.size());
     const auto need_visage = DoNeedVisage();
 
+    const auto player_energy = DataPlayer::GetEnergy();
     if (need_obsi && DoNeedEnchNow(player_data, GW::Constants::SkillID::Obsidian_Flesh, 2.0F) &&
-        (RoutineState::FINISHED == skillbar->obsi.Cast(player_data->energy)))
+        (RoutineState::FINISHED == skillbar->obsi.Cast(player_energy)))
     {
         return true;
     }
 
     if (need_stoneflesh && DoNeedEnchNow(player_data, GW::Constants::SkillID::Stoneflesh_Aura, 2.0F) &&
-        (RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_data->energy)))
+        (RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_energy)))
     {
         return true;
     }
 
     if (need_mantra && DoNeedEnchNow(player_data, GW::Constants::SkillID::Mantra_of_Resolve, 0.0F) &&
-        (RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_data->energy)))
+        (RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_energy)))
     {
         return true;
     }
 
     if (need_visage && DoNeedEnchNow(player_data, GW::Constants::SkillID::Sympathetic_Visage, 0.0F) &&
-        (RoutineState::FINISHED == skillbar->visage.Cast(player_data->energy)))
+        (RoutineState::FINISHED == skillbar->visage.Cast(player_energy)))
     {
         return true;
     }
@@ -125,8 +126,9 @@ RoutineState LtRoutine::Routine()
         {
             if (agent_id)
             {
+                const auto player_energy = DataPlayer::GetEnergy();
                 player_data->ChangeTarget(agent_id);
-                if (RoutineState::FINISHED == skillbar->ebon.Cast(player_data->energy, agent_id))
+                if (RoutineState::FINISHED == skillbar->ebon.Cast(player_energy, agent_id))
                     return RoutineState::FINISHED;
             }
         }
@@ -149,23 +151,24 @@ RoutineState LtRoutine::Routine()
             const auto took_chamber = TakeChamber();
             Log::Info("Took chamber: %u", (int)took_chamber);
 
-            if (skillbar->stoneflesh.CanBeCasted(player_data->energy) &&
-                RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_data->energy))
+            const auto player_energy = DataPlayer::GetEnergy();
+            if (skillbar->stoneflesh.CanBeCasted(player_energy) &&
+                RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_energy))
             {
                 return RoutineState::FINISHED;
             }
-            if (skillbar->mantra_of_resolve.CanBeCasted(player_data->energy) &&
-                RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_data->energy))
+            if (skillbar->mantra_of_resolve.CanBeCasted(player_energy) &&
+                RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_energy))
             {
                 return RoutineState::FINISHED;
             }
-            if (skillbar->visage.CanBeCasted(player_data->energy) &&
-                RoutineState::FINISHED == skillbar->visage.Cast(player_data->energy))
+            if (skillbar->visage.CanBeCasted(player_energy) &&
+                RoutineState::FINISHED == skillbar->visage.Cast(player_energy))
             {
                 return RoutineState::FINISHED;
             }
-            if (skillbar->obsi.CanBeCasted(player_data->energy) &&
-                RoutineState::FINISHED == skillbar->obsi.Cast(player_data->energy))
+            if (skillbar->obsi.CanBeCasted(player_energy) &&
+                RoutineState::FINISHED == skillbar->obsi.Cast(player_energy))
             {
                 return RoutineState::FINISHED;
             }

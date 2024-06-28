@@ -67,7 +67,7 @@ bool Move_CastSkillABC::UpdateMoveState(const DataPlayer &player_data, const Age
     if (!started_cast && cast_cannot_start)
         return false;
 
-    if (!started_cast && RoutineState::FINISHED == skill_cb->Cast(player_data.energy))
+    if (!started_cast && RoutineState::FINISHED == skill_cb->Cast(DataPlayer::GetEnergy()))
     {
         timer_casting = clock();
         started_cast = true;

@@ -17,7 +17,7 @@
 class DataPlayer
 {
 public:
-    DataPlayer(const uint32_t agent_id = UINT32_MAX) noexcept : id(agent_id), pos(GW::GamePos{0.0F, 0.0F, 0}) {};
+    DataPlayer() noexcept {};
     ~DataPlayer() {};
 
     bool ValidateData(std::function<bool(bool)> cb_fn, const bool need_party_loaded) const;
@@ -46,20 +46,19 @@ public:
     static bool PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id);
     static bool PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id = false);
 
+    static uint32_t GetMaxEnergy();
+    static uint32_t GetEnergy();
+    static float GetEnergyPerc();
+
+    static uint32_t GetMaxHp();
+    static uint32_t GetHp();
+    static float GetHpPerc();
 
 public:
-    uint32_t id = UINT32_MAX;
     const GW::AgentLiving *living = nullptr;
 
     GW::GamePos pos;
 
-    uint32_t energy = 0U;
-    uint32_t max_energy = 0U;
-    float energy_perc = 0.0F;
-
-    uint32_t hp = 0U;
-    uint32_t max_hp = 0U;
-    float hp_perc = 0.0F;
     GW::Constants::Profession primary = GW::Constants::Profession::None;
     GW::Constants::Profession secondary = GW::Constants::Profession::None;
 };

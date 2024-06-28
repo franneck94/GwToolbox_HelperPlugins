@@ -72,6 +72,7 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
 
     const auto [skill_idx, can_cast_skill] = SkillIdxOfHero(hero, skill_id);
     const auto has_skill_in_skillbar = skill_idx != static_cast<uint32_t>(-1);
+    const auto player_id = GW::Agents::GetPlayerId();
 
     if (has_skill_in_skillbar && can_cast_skill)
     {
@@ -84,12 +85,12 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
             if (target)
                 return HeroUseSkill(target->agent_id, skill_idx, hero.hero_idx_zero_based);
             else
-                return HeroUseSkill(player_data.id, skill_idx, hero.hero_idx_zero_based);
+                return HeroUseSkill(player_id, skill_idx, hero.hero_idx_zero_based);
         }
         case TargetLogic::NO_TARGET:
         default:
         {
-            return HeroUseSkill(player_data.id, skill_idx, hero.hero_idx_zero_based);
+            return HeroUseSkill(player_id, skill_idx, hero.hero_idx_zero_based);
         }
         }
     }

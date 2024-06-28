@@ -249,7 +249,8 @@ bool DbRoutine::CastPiOnTarget() const
     if (dist > GW::Constants::Range::Spellcast)
         return false;
 
-    if (RoutineState::FINISHED == skillbar->pi.Cast(player_data->energy, target_living->agent_id))
+    const auto player_energy = DataPlayer::GetEnergy();
+    if (RoutineState::FINISHED == skillbar->pi.Cast(player_energy, target_living->agent_id))
         return true;
 
     return false;
@@ -257,10 +258,12 @@ bool DbRoutine::CastPiOnTarget() const
 
 bool DbRoutine::RoutineKillSkele() const
 {
+    const auto player_energy = DataPlayer::GetEnergy();
+
     if ((!FoundSpirit(*player_data, livings_data->spirits, SOS1_AGENT_ID) ||
          !FoundSpirit(*player_data, livings_data->spirits, SOS2_AGENT_ID) ||
          !FoundSpirit(*player_data, livings_data->spirits, SOS3_AGENT_ID)) &&
-        (RoutineState::FINISHED == skillbar->sos.Cast(player_data->energy)))
+        (RoutineState::FINISHED == skillbar->sos.Cast(player_energy)))
         return true;
 
     if (CastPiOnTarget())
@@ -272,18 +275,19 @@ bool DbRoutine::RoutineKillSkele() const
 bool DbRoutine::RoutineKillEnemiesStandard() const
 {
     const auto found_honor = DataPlayer::HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
+    const auto player_energy = DataPlayer::GetEnergy();
 
-    if (!found_honor && RoutineState::FINISHED == skillbar->honor.Cast(player_data->energy))
+    if (!found_honor && RoutineState::FINISHED == skillbar->honor.Cast(player_energy))
         return true;
 
     if ((!FoundSpirit(*player_data, livings_data->spirits, SOS1_AGENT_ID) ||
          !FoundSpirit(*player_data, livings_data->spirits, SOS2_AGENT_ID) ||
          !FoundSpirit(*player_data, livings_data->spirits, SOS3_AGENT_ID)) &&
-        (RoutineState::FINISHED == skillbar->sos.Cast(player_data->energy)))
+        (RoutineState::FINISHED == skillbar->sos.Cast(player_energy)))
         return true;
 
     if (!FoundSpirit(*player_data, livings_data->spirits, VAMPIRISMUS_AGENT_ID) &&
-        (RoutineState::FINISHED == skillbar->vamp.Cast(player_data->energy)))
+        (RoutineState::FINISHED == skillbar->vamp.Cast(player_energy)))
         return true;
 
     if (CastPiOnTarget())
@@ -297,24 +301,25 @@ bool DbRoutine::RoutineValeSpirits() const
     const auto found_honor = DataPlayer::HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
     const auto found_eoe = DataPlayer::HasEffect(GW::Constants::SkillID::Edge_of_Extinction);
     const auto found_winnow = DataPlayer::HasEffect(GW::Constants::SkillID::Winnowing);
+    const auto player_energy = DataPlayer::GetEnergy();
 
-    if (!found_honor && RoutineState::FINISHED == skillbar->honor.Cast(player_data->energy))
+    if (!found_honor && RoutineState::FINISHED == skillbar->honor.Cast(player_energy))
         return true;
 
     if ((!FoundSpirit(*player_data, livings_data->spirits, SOS1_AGENT_ID) ||
          !FoundSpirit(*player_data, livings_data->spirits, SOS2_AGENT_ID) ||
          !FoundSpirit(*player_data, livings_data->spirits, SOS3_AGENT_ID)) &&
-        (RoutineState::FINISHED == skillbar->sos.Cast(player_data->energy)))
+        (RoutineState::FINISHED == skillbar->sos.Cast(player_energy)))
         return true;
 
     if (!FoundSpirit(*player_data, livings_data->spirits, VAMPIRISMUS_AGENT_ID) &&
-        (RoutineState::FINISHED == skillbar->vamp.Cast(player_data->energy)))
+        (RoutineState::FINISHED == skillbar->vamp.Cast(player_energy)))
         return true;
 
-    if (!found_eoe && player_data->energy >= 30U && RoutineState::FINISHED == skillbar->eoe.Cast(player_data->energy))
+    if (!found_eoe && player_energy >= 30U && RoutineState::FINISHED == skillbar->eoe.Cast(player_energy))
         return true;
 
-    if (!found_winnow && RoutineState::FINISHED == skillbar->winnow.Cast(player_data->energy))
+    if (!found_winnow && RoutineState::FINISHED == skillbar->winnow.Cast(player_energy))
         return true;
 
     return false;
@@ -329,10 +334,11 @@ bool DbRoutine::RoutineDhuumRecharge() const
     const auto qz_diff_ms = TIMER_DIFF(qz_timer);
     if (qz_diff_ms > 36'000 || !found_qz)
     {
-        if (!found_qz && RoutineState::FINISHED == skillbar->sq.Cast(player_data->energy))
+        const auto player_energy = DataPlayer::GetEnergy();
+        if (!found_qz && RoutineState::FINISHED == skillbar->sq.Cast(player_energy))
             return true;
 
-        if (RoutineState::FINISHED == skillbar->qz.Cast(player_data->energy))
+        if (RoutineState::FINISHED == skillbar->qz.Cast(player_energy))
         {
             qz_timer = clock();
             return true;
@@ -347,17 +353,17 @@ bool DbRoutine::RoutineDhuumDamage() const
     const auto found_honor = DataPlayer::HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
     const auto found_winnow = DataPlayer::HasEffect(GW::Constants::SkillID::Winnowing);
 
-    if (!found_honor && player_data->energy > 33U &&
-        RoutineState::FINISHED == skillbar->honor.Cast(player_data->energy))
+    const auto player_energy = DataPlayer::GetEnergy();
+    if (!found_honor && player_energy > 33U && RoutineState::FINISHED == skillbar->honor.Cast(player_energy))
         return true;
 
-    if (!found_winnow && RoutineState::FINISHED == skillbar->winnow.Cast(player_data->energy))
+    if (!found_winnow && RoutineState::FINISHED == skillbar->winnow.Cast(player_energy))
         return true;
 
     if ((!FoundSpirit(*player_data, livings_data->spirits, SOS1_AGENT_ID) ||
          !FoundSpirit(*player_data, livings_data->spirits, SOS2_AGENT_ID) ||
          !FoundSpirit(*player_data, livings_data->spirits, SOS3_AGENT_ID)) &&
-        (RoutineState::FINISHED == skillbar->sos.Cast(player_data->energy)))
+        (RoutineState::FINISHED == skillbar->sos.Cast(player_energy)))
         return true;
 
     return false;
@@ -477,8 +483,9 @@ RoutineState DbRoutine::DhuumRoomRoutine()
     if (dhuum_hp < 0.20F)
         return RoutineState::FINISHED;
 
+    const auto player_energy = DataPlayer::GetEnergy();
     if (dhuum_agent && DhuumIsCastingJudgement(dhuum_agent) &&
-        (RoutineState::FINISHED == skillbar->pi.Cast(player_data->energy, dhuum_agent->agent_id)))
+        (RoutineState::FINISHED == skillbar->pi.Cast(player_energy, dhuum_agent->agent_id)))
         return RoutineState::FINISHED;
 
     if (RoutineDhuumDamage())

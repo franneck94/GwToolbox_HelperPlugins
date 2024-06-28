@@ -24,7 +24,7 @@ class DbRoutine : public DbActionABC
 {
 public:
     DbRoutine(DataPlayer *p, DbSkillbarData *s, const AgentLivingData *a)
-        : DbActionABC(p, "DbRoutine", s), livings_data(a){};
+        : DbActionABC(p, "DbRoutine", s), livings_data(a) {};
 
     RoutineState Routine() override;
     RoutineState DhuumRoomRoutine();
@@ -49,7 +49,7 @@ class UwDhuumBitch : public ToolboxUIPlugin
 {
 public:
     UwDhuumBitch();
-    ~UwDhuumBitch(){};
+    ~UwDhuumBitch() {};
 
     const char *Name() const override
     {
@@ -94,7 +94,8 @@ private:
     std::function<bool()> target_reaper_fn = [&]() { return TargetReaper(player_data, livings_data.npcs); };
     std::function<bool()> talk_reaper_fn = [&]() { return TalkReaper(player_data, livings_data.npcs); };
     std::function<bool()> cast_sq = [&]() {
-        skillbar.sq.Cast(player_data.energy);
+        const auto energy = DataPlayer::GetEnergy();
+        skillbar.sq.Cast(energy);
         return true;
     };
 

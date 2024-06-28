@@ -324,7 +324,8 @@ bool EmoRoutine::RoutineWhenInRangeBondLT() const
     if (!lt_agent)
         return false;
 
-    if (player_data->energy < 40U)
+    const auto player_energy = DataPlayer::GetEnergy();
+    if (player_energy < 40U)
         return false;
 
     const auto dist = GW::GetDistance(player_data->pos, lt_agent->pos);
@@ -359,23 +360,28 @@ bool EmoRoutine::RoutineSelfBonds() const
     const auto need_sb_right_now = DoNeedEnchNow(player_data, GW::Constants::SkillID::Spirit_Bond, 2.0F);
     const auto need_ether_right_now = DoNeedEnchNow(player_data, GW::Constants::SkillID::Ether_Renewal, 3.0F);
 
-    if (player_data->energy > 30U)
+    const auto player_energy = DataPlayer::GetEnergy();
+    if (player_energy > 30U)
     {
-        if (CastBondIfNotAvailable(skillbar->balth, player_data->id, player_data))
+        const auto player_id = GW::Agents::GetPlayerId();
+
+        if (CastBondIfNotAvailable(skillbar->balth, player_id, player_data))
             return true;
 
-        if (CastBondIfNotAvailable(skillbar->prot, player_data->id, player_data))
+        if (CastBondIfNotAvailable(skillbar->prot, player_id, player_data))
             return true;
     }
 
-    const auto is_full_energy = player_data->energy_perc == 1.0F;
+    const auto energy_perc = DataPlayer::GetEnergyPerc();
+    const auto is_full_energy = energy_perc == 1.0F;
     if (!is_full_energy && (!found_ether || need_ether_right_now) && player_data->CastEffect(skillbar->ether))
         return true;
 
     if (!found_ether)
         return false;
 
-    const auto need_pump = player_data->energy_perc < 0.85F || player_data->hp_perc < 0.80F;
+    const auto player_hp_perc = DataPlayer::GetHpPerc();
+    const auto need_pump = energy_perc < 0.85F || player_hp_perc < 0.80F;
     if ((need_pump || !found_sb || need_sb_right_now) && player_data->CastEffect(skillbar->sb))
         return true;
 
@@ -407,10 +413,11 @@ bool EmoRoutine::RoutineEscortSpirits() const
         const auto dist = GW::GetDistance(player_data->pos, spirit->pos);
         const auto is_far_away = dist > 2000.0F;
 
+        const auto player_energy = DataPlayer::GetEnergy();
         if (spirit->hp < 0.60F || is_far_away)
-            return (RoutineState::FINISHED == skillbar->fuse.Cast(player_data->energy, spirit->agent_id));
+            return (RoutineState::FINISHED == skillbar->fuse.Cast(player_energy, spirit->agent_id));
 
-        return (RoutineState::FINISHED == skillbar->sb.Cast(player_data->energy, spirit->agent_id));
+        return (RoutineState::FINISHED == skillbar->sb.Cast(player_energy, spirit->agent_id));
     }
 
     return false;
@@ -445,13 +452,15 @@ bool EmoRoutine::RoutineCanthaGuards() const
             if (!cantha || cantha->GetIsDead() || cantha->hp == 0.00F)
                 continue;
 
-            if (cantha->hp < 0.50F && player_data->hp_perc > 0.50F)
-                return (RoutineState::FINISHED == skillbar->fuse.Cast(player_data->energy, cantha->agent_id));
+            const auto player_energy = DataPlayer::GetEnergy();
+            const auto player_hp_perc = DataPlayer::GetHpPerc();
+            if (cantha->hp < 0.50F && player_hp_perc > 0.50F)
+                return (RoutineState::FINISHED == skillbar->fuse.Cast(player_energy, cantha->agent_id));
             else if (cantha->hp < 0.80F)
-                return (RoutineState::FINISHED == skillbar->sb.Cast(player_data->energy, cantha->agent_id));
+                return (RoutineState::FINISHED == skillbar->sb.Cast(player_energy, cantha->agent_id));
 
             if (!cantha->GetIsWeaponSpelled())
-                return (RoutineState::FINISHED == skillbar->gdw.Cast(player_data->energy, cantha->agent_id));
+                return (RoutineState::FINISHED == skillbar->gdw.Cast(player_energy, cantha->agent_id));
         }
     }
 
@@ -464,8 +473,9 @@ bool EmoRoutine::RoutineDbAtSpirits() const
         return false;
 
     const auto dist = GW::GetDistance(db_agent->pos, player_data->pos);
+    const auto player_energy = DataPlayer::GetEnergy();
     if (dist < GW::Constants::Range::Spellcast)
-        return (RoutineState::FINISHED == skillbar->gdw.Cast(player_data->energy, db_agent->agent_id));
+        return (RoutineState::FINISHED == skillbar->gdw.Cast(player_energy, db_agent->agent_id));
 
     return false;
 }
@@ -498,13 +508,15 @@ bool EmoRoutine::RoutineLtAtFusePulls() const
     const auto still_need_fuse_pull =
         (most_distant_mindblade && GW::GetDistance(target_living->pos, most_distant_mindblade->pos) > 500.0F);
 
-    if ((still_need_fuse_pull || target_living->hp < 0.90F) && player_data->hp_perc > 0.50F &&
-        (RoutineState::FINISHED == skillbar->fuse.Cast(player_data->energy, target_living->agent_id)))
+    const auto player_energy = DataPlayer::GetEnergy();
+    const auto player_hp_perc = DataPlayer::GetHpPerc();
+    if ((still_need_fuse_pull || target_living->hp < 0.90F) && player_hp_perc > 0.50F &&
+        (RoutineState::FINISHED == skillbar->fuse.Cast(player_energy, target_living->agent_id)))
         return true;
 
     const auto sb_recast_threshold_ms = 6'000L;
     if (TIMER_DIFF(last_time_sb_ms) > sb_recast_threshold_ms &&
-        RoutineState::FINISHED == skillbar->sb.Cast(player_data->energy, target_living->agent_id))
+        RoutineState::FINISHED == skillbar->sb.Cast(player_energy, target_living->agent_id))
     {
         last_time_sb_ms = clock();
         return true;
@@ -558,19 +570,21 @@ bool EmoRoutine::RoutineTurtle() const
     if (CastBondIfNotAvailable(skillbar->life, turtle_agent->agent_id, player_data))
         return true;
 
-    if (player_data->hp_perc < 0.50F || turtle_living->hp > 0.975F)
+    const auto player_hp_perc = DataPlayer::GetHpPerc();
+    if (player_hp_perc < 0.50F || turtle_living->hp > 0.975F)
         return false;
 
+    const auto player_energy = DataPlayer::GetEnergy();
     if (turtle_living->hp < 0.975F)
-        return (RoutineState::FINISHED == skillbar->sb.Cast(player_data->energy, turtle_agent->agent_id));
+        return (RoutineState::FINISHED == skillbar->sb.Cast(player_energy, turtle_agent->agent_id));
 
-    return (turtle_living->hp < 0.90F &&
-            RoutineState::FINISHED == skillbar->fuse.Cast(player_data->energy, turtle_agent->agent_id));
+    return (turtle_living->hp < 0.90F && RoutineState::FINISHED == skillbar->fuse.Cast(player_energy, turtle_agent->agent_id));
 }
 
 bool EmoRoutine::RoutineWisdom() const
 {
-    return (RoutineState::FINISHED == skillbar->wisdom.Cast(player_data->energy));
+    const auto player_energy = DataPlayer::GetEnergy();
+    return (RoutineState::FINISHED == skillbar->wisdom.Cast(player_energy));
 }
 
 bool EmoRoutine::RoutineGDW() const
@@ -582,7 +596,8 @@ bool EmoRoutine::RoutineGDW() const
     const auto member_id = party_members[last_idx].id;
     last_idx++;
 
-    if (!player_data->CanCast() || !member_id || !party_data_valid || member_id == player_data->id)
+    const auto player_id = GW::Agents::GetPlayerId();
+    if (!player_data->CanCast() || !member_id || !party_data_valid || member_id == player_id)
         return false;
 
     const auto agent = GW::Agents::GetAgentByID(member_id);
@@ -600,7 +615,8 @@ bool EmoRoutine::RoutineGDW() const
     if (living->GetIsWeaponSpelled())
         return false;
 
-    return (RoutineState::FINISHED == skillbar->gdw.Cast(player_data->energy, living->agent_id));
+    const auto player_energy = DataPlayer::GetEnergy();
+    return (RoutineState::FINISHED == skillbar->gdw.Cast(player_energy, living->agent_id));
 }
 
 bool EmoRoutine::RoutineTurtleGDW() const
@@ -625,7 +641,8 @@ bool EmoRoutine::RoutineTurtleGDW() const
     if (living->GetIsWeaponSpelled())
         return false;
 
-    return (RoutineState::FINISHED == skillbar->gdw.Cast(player_data->energy, living->agent_id));
+    const auto player_energy = DataPlayer::GetEnergy();
+    return (RoutineState::FINISHED == skillbar->gdw.Cast(player_energy, living->agent_id));
 }
 
 bool EmoRoutine::RoutineDbBeforeDhuum() const
@@ -655,12 +672,14 @@ bool EmoRoutine::RoutineDbBeforeDhuum() const
     if (CastBondIfNotAvailable(skillbar->prot, living->agent_id, player_data))
         return true;
 
-    if (living->hp < 0.50F && player_data->hp_perc > 0.50F)
-        return (RoutineState::FINISHED == skillbar->fuse.Cast(player_data->energy, living->agent_id));
+    const auto player_energy = DataPlayer::GetEnergy();
+    const auto player_hp_perc = DataPlayer::GetHpPerc();
+    if (living->hp < 0.50F && player_hp_perc > 0.50F)
+        return (RoutineState::FINISHED == skillbar->fuse.Cast(player_energy, living->agent_id));
 
     const auto sb_recast_threshold_ms = 6'000L;
     if (TIMER_DIFF(last_time_sb_ms) > sb_recast_threshold_ms && living->hp < 0.50F &&
-        RoutineState::FINISHED == skillbar->sb.Cast(player_data->energy, living->agent_id))
+        RoutineState::FINISHED == skillbar->sb.Cast(player_energy, living->agent_id))
     {
         last_time_sb_ms = clock();
         return true;
@@ -674,12 +693,14 @@ bool EmoRoutine::RoutineKeepPlayerAlive() const
     if (player_data->living->GetIsMoving())
         return false;
 
-    if (player_data->energy < 50U)
+    const auto player_energy = DataPlayer::GetEnergy();
+    if (player_energy < 50U)
         return false;
 
     for (const auto &[id, _] : party_members)
     {
-        if (!id || id == player_data->id)
+        const auto player_id = GW::Agents::GetPlayerId();
+        if (!id || id == player_id)
             continue;
 
         const auto agent = GW::Agents::GetAgentByID(id);
@@ -697,8 +718,9 @@ bool EmoRoutine::RoutineKeepPlayerAlive() const
         if (living->hp > 0.50F)
             continue;
 
-        if (player_data->hp_perc > 0.75F)
-            return (RoutineState::FINISHED == skillbar->fuse.Cast(player_data->energy, living->agent_id));
+        const auto player_hp_perc = DataPlayer::GetHpPerc();
+        if (player_hp_perc > 0.75F)
+            return (RoutineState::FINISHED == skillbar->fuse.Cast(player_energy, living->agent_id));
 
         if (living->primary != static_cast<uint8_t>(GW::Constants::Profession::Ranger) && living->hp < 0.30F)
             if (CastBondIfNotAvailable(skillbar->prot, living->agent_id, player_data))
@@ -764,7 +786,8 @@ RoutineState EmoRoutine::Routine()
     if (is_in_dhuum_fight)
         move_ongoing = false;
 
-    if (IsUw() && dhuum_fight_done && player_data->hp_perc > 0.99F)
+    const auto player_hp_perc = DataPlayer::GetHpPerc();
+    if (IsUw() && dhuum_fight_done && player_hp_perc > 0.99F)
     {
         (void)DropAllBonds();
         action_state = ActionState::INACTIVE;
@@ -772,12 +795,13 @@ RoutineState EmoRoutine::Routine()
         return RoutineState::FINISHED;
     }
 
-    if (player_data->energy < 20U && TIMER_DIFF(last_warning_ms) > 2000)
+    const auto player_energy = DataPlayer::GetEnergy();
+    if (player_energy < 20U && TIMER_DIFF(last_warning_ms) > 2000)
     {
         Log::Warning("Low Energy!, Num bonds: %u", DataPlayer::GetNumberOfPartyBonds());
         last_warning_ms = clock();
 
-        if (player_data->energy < 5U)
+        if (player_energy < 5U)
             (void)DropAllBonds();
     }
 
@@ -896,8 +920,9 @@ RoutineState EmoRoutine::DhuumRoomRoutine()
     if (dhuum_hp < 0.25F)
         return RoutineState::FINISHED;
 
+    const auto player_energy = DataPlayer::GetEnergy();
     if (dhuum_agent && DhuumIsCastingJudgement(dhuum_agent) &&
-        (RoutineState::FINISHED == skillbar->pi.Cast(player_data->energy, dhuum_agent->agent_id)))
+        (RoutineState::FINISHED == skillbar->pi.Cast(player_energy, dhuum_agent->agent_id)))
         return RoutineState::FINISHED;
 
     if (RoutineGDW())
@@ -918,7 +943,8 @@ bool EmoRoutine::PauseRoutine() noexcept
     if (target && TargetIsReaper(*player_data))
     {
         const auto dist_reaper = GW::GetDistance(player_data->pos, target->pos);
-        if (dist_reaper < GW::Constants::Range::Nearby && player_data->energy > 30U)
+        const auto player_energy = DataPlayer::GetEnergy();
+        if (dist_reaper < GW::Constants::Range::Nearby && player_energy > 30U)
             return true;
     }
 
@@ -961,8 +987,8 @@ void EmoRoutine::Update()
         action_state = ActionState::ACTIVE;
     }
 
-    const auto need_to_pump =
-        ((player_data->energy_perc < 0.10F) || (player_data->hp_perc < 0.10F)) && (livings_data->enemies.size() > 0U);
+    const auto energy_perc = DataPlayer::GetEnergyPerc();
+    const auto need_to_pump = ((energy_perc < 0.10F) || (energy_perc < 0.10F)) && (livings_data->enemies.size() > 0U);
     const auto do_transition_inactive_to_active = (GW::PartyMgr::GetPartySize() <= 6) && player_data->living &&
                                                   !player_data->living->GetIsMoving() && need_to_pump;
 
