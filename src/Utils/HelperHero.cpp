@@ -169,7 +169,6 @@ bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
 bool SmartUseSkill(const GW::Constants::SkillID skill_id,
                    const GW::Constants::Profession skill_class,
                    const std::string_view skill_name,
-
                    const HeroData &hero_data,
                    std::function<bool()> player_conditions,
                    std::function<bool(const Hero &)> hero_conditions,
@@ -207,4 +206,35 @@ bool SmartUseSkill(const GW::Constants::SkillID skill_id,
     }
 
     return true;
+}
+
+bool PlayerHasHerosInParty()
+{
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+    if (!party_info || !party_info->heroes.valid())
+        return false;
+
+
+    for (const auto &hero : party_info->heroes)
+    {
+        if (!hero.agent_id)
+            continue;
+
+        const auto hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
+        if (!hero_agent)
+            continue;
+
+        const auto hero_living = hero_agent->GetAsAgentLiving();
+        if (!hero_living)
+            continue;
+
+        if (hero_living->login_number == me_living->agent_id)
+            return true;
+    }
+
+    return false;
 }

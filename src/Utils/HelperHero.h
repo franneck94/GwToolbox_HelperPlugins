@@ -37,7 +37,6 @@ bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
 bool SmartUseSkill(const GW::Constants::SkillID skill_id,
                    const GW::Constants::Profession skill_class,
                    const std::string_view skill_name,
-
                    const HeroData &hero_data,
                    std::function<bool()> player_conditions,
                    std::function<bool(const Hero &)> hero_conditions,
@@ -45,3 +44,5 @@ bool SmartUseSkill(const GW::Constants::SkillID skill_id,
                    const TargetLogic target_logic = TargetLogic::NO_TARGET,
                    const uint32_t current_target_id = 0U,
                    const bool ignore_effect_agent_id = false);
+
+bool PlayerHasHerosInParty();
