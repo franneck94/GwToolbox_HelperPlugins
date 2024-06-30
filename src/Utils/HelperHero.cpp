@@ -22,6 +22,10 @@
 #include "HelperHero.h"
 #include "HelperSkill.h"
 
+namespace
+{
+
+
 bool HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, const uint32_t hero_idx_zero_based)
 {
     auto hero_action = GW::UI::ControlAction_Hero1Skill1;
@@ -58,7 +62,6 @@ bool HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, cons
 }
 
 bool HeroCastSkillIfAvailable(const Hero &hero,
-
                               const GW::Constants::SkillID skill_id,
                               std::function<bool(const Hero &)> cb_fn,
                               const TargetLogic target_logic,
@@ -98,6 +101,23 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
     return false;
 }
 
+bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
+                               const long wait_ms,
+                               const bool ignore_effect_agent_id)
+{
+    if (!ActionABC::HasWaitedLongEnough(wait_ms))
+        return false;
+
+    if (skill_id != GW::Constants::SkillID::No_Skill)
+        return true;
+
+    if (PlayerHasEffect(skill_id, ignore_effect_agent_id))
+        return false;
+
+    return true;
+}
+
+} // namespace
 
 std::tuple<uint32_t, bool> SkillIdxOfHero(const Hero &hero, const GW::Constants::SkillID skill_id)
 {
@@ -150,32 +170,16 @@ void SetHerosBehaviour(const uint32_t player_login_number, const GW::HeroBehavio
     }
 }
 
-bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
-                               const long wait_ms,
-                               const bool ignore_effect_agent_id)
-{
-    if (!ActionABC::HasWaitedLongEnough(wait_ms))
-        return false;
-
-    if (skill_id != GW::Constants::SkillID::No_Skill)
-        return true;
-
-    if (PlayerHasEffect(skill_id, ignore_effect_agent_id))
-        return false;
-
-    return true;
-}
-
-bool SmartUseSkill(const GW::Constants::SkillID skill_id,
-                   const GW::Constants::Profession skill_class,
-                   const std::string_view skill_name,
-                   const HeroData &hero_data,
-                   std::function<bool()> player_conditions,
-                   std::function<bool(const Hero &)> hero_conditions,
-                   const long wait_ms,
-                   const TargetLogic target_logic,
-                   const uint32_t current_target_id,
-                   const bool ignore_effect_agent_id)
+bool HeroUseSkill_Main(const GW::Constants::SkillID skill_id,
+                       const GW::Constants::Profession skill_class,
+                       const std::string_view skill_name,
+                       const HeroData &hero_data,
+                       std::function<bool()> player_conditions,
+                       std::function<bool(const Hero &)> hero_conditions,
+                       const long wait_ms,
+                       const TargetLogic target_logic,
+                       const uint32_t current_target_id,
+                       const bool ignore_effect_agent_id)
 {
     if (!HeroSkill_StartConditions(skill_id, wait_ms, ignore_effect_agent_id))
         return false;
@@ -218,7 +222,6 @@ bool PlayerHasHerosInParty()
     if (!party_info || !party_info->heroes.valid())
         return false;
 
-
     for (const auto &hero : party_info->heroes)
     {
         if (!hero.agent_id)
@@ -237,4 +240,35 @@ bool PlayerHasHerosInParty()
     }
 
     return false;
+}
+
+uint32_t NumPlayersHerosInParty()
+{
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return 0U;
+
+    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+    if (!party_info || !party_info->heroes.valid())
+        return 0U;
+
+    auto hero_counter = 0U;
+    for (const auto &hero : party_info->heroes)
+    {
+        if (!hero.agent_id)
+            continue;
+
+        const auto hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
+        if (!hero_agent)
+            continue;
+
+        const auto hero_living = hero_agent->GetAsAgentLiving();
+        if (!hero_living)
+            continue;
+
+        if (hero_living->login_number == me_living->agent_id)
+            ++hero_counter;
+    }
+
+    return hero_counter;
 }

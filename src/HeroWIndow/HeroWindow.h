@@ -77,7 +77,6 @@ public:
     /* INTERNAL FUNCTIONS ATTACK */
 
     void HeroSpike_DrawAndLogic(const ImVec2 &im_button_size);
-    bool MesmerSpikeTarget(const Hero &hero_data) const;
     void AttackTarget();
 
     /* INTERNAL SMART SKILLS */

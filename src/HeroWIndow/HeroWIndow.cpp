@@ -631,51 +631,52 @@ void HeroWindow::HeroSpike_DrawAndLogic(const ImVec2 &im_button_size)
     }
 }
 
-bool HeroWindow::MesmerSpikeTarget(const Hero &hero) const
-{
-    constexpr static auto skill_id = GW::Constants::SkillID::Energy_Surge;
-    constexpr static auto skill_class = GW::Constants::Profession::Mesmer;
-
-    if (!hero.hero_living)
-        return false;
-
-    const auto target = GW::Agents::GetTarget();
-    if (!target)
-        return false;
-
-    const auto *target_living = target->GetAsAgentLiving();
-    if (!target_living)
-        return false;
-
-    if (target_living->allegiance != GW::Constants::Allegiance::Enemy)
-        return false;
-
-    auto hero_conditions = [](const Hero &) { return true; };
-
-    if (hero.hero_living->primary == static_cast<uint8_t>(skill_class))
-        return HeroCastSkillIfAvailable(hero, skill_id, hero_conditions, TargetLogic::PLAYER_TARGET);
-
-    return false;
-}
-
 void HeroWindow::AttackTarget()
 {
-    const auto target = GW::Agents::GetTarget();
-    if (!target)
-        return;
+    const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
+        {GW::Constants::SkillID::Energy_Surge, GW::Constants::Profession::Mesmer},
+    };
+    constexpr static auto wait_ms = 500UL;
+    constexpr static auto target_logic = TargetLogic::PLAYER_TARGET;
 
-    const auto *target_living = target->GetAsAgentLiving();
-    if (!target_living || target_living->allegiance != GW::Constants::Allegiance::Enemy)
-        return;
+    auto player_conditions = []() {
+        const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+        if (!me_living)
+            return false;
 
-    if (!HeroSkill_StartConditions(GW::Constants::SkillID::No_Skill))
-        return;
+        const auto target = GW::Agents::GetTarget();
+        if (!target)
+            return false;
 
-    Log::Info("Mesmer Heroes will attack the players target!");
+        const auto *target_living = target->GetAsAgentLiving();
+        if (!target_living || target_living->allegiance != GW::Constants::Allegiance::Enemy)
+            return false;
 
-    for (const auto &hero : hero_data.hero_vec)
+        return true;
+    };
+
+    const auto hero_conditions = [](const Hero &hero) {
+        const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+        if (!me_living)
+            return false;
+
+        if (!me_living || !hero.hero_living)
+            return false;
+
+        return true;
+    };
+
+    for (const auto &[skill_id, skill_class] : skill_class_pairs)
     {
-        MesmerSpikeTarget(hero);
+        HeroUseSkill_Main(skill_id,
+                          skill_class,
+                          "Mesmer Spike",
+                          hero_data,
+                          player_conditions,
+                          hero_conditions,
+                          wait_ms,
+                          target_logic,
+                          false);
     }
 }
 
@@ -777,21 +778,22 @@ bool HeroWindow::ShatterImportantHexes()
         return distance <= GW::Constants::Range::Spellcast;
     };
 
+    auto casted_skill = false;
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
     {
-        if (SmartUseSkill(skill_id,
-                          skill_class,
-                          "Remove Hex",
-                          hero_data,
-                          player_conditions,
-                          hero_conditions,
-                          wait_ms,
-                          target_logic,
-                          false))
-            return true;
+        if (HeroUseSkill_Main(skill_id,
+                              skill_class,
+                              "Remove Hex",
+                              hero_data,
+                              player_conditions,
+                              hero_conditions,
+                              wait_ms,
+                              target_logic,
+                              false))
+            casted_skill = true;
     }
 
-    return false;
+    return casted_skill;
 }
 
 bool HeroWindow::RemoveImportantConditions()
@@ -871,15 +873,15 @@ bool HeroWindow::RemoveImportantConditions()
 
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
     {
-        if (SmartUseSkill(skill_id,
-                          skill_class,
-                          "Remove Cond",
-                          hero_data,
-                          player_conditions,
-                          hero_conditions,
-                          wait_ms,
-                          target_logic,
-                          false))
+        if (HeroUseSkill_Main(skill_id,
+                              skill_class,
+                              "Remove Cond",
+                              hero_data,
+                              player_conditions,
+                              hero_conditions,
+                              wait_ms,
+                              target_logic,
+                              false))
             return true;
     }
 
@@ -983,14 +985,14 @@ bool HeroWindow::RuptEnemies()
 
     for (const auto &[skill_id, skill_class] : skill_class_pairs)
     {
-        if (SmartUseSkill(skill_id,
-                          skill_class,
-                          "Rupted Skill",
-                          hero_data,
-                          player_conditions,
-                          hero_conditions,
-                          wait_ms,
-                          target_logic))
+        if (HeroUseSkill_Main(skill_id,
+                              skill_class,
+                              "Rupted Skill",
+                              hero_data,
+                              player_conditions,
+                              hero_conditions,
+                              wait_ms,
+                              target_logic))
         {
             if (TIMER_DIFF(last_time_target_changed) > 10)
             {
@@ -1034,15 +1036,15 @@ bool HeroWindow::UseSplinterOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
     };
 
-    return SmartUseSkill(skill_id,
-                         skill_class,
-                         "Splinter",
-                         hero_data,
-                         player_conditions,
-                         hero_conditions,
-                         wait_ms,
-                         target_logic,
-                         false);
+    return HeroUseSkill_Main(skill_id,
+                             skill_class,
+                             "Splinter",
+                             hero_data,
+                             player_conditions,
+                             hero_conditions,
+                             wait_ms,
+                             target_logic,
+                             false);
 }
 
 bool HeroWindow::UseVigSpiritOnPlayer()
@@ -1069,15 +1071,15 @@ bool HeroWindow::UseVigSpiritOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
     };
 
-    return SmartUseSkill(skill_id,
-                         skill_class,
-                         "Splinter",
-                         hero_data,
-                         player_conditions,
-                         hero_conditions,
-                         wait_ms,
-                         target_logic,
-                         false);
+    return HeroUseSkill_Main(skill_id,
+                             skill_class,
+                             "Splinter",
+                             hero_data,
+                             player_conditions,
+                             hero_conditions,
+                             wait_ms,
+                             target_logic,
+                             false);
 }
 
 bool HeroWindow::UseHonorOnPlayer()
@@ -1104,15 +1106,15 @@ bool HeroWindow::UseHonorOnPlayer()
         return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
     };
 
-    return SmartUseSkill(skill_id,
-                         skill_class,
-                         "Honor",
-                         hero_data,
-                         player_conditions,
-                         hero_conditions,
-                         wait_ms,
-                         target_logic,
-                         false);
+    return HeroUseSkill_Main(skill_id,
+                             skill_class,
+                             "Honor",
+                             hero_data,
+                             player_conditions,
+                             hero_conditions,
+                             wait_ms,
+                             target_logic,
+                             false);
 }
 
 bool HeroWindow::UseShelterInFight()
@@ -1145,15 +1147,15 @@ bool HeroWindow::UseShelterInFight()
         return dist < GW::Constants::Range::Spirit - 100.0F;
     };
 
-    return SmartUseSkill(skill_id,
-                         skill_class,
-                         "Shelter",
-                         hero_data,
-                         player_conditions,
-                         hero_conditions,
-                         wait_ms,
-                         target_logic,
-                         true);
+    return HeroUseSkill_Main(skill_id,
+                             skill_class,
+                             "Shelter",
+                             hero_data,
+                             player_conditions,
+                             hero_conditions,
+                             wait_ms,
+                             target_logic,
+                             true);
 }
 
 bool HeroWindow::UseUnionInFight()
@@ -1186,15 +1188,15 @@ bool HeroWindow::UseUnionInFight()
         return dist < GW::Constants::Range::Spirit - 100.0F;
     };
 
-    return SmartUseSkill(skill_id,
-                         skill_class,
-                         "Union",
-                         hero_data,
-                         player_conditions,
-                         hero_conditions,
-                         wait_ms,
-                         target_logic,
-                         true);
+    return HeroUseSkill_Main(skill_id,
+                             skill_class,
+                             "Union",
+                             hero_data,
+                             player_conditions,
+                             hero_conditions,
+                             wait_ms,
+                             target_logic,
+                             true);
 }
 
 bool HeroWindow::UseSosInFight()
@@ -1260,15 +1262,15 @@ bool HeroWindow::UseSosInFight()
         return dist < GW::Constants::Range::Spellcast;
     };
 
-    return SmartUseSkill(skill_id,
-                         skill_class,
-                         "SoS",
-                         hero_data,
-                         player_conditions,
-                         hero_conditions,
-                         wait_ms,
-                         target_logic,
-                         true);
+    return HeroUseSkill_Main(skill_id,
+                             skill_class,
+                             "SoS",
+                             hero_data,
+                             player_conditions,
+                             hero_conditions,
+                             wait_ms,
+                             target_logic,
+                             true);
 }
 
 bool HeroWindow::UseFallback()
@@ -1282,15 +1284,15 @@ bool HeroWindow::UseFallback()
 
     auto hero_conditions = [](const Hero &) { return !PlayerOrHeroHasEffect(GW::Constants::SkillID::Fall_Back); };
 
-    return SmartUseSkill(skill_id,
-                         skill_class,
-                         "FallBack",
-                         hero_data,
-                         player_conditions,
-                         hero_conditions,
-                         wait_ms,
-                         target_logic,
-                         true);
+    return HeroUseSkill_Main(skill_id,
+                             skill_class,
+                             "FallBack",
+                             hero_data,
+                             player_conditions,
+                             hero_conditions,
+                             wait_ms,
+                             target_logic,
+                             true);
 }
 
 bool HeroWindow::UseBipOnPlayer()
@@ -1341,13 +1343,13 @@ bool HeroWindow::UseBipOnPlayer()
         return is_close_enough && hero_has_enough_hp;
     };
 
-    return SmartUseSkill(skill_id,
-                         skill_class,
-                         "BiP",
-                         hero_data,
-                         player_conditions,
-                         hero_conditions,
-                         wait_ms,
-                         target_logic,
-                         false);
+    return HeroUseSkill_Main(skill_id,
+                             skill_class,
+                             "BiP",
+                             hero_data,
+                             player_conditions,
+                             hero_conditions,
+                             wait_ms,
+                             target_logic,
+                             false);
 }
