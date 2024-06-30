@@ -1302,33 +1302,32 @@ bool HeroWindow::UseBipOnPlayer()
     };
 
     auto player_conditions = []() {
-        // const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
-        // if (!me_living)
-        //     return false;
+        const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+        if (!me_living)
+            return false;
 
-        // if (me_living->energy_regen > 0.03F) // Dont have bip yet
-        //     return false;
+        if (me_living->energy_regen > 0.03F) // Dont have bip yet
+            return false;
 
-        // const auto primary = GetPrimaryClass();
-        // const auto [enrgy_treshold_abs, enrgy_treshold_perc] = energy_class_map.at(primary);
-        // const auto [energy, _, energy_perc] = GetEnergyData();
-        // if (energy_perc > enrgy_treshold_perc && energy > enrgy_treshold_abs)
-        //     return false;
+        const auto primary = GetPrimaryClass();
+        const auto [enrgy_treshold_abs, enrgy_treshold_perc] = energy_class_map.at(primary);
+        const auto [energy, _, energy_perc] = GetEnergyData();
+        if (energy_perc > enrgy_treshold_perc && energy > enrgy_treshold_abs)
+            return false;
 
         return true;
     };
 
     auto hero_conditions = [](const GW::AgentLiving *hero_living) {
-        // if (!hero_living)
-        //     return false;
+        if (!hero_living)
+            return false;
 
-        // const auto player_pos = GetPlayerPos();
-        // const auto dist = GW::GetDistance(hero_living->pos, player_pos);
-        // const auto is_close_enough = dist < GW::Constants::Range::Spellcast + 300.0F;
-        // const auto hero_has_enough_hp = hero_living->hp > 0.50F;
+        const auto player_pos = GetPlayerPos();
+        const auto dist = GW::GetDistance(hero_living->pos, player_pos);
+        const auto is_close_enough = dist < GW::Constants::Range::Spellcast + 300.0F;
+        const auto hero_has_enough_hp = hero_living->hp > 0.50F;
 
-        // return is_close_enough && hero_has_enough_hp;
-        return true;
+        return is_close_enough && hero_has_enough_hp;
     };
 
     return HeroUseSkill_Main(skill_id,
