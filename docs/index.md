@@ -11,6 +11,7 @@ For a detailed description:
 
 - Smart Chat Commands see [here](./General/ChatCommands.md)
 - Hero Window for PvE Gwamm'ing content see [here](./General/HeroWindow.md)
+- Hero Smart Skills for PvE Gwamm'ing content see [here](./General/HeroSkills.md)
 
 ### UW Helper
 
