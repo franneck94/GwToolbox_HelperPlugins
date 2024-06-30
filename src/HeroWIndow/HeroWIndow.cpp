@@ -136,11 +136,6 @@ DLLAPI ToolboxPlugin *ToolboxPluginInstance()
 void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HMODULE toolbox_dll)
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
-    if (!GW::Initialize())
-    {
-        GW::Terminate();
-        return;
-    }
 
     GW::UI::RegisterUIMessageCallback(&AgentCalled_Entry, GW::UI::UIMessage::kSendInteractEnemy, OnEnemyInteract);
 
@@ -239,7 +234,6 @@ void HeroWindow::Update(float)
         return;
     }
 
-    hero_data.Update();
     UpdateInternalData();
 
     HeroSmarterFollow_Main();
@@ -277,7 +271,6 @@ void HeroWindow::ResetData()
     ping_target_id = 0U;
     follow_pos = GW::GamePos{};
     following_active = false;
-    hero_data.hero_vec.clear();
 }
 
 void HeroWindow::HeroSmarterFollow_Main()
@@ -294,29 +287,29 @@ void HeroWindow::HeroSmarterFlagging_Main()
 
 bool HeroWindow::HeroSmarterSkills_Main()
 {
-    if (!IsMapReady() || !IsExplorable() || following_active || (hero_data.hero_vec.size() == 0))
+    if (!IsMapReady() || !IsExplorable() || following_active)
         return false;
 
     if (UseBipOnPlayer())
         return true;
     if (UseSplinterOnPlayer())
         return true;
-    if (UseShelterInFight())
-        return true;
-    if (UseUnionInFight())
-        return true;
-    if (UseSosInFight())
-        return true;
-    if (UseVigSpiritOnPlayer())
-        return true;
-    if (RemoveImportantConditions())
-        return true;
-    if (ShatterImportantHexes())
-        return true;
-    if (UseHonorOnPlayer())
-        return true;
-    if (RuptEnemies())
-        return true;
+    // if (UseShelterInFight())
+    //     return true;
+    // if (UseUnionInFight())
+    //     return true;
+    // if (UseSosInFight())
+    //     return true;
+    // if (UseVigSpiritOnPlayer())
+    //     return true;
+    // if (RemoveImportantConditions())
+    //     return true;
+    // if (ShatterImportantHexes())
+    //     return true;
+    // if (UseHonorOnPlayer())
+    //     return true;
+    // if (RuptEnemies())
+    //     return true;
 
     return false;
 }
@@ -496,17 +489,18 @@ void HeroWindow::HeroFollow_StuckCheck()
     if (!me_living)
         return;
 
+    const auto hero_living_vec = GetPlayersHerosAsLivings();
     auto hero_idx = 0U;
-    for (const auto &hero : hero_data.hero_vec)
+    for (const auto &hero_living : hero_living_vec)
     {
-        if (!hero.hero_living || !hero.hero_living->agent_id || !me_living->GetIsMoving())
+        if (!hero_living || !hero_living->agent_id || !me_living->GetIsMoving())
         {
             same_position_counters.at(hero_idx) = 0U;
             ++hero_idx;
             continue;
         }
 
-        const auto *hero_agent = GW::Agents::GetAgentByID(hero.hero_living->agent_id);
+        const auto *hero_agent = GW::Agents::GetAgentByID(hero_living->agent_id);
         const auto player_pos = GetPlayerPos();
         if (!hero_agent || GW::GetDistance(player_pos, hero_agent->pos) > (GW::Constants::Range::Compass - 500.0F))
         {
@@ -655,12 +649,12 @@ void HeroWindow::AttackTarget()
         return true;
     };
 
-    const auto hero_conditions = [](const Hero &hero) {
+    const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
         const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
         if (!me_living)
             return false;
 
-        if (!me_living || !hero.hero_living)
+        if (!me_living || !hero_living)
             return false;
 
         return true;
@@ -671,7 +665,6 @@ void HeroWindow::AttackTarget()
         HeroUseSkill_Main(skill_id,
                           skill_class,
                           "Mesmer Spike",
-                          hero_data,
                           player_conditions,
                           hero_conditions,
                           wait_ms,
@@ -765,16 +758,16 @@ bool HeroWindow::ShatterImportantHexes()
         return false;
     };
 
-    const auto hero_conditions = [](const Hero &hero) {
+    const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
         const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
         if (!me_living)
             return false;
 
-        if (!me_living || !hero.hero_living)
+        if (!me_living || !hero_living)
             return false;
 
         const auto player_pos = GetPlayerPos();
-        const auto distance = GW::GetDistance(player_pos, hero.hero_living->pos);
+        const auto distance = GW::GetDistance(player_pos, hero_living->pos);
         return distance <= GW::Constants::Range::Spellcast;
     };
 
@@ -784,7 +777,6 @@ bool HeroWindow::ShatterImportantHexes()
         if (HeroUseSkill_Main(skill_id,
                               skill_class,
                               "Remove Hex",
-                              hero_data,
                               player_conditions,
                               hero_conditions,
                               wait_ms,
@@ -858,16 +850,16 @@ bool HeroWindow::RemoveImportantConditions()
         return false;
     };
 
-    const auto hero_conditions = [](const Hero &hero) {
+    const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
         const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
         if (!me_living)
             return false;
 
-        if (!hero.hero_living)
+        if (!hero_living)
             return false;
 
         const auto player_pos = GetPlayerPos();
-        const auto distance = GW::GetDistance(player_pos, hero.hero_living->pos);
+        const auto distance = GW::GetDistance(player_pos, hero_living->pos);
         return distance <= GW::Constants::Range::Spellcast;
     };
 
@@ -876,7 +868,6 @@ bool HeroWindow::RemoveImportantConditions()
         if (HeroUseSkill_Main(skill_id,
                               skill_class,
                               "Remove Cond",
-                              hero_data,
                               player_conditions,
                               hero_conditions,
                               wait_ms,
@@ -961,16 +952,16 @@ bool HeroWindow::RuptEnemies()
         return false;
     };
 
-    const auto hero_conditions = [&change_target_to_id](const Hero &hero) {
+    const auto hero_conditions = [&change_target_to_id](const GW::AgentLiving *hero_living) {
         const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
         if (!me_living)
             return false;
 
-        if (!hero.hero_living)
+        if (!hero_living)
             return false;
 
         const auto player_pos = GetPlayerPos();
-        const auto dist_to_enemy = GW::GetDistance(player_pos, hero.hero_living->pos);
+        const auto dist_to_enemy = GW::GetDistance(player_pos, hero_living->pos);
         if (dist_to_enemy > GW::Constants::Range::Spellcast + 200.0F)
             return false;
 
@@ -988,7 +979,6 @@ bool HeroWindow::RuptEnemies()
         if (HeroUseSkill_Main(skill_id,
                               skill_class,
                               "Rupted Skill",
-                              hero_data,
                               player_conditions,
                               hero_conditions,
                               wait_ms,
@@ -1015,31 +1005,32 @@ bool HeroWindow::UseSplinterOnPlayer()
     constexpr static auto target_logic = TargetLogic::NO_TARGET;
 
     auto player_conditions = []() {
-        const auto player_pos = GetPlayerPos();
-        const auto num_enemies_at_player = AgentLivingData::NumAgentsInRange(player_pos,
-                                                                             GW::Constants::Allegiance::Enemy,
-                                                                             GW::Constants::Range::Nearby);
+        // const auto player_pos = GetPlayerPos();
+        // const auto num_enemies_at_player = AgentLivingData::NumAgentsInRange(player_pos,
+        //                                                                      GW::Constants::Allegiance::Enemy,
+        //                                                                      GW::Constants::Range::Nearby);
 
-        const auto player_is_melee_attacking = HoldsMeleeWeapon();
-        const auto player_is_melee_class = IsMeleeClass;
+        // const auto player_is_melee_attacking = HoldsMeleeWeapon();
+        // const auto player_is_melee_class = IsMeleeClass;
 
-        return num_enemies_at_player >= 2 && player_is_melee_attacking && player_is_melee_class;
+        // return num_enemies_at_player >= 2 && player_is_melee_attacking && player_is_melee_class;
+        return true;
     };
 
-    const auto hero_conditions = [](const Hero &hero) {
-        if (!hero.hero_living)
-            return false;
+    const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
+        // if (!hero_living)
+        //     return false;
 
-        const auto player_pos = GetPlayerPos();
-        const auto dist = GW::GetDistance(hero.hero_living->pos, player_pos);
+        // const auto player_pos = GetPlayerPos();
+        // const auto dist = GW::GetDistance(hero_living->pos, player_pos);
 
-        return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
+        // return dist < GW::Constants::Range::Spellcast && hero_living->energy > 0.25F;
+        return true;
     };
 
     return HeroUseSkill_Main(skill_id,
                              skill_class,
                              "Splinter",
-                             hero_data,
                              player_conditions,
                              hero_conditions,
                              wait_ms,
@@ -1061,20 +1052,19 @@ bool HeroWindow::UseVigSpiritOnPlayer()
         return player_is_melee_attacking && player_is_melee_class;
     };
 
-    const auto hero_conditions = [](const Hero &hero) {
-        if (!hero.hero_living)
+    const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
+        if (!hero_living)
             return false;
 
         const auto player_pos = GetPlayerPos();
-        const auto dist = GW::GetDistance(hero.hero_living->pos, player_pos);
+        const auto dist = GW::GetDistance(hero_living->pos, player_pos);
 
-        return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
+        return dist < GW::Constants::Range::Spellcast && hero_living->energy > 0.25F;
     };
 
     return HeroUseSkill_Main(skill_id,
                              skill_class,
                              "Splinter",
-                             hero_data,
                              player_conditions,
                              hero_conditions,
                              wait_ms,
@@ -1096,20 +1086,19 @@ bool HeroWindow::UseHonorOnPlayer()
         return player_is_melee_attacking && player_is_melee_class;
     };
 
-    const auto hero_conditions = [](const Hero &hero) {
-        if (!hero.hero_living)
+    const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
+        if (!hero_living)
             return false;
 
         const auto player_pos = GetPlayerPos();
-        const auto dist = GW::GetDistance(hero.hero_living->pos, player_pos);
+        const auto dist = GW::GetDistance(hero_living->pos, player_pos);
 
-        return dist < GW::Constants::Range::Spellcast && hero.hero_living->energy > 0.25F;
+        return dist < GW::Constants::Range::Spellcast && hero_living->energy > 0.25F;
     };
 
     return HeroUseSkill_Main(skill_id,
                              skill_class,
                              "Honor",
-                             hero_data,
                              player_conditions,
                              hero_conditions,
                              wait_ms,
@@ -1137,12 +1126,12 @@ bool HeroWindow::UseShelterInFight()
         return !has_skill_already && player_started_fight;
     };
 
-    const auto hero_conditions = [](const Hero &hero) {
-        if (!hero.hero_living)
+    const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
+        if (!hero_living)
             return false;
 
         const auto player_pos = GetPlayerPos();
-        const auto dist = GW::GetDistance(hero.hero_living->pos, player_pos);
+        const auto dist = GW::GetDistance(hero_living->pos, player_pos);
 
         return dist < GW::Constants::Range::Spirit - 100.0F;
     };
@@ -1150,7 +1139,6 @@ bool HeroWindow::UseShelterInFight()
     return HeroUseSkill_Main(skill_id,
                              skill_class,
                              "Shelter",
-                             hero_data,
                              player_conditions,
                              hero_conditions,
                              wait_ms,
@@ -1178,12 +1166,12 @@ bool HeroWindow::UseUnionInFight()
         return !has_skill_already && player_started_fight;
     };
 
-    const auto hero_conditions = [](const Hero &hero) {
-        if (!hero.hero_living)
+    const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
+        if (!hero_living)
             return false;
 
         const auto player_pos = GetPlayerPos();
-        const auto dist = GW::GetDistance(hero.hero_living->pos, player_pos);
+        const auto dist = GW::GetDistance(hero_living->pos, player_pos);
 
         return dist < GW::Constants::Range::Spirit - 100.0F;
     };
@@ -1191,7 +1179,6 @@ bool HeroWindow::UseUnionInFight()
     return HeroUseSkill_Main(skill_id,
                              skill_class,
                              "Union",
-                             hero_data,
                              player_conditions,
                              hero_conditions,
                              wait_ms,
@@ -1252,12 +1239,12 @@ bool HeroWindow::UseSosInFight()
         return player_started_fight && !sos_spirits_in_range;
     };
 
-    const auto hero_conditions = [](const Hero &hero) {
-        if (!hero.hero_living)
+    const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
+        if (!hero_living)
             return false;
 
         const auto player_pos = GetPlayerPos();
-        const auto dist = GW::GetDistance(hero.hero_living->pos, player_pos);
+        const auto dist = GW::GetDistance(hero_living->pos, player_pos);
 
         return dist < GW::Constants::Range::Spellcast;
     };
@@ -1265,7 +1252,6 @@ bool HeroWindow::UseSosInFight()
     return HeroUseSkill_Main(skill_id,
                              skill_class,
                              "SoS",
-                             hero_data,
                              player_conditions,
                              hero_conditions,
                              wait_ms,
@@ -1282,12 +1268,13 @@ bool HeroWindow::UseFallback()
 
     auto player_conditions = []() { return true; };
 
-    auto hero_conditions = [](const Hero &) { return !PlayerOrHeroHasEffect(GW::Constants::SkillID::Fall_Back); };
+    auto hero_conditions = [](const GW::AgentLiving *) {
+        return !PlayerOrHeroHasEffect(GW::Constants::SkillID::Fall_Back);
+    };
 
     return HeroUseSkill_Main(skill_id,
                              skill_class,
                              "FallBack",
-                             hero_data,
                              player_conditions,
                              hero_conditions,
                              wait_ms,
@@ -1315,38 +1302,38 @@ bool HeroWindow::UseBipOnPlayer()
     };
 
     auto player_conditions = []() {
-        const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
-        if (!me_living)
-            return false;
+        // const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+        // if (!me_living)
+        //     return false;
 
-        if (me_living->energy_regen > 0.03F) // Dont have bip yet
-            return false;
+        // if (me_living->energy_regen > 0.03F) // Dont have bip yet
+        //     return false;
 
-        const auto primary = GetPrimaryClass();
-        const auto [enrgy_treshold_abs, enrgy_treshold_perc] = energy_class_map.at(primary);
-        const auto [energy, _, energy_perc] = GetEnergyData();
-        if (energy_perc > enrgy_treshold_perc && energy > enrgy_treshold_abs)
-            return false;
+        // const auto primary = GetPrimaryClass();
+        // const auto [enrgy_treshold_abs, enrgy_treshold_perc] = energy_class_map.at(primary);
+        // const auto [energy, _, energy_perc] = GetEnergyData();
+        // if (energy_perc > enrgy_treshold_perc && energy > enrgy_treshold_abs)
+        //     return false;
 
         return true;
     };
 
-    auto hero_conditions = [](const Hero &hero) {
-        if (!hero.hero_living)
-            return false;
+    auto hero_conditions = [](const GW::AgentLiving *hero_living) {
+        // if (!hero_living)
+        //     return false;
 
-        const auto player_pos = GetPlayerPos();
-        const auto dist = GW::GetDistance(hero.hero_living->pos, player_pos);
-        const auto is_close_enough = dist < GW::Constants::Range::Spellcast + 300.0F;
-        const auto hero_has_enough_hp = hero.hero_living->hp > 0.50F;
+        // const auto player_pos = GetPlayerPos();
+        // const auto dist = GW::GetDistance(hero_living->pos, player_pos);
+        // const auto is_close_enough = dist < GW::Constants::Range::Spellcast + 300.0F;
+        // const auto hero_has_enough_hp = hero_living->hp > 0.50F;
 
-        return is_close_enough && hero_has_enough_hp;
+        // return is_close_enough && hero_has_enough_hp;
+        return true;
     };
 
     return HeroUseSkill_Main(skill_id,
                              skill_class,
                              "BiP",
-                             hero_data,
                              player_conditions,
                              hero_conditions,
                              wait_ms,

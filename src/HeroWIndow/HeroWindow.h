@@ -59,9 +59,11 @@ public:
 
     /* INTERNAL FUNCTIONS FOLLOW */
 
-    void FollowPlayer();
     void StartFollowing();
     void StopFollowing();
+
+private:
+    void FollowPlayer();
     void HeroFollow_DrawAndLogic(const ImVec2 &im_button_size);
     void HeroFollow_StopConditions();
     void HeroFollow_Flagging();
@@ -94,9 +96,6 @@ public:
     bool UseFallback();
 
 public:
-    AgentLivingData livings_data;
-    HeroData hero_data;
-
     GW::HeroBehavior current_hero_behaviour = GW::HeroBehavior::Guard;
     GW::HeroBehavior current_hero_behaviour_before_follow = GW::HeroBehavior::Guard;
     GW::GamePos follow_pos = {};

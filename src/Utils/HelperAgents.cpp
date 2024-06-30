@@ -409,8 +409,12 @@ bool GetPartyMembers(std::vector<PlayerMapping> &party_members)
 
     party_members.clear();
 
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
     auto idx = uint32_t{0};
-    const auto login_number = GW::Agents::GetPlayerAsAgentLiving()->login_number;
+    const auto login_number = me_living->login_number;
     for (const auto &player_data : info->players)
     {
         const auto id = (*players)[login_number].agent_id;

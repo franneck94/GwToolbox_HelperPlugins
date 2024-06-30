@@ -24,7 +24,42 @@
 
 namespace
 {
+std::tuple<uint32_t, bool> SkillIdxOfHero(const GW::AgentLiving *hero_living, const GW::Constants::SkillID skill_id)
+{
+    constexpr static auto invalid_case = std::make_tuple(static_cast<uint32_t>(-1), false);
 
+    if (!hero_living)
+        return invalid_case;
+
+    const auto hero_energy = static_cast<uint32_t>(hero_living->energy * static_cast<float>(hero_living->max_energy));
+
+    auto skill_idx = 0U;
+    const auto hero_skills = GetAgentSkillbar(hero_living->agent_id);
+    if (!hero_skills)
+        return invalid_case;
+
+    for (const auto &skill : hero_skills->skills)
+    {
+        const auto has_skill_in_skillbar = skill.skill_id == skill_id;
+        if (!has_skill_in_skillbar)
+        {
+            ++skill_idx;
+            continue;
+        }
+
+        const auto *skill_data = GW::SkillbarMgr::GetSkillConstantData(skill_id);
+        if (!skill_data)
+        {
+            ++skill_idx;
+            continue;
+        }
+
+        const auto can_cast_skill = skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost();
+        return std::make_tuple(skill_idx, can_cast_skill);
+    }
+
+    return invalid_case;
+}
 
 bool HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, const uint32_t hero_idx_zero_based)
 {
@@ -61,19 +96,20 @@ bool HeroUseSkill(const uint32_t target_agent_id, const uint32_t skill_idx, cons
     return success;
 }
 
-bool HeroCastSkillIfAvailable(const Hero &hero,
+bool HeroCastSkillIfAvailable(const GW::AgentLiving *hero_living,
+                              const uint32_t hero_idx,
                               const GW::Constants::SkillID skill_id,
-                              std::function<bool(const Hero &)> cb_fn,
+                              std::function<bool(const GW::AgentLiving *)> cb_fn,
                               const TargetLogic target_logic,
                               const uint32_t target_id)
 {
-    if (!hero.hero_living || !hero.hero_living->agent_id)
+    if (!hero_living || !hero_living->agent_id)
         return false;
 
-    if (!cb_fn(hero))
+    if (!cb_fn(hero_living))
         return false;
 
-    const auto [skill_idx, can_cast_skill] = SkillIdxOfHero(hero, skill_id);
+    const auto [skill_idx, can_cast_skill] = SkillIdxOfHero(hero_living, skill_id);
     const auto has_skill_in_skillbar = skill_idx != static_cast<uint32_t>(-1);
     const auto player_id = GW::Agents::GetPlayerId();
 
@@ -86,14 +122,14 @@ bool HeroCastSkillIfAvailable(const Hero &hero,
         {
             const auto target = GW::Agents::GetTarget();
             if (target)
-                return HeroUseSkill(target->agent_id, skill_idx, hero.hero_idx_zero_based);
+                return HeroUseSkill(target->agent_id, skill_idx, hero_idx);
             else
-                return HeroUseSkill(player_id, skill_idx, hero.hero_idx_zero_based);
+                return HeroUseSkill(player_id, skill_idx, hero_idx);
         }
         case TargetLogic::NO_TARGET:
         default:
         {
-            return HeroUseSkill(player_id, skill_idx, hero.hero_idx_zero_based);
+            return HeroUseSkill(player_id, skill_idx, hero_idx);
         }
         }
     }
@@ -116,46 +152,7 @@ bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
 
     return true;
 }
-
 } // namespace
-
-std::tuple<uint32_t, bool> SkillIdxOfHero(const Hero &hero, const GW::Constants::SkillID skill_id)
-{
-    constexpr static auto invalid_case = std::make_tuple(static_cast<uint32_t>(-1), false);
-
-    if (!hero.hero_living)
-        return invalid_case;
-
-    const auto hero_energy =
-        static_cast<uint32_t>(hero.hero_living->energy * static_cast<float>(hero.hero_living->max_energy));
-
-    auto skill_idx = 0U;
-    const auto hero_skills = GetAgentSkillbar(hero.hero_living->agent_id);
-    if (!hero_skills)
-        return invalid_case;
-
-    for (const auto &skill : hero_skills->skills)
-    {
-        const auto has_skill_in_skillbar = skill.skill_id == skill_id;
-        if (!has_skill_in_skillbar)
-        {
-            ++skill_idx;
-            continue;
-        }
-
-        const auto *skill_data = GW::SkillbarMgr::GetSkillConstantData(skill_id);
-        if (!skill_data)
-        {
-            ++skill_idx;
-            continue;
-        }
-
-        const auto can_cast_skill = skill.GetRecharge() == 0 && hero_energy >= skill_data->GetEnergyCost();
-        return std::make_tuple(skill_idx, can_cast_skill);
-    }
-
-    return invalid_case;
-}
 
 void SetHerosBehaviour(const uint32_t player_login_number, const GW::HeroBehavior hero_behaviour)
 {
@@ -173,9 +170,8 @@ void SetHerosBehaviour(const uint32_t player_login_number, const GW::HeroBehavio
 bool HeroUseSkill_Main(const GW::Constants::SkillID skill_id,
                        const GW::Constants::Profession skill_class,
                        const std::string_view skill_name,
-                       const HeroData &hero_data,
                        std::function<bool()> player_conditions,
-                       std::function<bool(const Hero &)> hero_conditions,
+                       std::function<bool(const GW::AgentLiving *hero_living)> hero_conditions,
                        const long wait_ms,
                        const TargetLogic target_logic,
                        const uint32_t current_target_id,
@@ -187,18 +183,20 @@ bool HeroUseSkill_Main(const GW::Constants::SkillID skill_id,
     if (!player_conditions())
         return false;
 
-    if (hero_data.hero_class_idx_map.find(skill_class) == hero_data.hero_class_idx_map.end())
-        return false;
+    const auto players_heros = GetPlayersHerosAsLivings();
+    const auto players_hero_class_idx_map = GetPlayersHerosClassMaps(players_heros);
+    const auto hero_idxs_with_class = GetPlayersHeroIdxsWithClass(players_hero_class_idx_map, skill_class);
 
-    auto hero_idxs_zero_based = hero_data.hero_class_idx_map.at(skill_class);
-    if (hero_idxs_zero_based.size() == 0)
-        return false;
-
-    for (const auto hero_idx_zero_based : hero_idxs_zero_based)
+    for (const auto hero_idx_zero_based : hero_idxs_with_class)
     {
-        const auto &hero = hero_data.hero_vec.at(hero_idx_zero_based);
+        const auto hero_living = players_heros.at(hero_idx_zero_based);
 
-        if (HeroCastSkillIfAvailable(hero, skill_id, hero_conditions, target_logic, current_target_id))
+        if (HeroCastSkillIfAvailable(hero_living,
+                                     hero_idx_zero_based,
+                                     skill_id,
+                                     hero_conditions,
+                                     target_logic,
+                                     current_target_id))
         {
 #ifdef _DEBUG
             Log::Info("Casted %s.", skill_name);
@@ -235,7 +233,7 @@ bool PlayerHasHerosInParty()
         if (!hero_living)
             continue;
 
-        if (hero_living->login_number == me_living->agent_id)
+        if (hero.owner_player_id == me_living->login_number)
             return true;
     }
 
@@ -266,9 +264,89 @@ uint32_t NumPlayersHerosInParty()
         if (!hero_living)
             continue;
 
-        if (hero_living->login_number == me_living->agent_id)
+        if (hero.owner_player_id == me_living->login_number)
             ++hero_counter;
     }
 
     return hero_counter;
+}
+
+std::vector<GW::AgentLiving *> GetPlayersHerosAsLivings()
+{
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return {};
+
+    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+    if (!party_info || !party_info->heroes.valid())
+        return {};
+
+
+    auto heros = std::vector<GW::AgentLiving *>{};
+    for (auto &hero : party_info->heroes)
+    {
+        if (!hero.agent_id)
+            continue;
+
+        const auto hero_agent = GW::Agents::GetAgentByID(hero.agent_id);
+        if (!hero_agent)
+            continue;
+
+        auto hero_living = hero_agent->GetAsAgentLiving();
+        if (!hero_living)
+            continue;
+
+        if (hero.owner_player_id == me_living->login_number)
+            heros.push_back(hero_living);
+    }
+
+    return heros;
+}
+
+std::map<GW::Constants::Profession, std::vector<uint32_t>> GetPlayersHerosClassMaps(
+    const std::vector<GW::AgentLiving *> &players_heros)
+{
+    auto hero_class_idx_map = std::map<GW::Constants::Profession, std::vector<uint32_t>>{
+        {GW::Constants::Profession::Warrior, {}},
+        {GW::Constants::Profession::Ranger, {}},
+        {GW::Constants::Profession::Monk, {}},
+        {GW::Constants::Profession::Necromancer, {}},
+        {GW::Constants::Profession::Mesmer, {}},
+        {GW::Constants::Profession::Elementalist, {}},
+        {GW::Constants::Profession::Assassin, {}},
+        {GW::Constants::Profession::Ritualist, {}},
+        {GW::Constants::Profession::Paragon, {}},
+        {GW::Constants::Profession::Dervish, {}},
+    };
+
+    auto hero_idx_zero_based = 0U;
+    for (const auto hero_living : players_heros)
+    {
+        if (!hero_living)
+        {
+            ++hero_idx_zero_based;
+            continue;
+        }
+
+        const auto primary = static_cast<GW::Constants::Profession>(hero_living->primary);
+        const auto secondary = static_cast<GW::Constants::Profession>(hero_living->secondary);
+
+        hero_class_idx_map[primary].push_back(hero_idx_zero_based);
+        hero_class_idx_map[secondary].push_back(hero_idx_zero_based);
+
+        ++hero_idx_zero_based;
+    }
+
+    return hero_class_idx_map;
+}
+
+std::vector<uint32_t> GetPlayersHeroIdxsWithClass(
+    const std::map<GW::Constants::Profession, std::vector<uint32_t>> &players_hero_class_idx_map,
+    const GW::Constants::Profession skill_class)
+{
+    if (players_hero_class_idx_map.find(skill_class) == players_hero_class_idx_map.end())
+        return {};
+
+    auto hero_idxs_zero_based = players_hero_class_idx_map.at(skill_class);
+    return hero_idxs_zero_based;
 }
