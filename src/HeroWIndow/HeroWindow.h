@@ -13,9 +13,8 @@
 #include <GWCA/GameEntities/Party.h>
 
 #include "ActionsBase.h"
-#include "DataHero.h"
 #include "DataLivings.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "HelperHero.h"
 
 class HeroWindow : public ToolboxUIPlugin
@@ -55,7 +54,6 @@ public:
 
     void HeroSmarterFollow_Main();
     void HeroSmarterFlagging_Main();
-    bool HeroSmarterSkills_Main();
 
     /* INTERNAL FUNCTIONS FOLLOW */
 
@@ -79,21 +77,6 @@ private:
     /* INTERNAL FUNCTIONS ATTACK */
 
     void HeroSpike_DrawAndLogic(const ImVec2 &im_button_size);
-    void AttackTarget();
-
-    /* INTERNAL SMART SKILLS */
-
-    bool UseBipOnPlayer();
-    bool UseSplinterOnPlayer();
-    bool UseVigSpiritOnPlayer();
-    bool UseHonorOnPlayer();
-    bool UseShelterInFight();
-    bool UseUnionInFight();
-    bool UseSosInFight();
-    bool ShatterImportantHexes();
-    bool RemoveImportantConditions();
-    bool RuptEnemies();
-    bool UseFallback();
 
 public:
     GW::HeroBehavior current_hero_behaviour = GW::HeroBehavior::Guard;

@@ -54,6 +54,7 @@ target_link_libraries(helper_utils PUBLIC imgui gwca Stdafx)
 include(gwtoolboxdll_plugins)
 
 add_tb_plugin(HeroWindow)
+add_tb_plugin(HeroSkills)
 add_tb_plugin(UwRanger)
 add_tb_plugin(UwMesmer)
 add_tb_plugin(SmartCommands)
