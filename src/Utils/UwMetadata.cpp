@@ -8,7 +8,7 @@
 #include <GWCA/Utilities/Hook.h>
 
 #include "ActionsBase.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 
 #include "UwMetadata.h"
 

@@ -11,7 +11,7 @@
 #include <GWCA/Managers/PartyMgr.h>
 
 #include "ActionsBase.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "Helper.h"
 #include "HelperAgents.h"
 #include "HelperDialogs.h"

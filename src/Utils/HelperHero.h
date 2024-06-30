@@ -2,12 +2,13 @@
 
 #include <cstdint>
 #include <functional>
+#include <string_view>
 #include <tuple>
 
 #include <GWCA/Constants/Constants.h>
+#include <GWCA/GameEntities/Agent.h>
 
-#include "DataHero.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 
 enum class TargetLogic
 {
@@ -16,6 +17,10 @@ enum class TargetLogic
     SEARCH_TARGET,
 };
 
+namespace Helper
+{
+namespace Hero
+{
 void SetHerosBehaviour(const uint32_t player_login_number, const GW::HeroBehavior hero_behaviour);
 
 bool HeroUseSkill_Main(const GW::Constants::SkillID skill_id,
@@ -40,3 +45,5 @@ std::map<GW::Constants::Profession, std::vector<uint32_t>> GetPlayersHerosClassM
 std::vector<uint32_t> GetPlayersHeroIdxsWithClass(
     const std::map<GW::Constants::Profession, std::vector<uint32_t>> &players_hero_class_idx_map,
     const GW::Constants::Profession skill_class);
+} // namespace Hero
+} // namespace Helper

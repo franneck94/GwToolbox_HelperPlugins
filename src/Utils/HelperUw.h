@@ -11,7 +11,7 @@
 #include "ActionsBase.h"
 #include "ActionsMove.h"
 #include "ActionsUw.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "Logger.h"
 #include "UtilsMath.h"
 
@@ -100,7 +100,6 @@ void UpdateUwInfo(const std::map<std::string, uint32_t> &reaper_moves,
         const auto planes_reaper = GW::GamePos{11368.55F, -17974.64F, 0};
         const auto wastes_reaper = GW::GamePos{-235.05F, 18496.461F, 0};
 
-        const auto player_pos = GetPlayerPos();
         const auto ported_to_lab = GW::GetDistance(lab_reaper, player_pos) < 2000.0F;
         const auto ported_to_pits = GW::GetDistance(pits_reaper, player_pos) < 2000.0F;
         const auto ported_to_planes = GW::GetDistance(planes_reaper, player_pos) < 2000.0F;

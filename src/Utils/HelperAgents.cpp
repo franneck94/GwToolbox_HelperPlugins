@@ -19,7 +19,7 @@
 #include <GWCA/Managers/PlayerMgr.h>
 
 #include "ActionsBase.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "DataSkill.h"
 #include "Helper.h"
 #include "HelperMaps.h"

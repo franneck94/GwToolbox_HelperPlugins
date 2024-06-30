@@ -11,7 +11,7 @@
 #include "ActionsBase.h"
 #include "ActionsMove.h"
 #include "DataLivings.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "HelperCallbacks.h"
 #include "HelperUw.h"
 #include "UtilsGui.h"

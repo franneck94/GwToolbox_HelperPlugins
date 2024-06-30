@@ -14,7 +14,7 @@
 
 #include "ActionsBase.h"
 #include "DataLivings.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "DataSkill.h"
 
 bool CanMove();

@@ -2,9 +2,6 @@
 #include <functional>
 
 #include <GWCA/Constants/Constants.h>
-#include <GWCA/Constants/Maps.h>
-#include <GWCA/Context/GameContext.h>
-#include <GWCA/Context/WorldContext.h>
 #include <GWCA/GWCA.h>
 #include <GWCA/GameEntities/Agent.h>
 #include <GWCA/GameEntities/Hero.h>
@@ -14,12 +11,10 @@
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
 #include <GWCA/Managers/UIMgr.h>
-#include <GWCA/Utilities/Scanner.h>
 
 #include "ActionsBase.h"
-#include "DataHero.h"
-#include "DataPlayer.h"
 #include "HelperHero.h"
+#include "HelperPlayer.h"
 #include "HelperSkill.h"
 
 namespace
@@ -154,6 +149,10 @@ bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
 }
 } // namespace
 
+namespace Helper
+{
+namespace Hero
+{
 void SetHerosBehaviour(const uint32_t player_login_number, const GW::HeroBehavior hero_behaviour)
 {
     const auto *const party_info = GW::PartyMgr::GetPartyInfo();
@@ -350,3 +349,5 @@ std::vector<uint32_t> GetPlayersHeroIdxsWithClass(
     auto hero_idxs_zero_based = players_hero_class_idx_map.at(skill_class);
     return hero_idxs_zero_based;
 }
+} // namespace Hero
+} // namespace Helper

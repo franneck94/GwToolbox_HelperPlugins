@@ -9,8 +9,9 @@
 
 #include "Logger.h"
 
-struct AgentLivingData
+class AgentLivingData
 {
+public:
     AgentLivingData() : allies({}), neutrals({}), enemies({}), spirits({}), minions({}), npcs({}) {};
     ~AgentLivingData() {};
 
@@ -30,6 +31,7 @@ struct AgentLivingData
 
     static GW::GamePos ComputeCenterOfMass(const std::vector<GW::AgentLiving *> &agents);
 
+public:
     std::vector<GW::AgentLiving *> allies;
     std::vector<GW::AgentLiving *> neutrals;
     std::vector<GW::AgentLiving *> enemies;

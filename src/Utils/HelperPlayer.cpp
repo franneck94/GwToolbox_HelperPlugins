@@ -13,7 +13,7 @@
 #include <GWCA/Managers/PartyMgr.h>
 
 #include "ActionsBase.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "DataSkillbar.h"
 #include "Helper.h"
 #include "HelperAgents.h"

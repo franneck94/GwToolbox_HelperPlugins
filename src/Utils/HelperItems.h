@@ -61,39 +61,3 @@ bool UseWeaponSlot(const uint32_t slot_idx);
 bool SwapToMeleeSet();
 
 bool SwapToRangeSet();
-
-GW::ItemModifier *GetModifier(const GW::Item *const item, const uint32_t identifier);
-
-bool IsSparkly(const GW::Item *const item);
-
-bool GetIsIdentified(const GW::Item *const item);
-
-bool IsStackable(const GW::Item *const item);
-
-bool IsUsable(const GW::Item *const item);
-
-bool IsTradable(const GW::Item *const item);
-
-bool IsInscription(const GW::Item *const item);
-
-bool IsBlue(const GW::Item *const item);
-
-bool IsPurple(const GW::Item *const item);
-
-bool IsGreen(const GW::Item *const item);
-
-bool IsGold(const GW::Item *const item);
-
-uint32_t GetUses(const GW::Item *const item);
-
-bool IsIdentificationKit(const GW::Item *const item);
-
-bool IsLesserKit(const GW::Item *const item);
-
-bool IsExpertSalvageKit(const GW::Item *const item);
-
-bool IsPerfectSalvageKit(const GW::Item *const item);
-
-bool IsRareMaterial(const GW::Item *const item);
-
-GW::Constants::Rarity GetRarity(const GW::Item *const item);
