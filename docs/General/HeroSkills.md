@@ -6,8 +6,10 @@
   - Use Shelter and Union when in fight if not already present
 - Smart SoS:
   - Use SoS whe in fight if not all three spirits are already present
-- Smart melee buffs
-  - Use splinter weapon, vigorous spirit on the player if melee attacker
+- Smart splinter
+  - Use splinter weapon on the player if melee attacker and is attacking multiple enemies
+- Smart vigorous spirit
+  - Use vigorous spirit on the player if melee attacker and is attacking
 - Smart honor
   - IMPORTANT: Disable the skill in the hero window
 - Smart condition and hex removal
