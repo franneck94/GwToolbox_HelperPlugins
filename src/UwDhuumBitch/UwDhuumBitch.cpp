@@ -19,7 +19,7 @@
 
 #include "ActionsBase.h"
 #include "ActionsUw.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "DataSkillbar.h"
 #include "Helper.h"
 #include "HelperAgents.h"
@@ -104,15 +104,15 @@ void UwDhuumBitch::DrawSettings()
 {
     ToolboxUIPlugin::DrawSettings();
 
-    // const auto width = ImGui::GetWindowWidth();
-    // ImGui::Text("Show Debug Map:");
-    // ImGui::SameLine(width * 0.5F);
-    // ImGui::PushItemWidth(width * 0.5F);
-    // ImGui::Checkbox("debugMapActive", &show_debug_map);
-    // ImGui::PopItemWidth();
+    const auto width = ImGui::GetWindowWidth();
+    ImGui::Text("Show Debug Map:");
+    ImGui::SameLine(width * 0.5F);
+    ImGui::PushItemWidth(width * 0.5F);
+    ImGui::Checkbox("debugMapActive", &show_debug_map);
+    ImGui::PopItemWidth();
 }
 
-UwDhuumBitch::UwDhuumBitch() : skillbar({}), db_routine(&player_data, &skillbar, &livings_data)
+UwDhuumBitch::UwDhuumBitch() : skillbar({}), db_routine(&skillbar, &livings_data)
 {
     if (skillbar.ValidateData())
         skillbar.Load();
@@ -120,7 +120,7 @@ UwDhuumBitch::UwDhuumBitch() : skillbar({}), db_routine(&player_data, &skillbar,
 
 void UwDhuumBitch::Draw(IDirect3DDevice9 *)
 {
-    if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsDhuumBitch(player_data))
+    if (!ValidateData(UwHelperActivationConditions, true) || !IsDhuumBitch())
         return;
 
     ImGui::SetNextWindowSize(ImVec2(115.0F, 178.0F), ImGuiCond_FirstUseEver);
@@ -134,8 +134,11 @@ void UwDhuumBitch::Draw(IDirect3DDevice9 *)
     ImGui::End();
 
 #ifdef _DEBUG
-    // if (IsUw() && show_debug_map && livings_data)
-    //     DrawMap(player_data.pos, livings_data->enemies, moves[move_idx]->pos, "DbMap");
+    if (IsUw() && show_debug_map)
+    {
+        const auto player_pos = GetPlayerPos();
+        DrawMap(player_pos, livings_data.enemies, moves[move_idx]->pos, "DbMap");
+    }
 #endif
 }
 
@@ -145,13 +148,17 @@ void UwDhuumBitch::UpdateUw()
 
     MoveABC::SkipNonFullteamMoves(TankIsFullteamLT(), full_team_moves, moves.size(), move_idx);
 
-    MoveABC::UpdatedUwMoves(player_data, &livings_data, moves, move_idx, move_ongoing);
+    MoveABC::UpdatedUwMoves(&livings_data, moves, move_idx, move_ongoing);
+
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return;
 
     if (uw_metadata.num_finished_objectives == 10U && !move_ongoing &&
         (moves[move_idx]->name == "Go To Dhuum 1" || moves[move_idx]->name == "Go To Dhuum 2"))
     {
         moves[move_idx]->Execute();
-        if (player_data.living->GetIsMoving())
+        if (me_living->GetIsMoving())
             move_ongoing = true;
     }
 
@@ -162,7 +169,7 @@ void UwDhuumBitch::UpdateUw()
          moves[move_idx]->name == "Go Vale Center" || moves[move_idx]->name == "Cast EoE 5" ||
          moves[move_idx]->name == "Go To Dhuum 1" || moves[move_idx]->name == "Go To Dhuum 2" ||
          moves[move_idx]->name == "Go To Dhuum 6");
-    const auto is_moving = player_data.living->GetIsMoving();
+    const auto is_moving = me_living->GetIsMoving();
 
     Move_PositionABC::LtMoveTrigger(uw_metadata.lt_is_ready,
                                     move_ongoing,
@@ -195,7 +202,7 @@ void UwDhuumBitch::UpdateUwEntry()
 
 void UwDhuumBitch::Update(float)
 {
-    if (!player_data.ValidateData(UwHelperActivationConditions, true))
+    if (!ValidateData(UwHelperActivationConditions, true))
     {
         move_idx = 0;
         move_ongoing = false;
@@ -204,19 +211,18 @@ void UwDhuumBitch::Update(float)
     }
 
     livings_data.Update();
-    player_data.Update();
 
     db_routine.livings_data = &livings_data;
     db_routine.num_finished_objectives = uw_metadata.num_finished_objectives;
 
-    if (!IsDhuumBitch(player_data))
+    if (!IsDhuumBitch())
     {
         return;
     }
 
     if (IsUw() && first_frame)
     {
-        UpdateUwInfo(reaper_moves, player_data, moves, move_idx, true, move_ongoing);
+        UpdateUwInfo(reaper_moves, moves, move_idx, true, move_ongoing);
         first_frame = false;
     }
 
@@ -228,7 +234,7 @@ void UwDhuumBitch::Update(float)
 
     if (IsUw())
     {
-        UpdateUwInfo(reaper_moves, player_data, moves, move_idx, false, move_ongoing);
+        UpdateUwInfo(reaper_moves, moves, move_idx, false, move_ongoing);
         UpdateUw();
     }
 
@@ -237,18 +243,21 @@ void UwDhuumBitch::Update(float)
 
 bool DbRoutine::CastPiOnTarget() const
 {
-    if (!player_data->target)
+    const auto target = GW::Agents::GetTarget();
+    if (!target)
         return false;
 
-    const auto target_living = player_data->target->GetAsAgentLiving();
+    const auto target_living = target->GetAsAgentLiving();
     if (!target_living || target_living->allegiance != GW::Constants::Allegiance::Enemy)
         return false;
 
-    const auto dist = GW::GetDistance(player_data->pos, target_living->pos);
+    const auto player_pos = GetPlayerPos();
+    const auto dist = GW::GetDistance(player_pos, target_living->pos);
     if (dist > GW::Constants::Range::Spellcast)
         return false;
 
-    if (RoutineState::FINISHED == skillbar->pi.Cast(player_data->energy, target_living->agent_id))
+    const auto player_energy = GetEnergy();
+    if (RoutineState::FINISHED == skillbar->pi.Cast(player_energy, target_living->agent_id))
         return true;
 
     return false;
@@ -256,10 +265,11 @@ bool DbRoutine::CastPiOnTarget() const
 
 bool DbRoutine::RoutineKillSkele() const
 {
-    if ((!FoundSpirit(*player_data, livings_data->spirits, SOS1_AGENT_ID) ||
-         !FoundSpirit(*player_data, livings_data->spirits, SOS2_AGENT_ID) ||
-         !FoundSpirit(*player_data, livings_data->spirits, SOS3_AGENT_ID)) &&
-        (RoutineState::FINISHED == skillbar->sos.Cast(player_data->energy)))
+    const auto player_energy = GetEnergy();
+
+    if ((!FoundSpirit(livings_data->spirits, SOS1_AGENT_ID) || !FoundSpirit(livings_data->spirits, SOS2_AGENT_ID) ||
+         !FoundSpirit(livings_data->spirits, SOS3_AGENT_ID)) &&
+        (RoutineState::FINISHED == skillbar->sos.Cast(player_energy)))
         return true;
 
     if (CastPiOnTarget())
@@ -270,19 +280,19 @@ bool DbRoutine::RoutineKillSkele() const
 
 bool DbRoutine::RoutineKillEnemiesStandard() const
 {
-    const auto found_honor = player_data->HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
+    const auto found_honor = HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
+    const auto player_energy = GetEnergy();
 
-    if (!found_honor && RoutineState::FINISHED == skillbar->honor.Cast(player_data->energy))
+    if (!found_honor && RoutineState::FINISHED == skillbar->honor.Cast(player_energy))
         return true;
 
-    if ((!FoundSpirit(*player_data, livings_data->spirits, SOS1_AGENT_ID) ||
-         !FoundSpirit(*player_data, livings_data->spirits, SOS2_AGENT_ID) ||
-         !FoundSpirit(*player_data, livings_data->spirits, SOS3_AGENT_ID)) &&
-        (RoutineState::FINISHED == skillbar->sos.Cast(player_data->energy)))
+    if ((!FoundSpirit(livings_data->spirits, SOS1_AGENT_ID) || !FoundSpirit(livings_data->spirits, SOS2_AGENT_ID) ||
+         !FoundSpirit(livings_data->spirits, SOS3_AGENT_ID)) &&
+        (RoutineState::FINISHED == skillbar->sos.Cast(player_energy)))
         return true;
 
-    if (!FoundSpirit(*player_data, livings_data->spirits, VAMPIRISMUS_AGENT_ID) &&
-        (RoutineState::FINISHED == skillbar->vamp.Cast(player_data->energy)))
+    if (!FoundSpirit(livings_data->spirits, VAMPIRISMUS_AGENT_ID) &&
+        (RoutineState::FINISHED == skillbar->vamp.Cast(player_energy)))
         return true;
 
     if (CastPiOnTarget())
@@ -293,27 +303,27 @@ bool DbRoutine::RoutineKillEnemiesStandard() const
 
 bool DbRoutine::RoutineValeSpirits() const
 {
-    const auto found_honor = player_data->HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
-    const auto found_eoe = player_data->HasEffect(GW::Constants::SkillID::Edge_of_Extinction);
-    const auto found_winnow = player_data->HasEffect(GW::Constants::SkillID::Winnowing);
+    const auto found_honor = HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
+    const auto found_eoe = HasEffect(GW::Constants::SkillID::Edge_of_Extinction);
+    const auto found_winnow = HasEffect(GW::Constants::SkillID::Winnowing);
+    const auto player_energy = GetEnergy();
 
-    if (!found_honor && RoutineState::FINISHED == skillbar->honor.Cast(player_data->energy))
+    if (!found_honor && RoutineState::FINISHED == skillbar->honor.Cast(player_energy))
         return true;
 
-    if ((!FoundSpirit(*player_data, livings_data->spirits, SOS1_AGENT_ID) ||
-         !FoundSpirit(*player_data, livings_data->spirits, SOS2_AGENT_ID) ||
-         !FoundSpirit(*player_data, livings_data->spirits, SOS3_AGENT_ID)) &&
-        (RoutineState::FINISHED == skillbar->sos.Cast(player_data->energy)))
+    if ((!FoundSpirit(livings_data->spirits, SOS1_AGENT_ID) || !FoundSpirit(livings_data->spirits, SOS2_AGENT_ID) ||
+         !FoundSpirit(livings_data->spirits, SOS3_AGENT_ID)) &&
+        (RoutineState::FINISHED == skillbar->sos.Cast(player_energy)))
         return true;
 
-    if (!FoundSpirit(*player_data, livings_data->spirits, VAMPIRISMUS_AGENT_ID) &&
-        (RoutineState::FINISHED == skillbar->vamp.Cast(player_data->energy)))
+    if (!FoundSpirit(livings_data->spirits, VAMPIRISMUS_AGENT_ID) &&
+        (RoutineState::FINISHED == skillbar->vamp.Cast(player_energy)))
         return true;
 
-    if (!found_eoe && player_data->energy >= 30U && RoutineState::FINISHED == skillbar->eoe.Cast(player_data->energy))
+    if (!found_eoe && player_energy >= 30U && RoutineState::FINISHED == skillbar->eoe.Cast(player_energy))
         return true;
 
-    if (!found_winnow && RoutineState::FINISHED == skillbar->winnow.Cast(player_data->energy))
+    if (!found_winnow && RoutineState::FINISHED == skillbar->winnow.Cast(player_energy))
         return true;
 
     return false;
@@ -323,15 +333,16 @@ bool DbRoutine::RoutineDhuumRecharge() const
 {
     static auto qz_timer = clock();
 
-    const auto found_qz = player_data->HasEffect(GW::Constants::SkillID::Quickening_Zephyr);
+    const auto found_qz = HasEffect(GW::Constants::SkillID::Quickening_Zephyr);
 
     const auto qz_diff_ms = TIMER_DIFF(qz_timer);
     if (qz_diff_ms > 36'000 || !found_qz)
     {
-        if (!found_qz && RoutineState::FINISHED == skillbar->sq.Cast(player_data->energy))
+        const auto player_energy = GetEnergy();
+        if (!found_qz && RoutineState::FINISHED == skillbar->sq.Cast(player_energy))
             return true;
 
-        if (RoutineState::FINISHED == skillbar->qz.Cast(player_data->energy))
+        if (RoutineState::FINISHED == skillbar->qz.Cast(player_energy))
         {
             qz_timer = clock();
             return true;
@@ -343,20 +354,19 @@ bool DbRoutine::RoutineDhuumRecharge() const
 
 bool DbRoutine::RoutineDhuumDamage() const
 {
-    const auto found_honor = player_data->HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
-    const auto found_winnow = player_data->HasEffect(GW::Constants::SkillID::Winnowing);
+    const auto found_honor = HasEffect(GW::Constants::SkillID::Ebon_Battle_Standard_of_Honor);
+    const auto found_winnow = HasEffect(GW::Constants::SkillID::Winnowing);
 
-    if (!found_honor && player_data->energy > 33U &&
-        RoutineState::FINISHED == skillbar->honor.Cast(player_data->energy))
+    const auto player_energy = GetEnergy();
+    if (!found_honor && player_energy > 33U && RoutineState::FINISHED == skillbar->honor.Cast(player_energy))
         return true;
 
-    if (!found_winnow && RoutineState::FINISHED == skillbar->winnow.Cast(player_data->energy))
+    if (!found_winnow && RoutineState::FINISHED == skillbar->winnow.Cast(player_energy))
         return true;
 
-    if ((!FoundSpirit(*player_data, livings_data->spirits, SOS1_AGENT_ID) ||
-         !FoundSpirit(*player_data, livings_data->spirits, SOS2_AGENT_ID) ||
-         !FoundSpirit(*player_data, livings_data->spirits, SOS3_AGENT_ID)) &&
-        (RoutineState::FINISHED == skillbar->sos.Cast(player_data->energy)))
+    if ((!FoundSpirit(livings_data->spirits, SOS1_AGENT_ID) || !FoundSpirit(livings_data->spirits, SOS2_AGENT_ID) ||
+         !FoundSpirit(livings_data->spirits, SOS3_AGENT_ID)) &&
+        (RoutineState::FINISHED == skillbar->sos.Cast(player_energy)))
         return true;
 
     return false;
@@ -364,8 +374,9 @@ bool DbRoutine::RoutineDhuumDamage() const
 
 RoutineState DbRoutine::Routine()
 {
-    const auto is_in_dhuum_room = IsInDhuumRoom(player_data->pos);
-    const auto is_in_dhuum_fight = IsInDhuumFight(player_data->pos);
+    const auto player_pos = GetPlayerPos();
+    const auto is_in_dhuum_room = IsInDhuumRoom(player_pos);
+    const auto is_in_dhuum_fight = IsInDhuumFight(player_pos);
     const auto dhuum_Fight_done = DhuumFightDone(num_finished_objectives);
 
     if (is_in_dhuum_fight)
@@ -378,14 +389,14 @@ RoutineState DbRoutine::Routine()
         return RoutineState::FINISHED;
     }
 
-    if (!player_data->CanCast() || !livings_data)
+    if (!CanCast() || !livings_data)
         return RoutineState::ACTIVE;
 
     if ((move_ongoing && !ActionABC::HasWaitedLongEnough(500L)) ||
         (!move_ongoing && !ActionABC::HasWaitedLongEnough(250L)))
         return RoutineState::ACTIVE;
 
-    if (IsUw() && IsOnSpawnPlateau(player_data->pos, 300.0F) && !TankIsSoloLT())
+    if (IsUw() && IsOnSpawnPlateau(player_pos, 300.0F) && !TankIsSoloLT())
     {
         action_state = ActionState::INACTIVE;
         return RoutineState::FINISHED;
@@ -394,39 +405,46 @@ RoutineState DbRoutine::Routine()
     if (!TankIsSoloLT() && !is_in_dhuum_room)
         return RoutineState::FINISHED;
 
-    if (IsAtChamberSkele(player_data->pos) || IsAtBasementSkele(player_data->pos) ||
-        IsRightAtValeHouse(player_data->pos))
+    if (IsAtChamberSkele(player_pos) || IsAtBasementSkele(player_pos) || IsRightAtValeHouse(player_pos))
     {
-        const auto enemies = FilterAgentsByRange(livings_data->enemies, *player_data, GW::Constants::Range::Earshot);
+        const auto enemies = FilterAgentsByRange(livings_data->enemies, GW::Constants::Range::Earshot);
         if (enemies.size() == 0)
             return RoutineState::ACTIVE;
 
-        if (!player_data->living->GetIsAttacking() && player_data->CanAttack())
-            TargetAndAttackEnemyInAggro(*player_data, livings_data->enemies, GW::Constants::Range::Earshot);
+        const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+        if (!me_living)
+            return RoutineState::FINISHED;
+
+        if (!me_living->GetIsAttacking() && CanAttack())
+            TargetAndAttackEnemyInAggro(livings_data->enemies, GW::Constants::Range::Earshot);
 
         if (RoutineKillSkele())
             return RoutineState::FINISHED;
     }
 
     // If mindblades were not stucked by LT, or back patrol aggro
-    if (IsAtFusePulls(player_data->pos) || InBackPatrolArea(player_data->pos))
+    if (IsAtFusePulls(player_pos) || InBackPatrolArea(player_pos))
     {
-        const auto enemies = FilterAgentsByRange(livings_data->enemies, *player_data, GW::Constants::Range::Earshot);
+        const auto enemies = FilterAgentsByRange(livings_data->enemies, GW::Constants::Range::Earshot);
         if (enemies.size() == 0)
             return RoutineState::ACTIVE;
         RoutineKillEnemiesStandard();
     }
 
-    if (IsAtValeSpirits(player_data->pos))
+    if (IsAtValeSpirits(player_pos))
     {
         SwapToMeleeSet();
 
-        const auto enemies = FilterAgentsByRange(livings_data->enemies, *player_data, 1700.0F);
+        const auto enemies = FilterAgentsByRange(livings_data->enemies, 1700.0F);
         if (enemies.size() == 0)
             return RoutineState::ACTIVE;
 
-        if (!player_data->living->GetIsAttacking() && player_data->CanAttack())
-            TargetAndAttackEnemyInAggro(*player_data, livings_data->enemies, 1700.0F);
+        const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+        if (!me_living)
+            return RoutineState::FINISHED;
+
+        if (!me_living->GetIsAttacking() && CanAttack())
+            TargetAndAttackEnemyInAggro(livings_data->enemies, 1700.0F);
 
         if (RoutineValeSpirits())
             return RoutineState::FINISHED;
@@ -444,7 +462,8 @@ RoutineState DbRoutine::Routine()
 
 RoutineState DbRoutine::DhuumRoomRoutine()
 {
-    const auto is_in_dhuum_fight = IsInDhuumFight(player_data->pos);
+    const auto player_pos = GetPlayerPos();
+    const auto is_in_dhuum_fight = IsInDhuumFight(player_pos);
 
     if (is_in_dhuum_fight && RoutineDhuumRecharge())
         return RoutineState::FINISHED;
@@ -466,7 +485,7 @@ RoutineState DbRoutine::DhuumRoomRoutine()
         }
     }
 
-    const auto dhuum_dist = GW::GetDistance(player_data->pos, dhuum_agent->pos);
+    const auto dhuum_dist = GW::GetDistance(player_pos, dhuum_agent->pos);
     if (dhuum_dist > GW::Constants::Range::Spellcast)
         return RoutineState::FINISHED;
 
@@ -476,27 +495,38 @@ RoutineState DbRoutine::DhuumRoomRoutine()
     if (dhuum_hp < 0.20F)
         return RoutineState::FINISHED;
 
+    const auto player_energy = GetEnergy();
     if (dhuum_agent && DhuumIsCastingJudgement(dhuum_agent) &&
-        (RoutineState::FINISHED == skillbar->pi.Cast(player_data->energy, dhuum_agent->agent_id)))
+        (RoutineState::FINISHED == skillbar->pi.Cast(player_energy, dhuum_agent->agent_id)))
         return RoutineState::FINISHED;
 
     if (RoutineDhuumDamage())
         return RoutineState::FINISHED;
 
-    if (!player_data->living->GetIsAttacking() && player_data->CanAttack())
-        TargetAndAttackEnemyInAggro(*player_data, livings_data->enemies, GW::Constants::Range::Earshot);
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return RoutineState::FINISHED;
+
+    if (!me_living->GetIsAttacking() && CanAttack())
+        TargetAndAttackEnemyInAggro(livings_data->enemies, GW::Constants::Range::Earshot);
 
     return RoutineState::FINISHED;
 }
 
 bool DbRoutine::PauseRoutine() noexcept
 {
-    if (player_data->living->GetIsMoving())
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return false;
+
+    if (me_living->GetIsMoving())
         return true;
 
-    if (player_data->target)
+    const auto target = GW::Agents::GetTarget();
+    if (target)
     {
-        if (TargetIsReaper(*player_data) && (GW::GetDistance(player_data->pos, player_data->target->pos) < 300.0F))
+        const auto player_pos = GetPlayerPos();
+        if (TargetIsReaper() && (GW::GetDistance(player_pos, target->pos) < 300.0F))
             return true;
     }
 
@@ -522,8 +552,12 @@ void DbRoutine::Update()
         action_state = ActionState::ACTIVE;
     }
 
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return;
+
     static auto not_moving_timer = clock();
-    if (player_data->living->GetIsMoving())
+    if (me_living->GetIsMoving())
         not_moving_timer = clock();
 
     if (!TankIsSoloLT() && TIMER_DIFF(not_moving_timer) < 1000 && action_state == ActionState::ACTIVE)

@@ -4,7 +4,7 @@ set(CMAKE_GENERATOR_PLATFORM win32)
 
 project(
   "GWToolbox_HelperPlugins"
-  VERSION 0.13.0
+  VERSION 1.0.0
   LANGUAGES C CXX)
 
 # Global CMake variables are set here
@@ -40,28 +40,34 @@ endif()
 # Third Party Libs
 include(gwtoolboxpp)
 
-FetchContent_Declare(
-  implot
-  GIT_REPOSITORY https://github.com/epezent/implot
-  GIT_TAG v0.14)
-FetchContent_MakeAvailable(implot)
-
 # First Party Libs
 add_library(Stdafx STATIC "src/stdafx.h" "src/stdafx.cpp")
 target_precompile_headers(Stdafx PUBLIC "src/stdafx.h")
 target_link_libraries(Stdafx PUBLIC gwca)
 
-file(GLOB UTIL_SOURCES "src/Utils/*.cpp" "src/Utils/*.cc" "src/Utils/*.hpp"
-     "src/Utils/*.h")
+file(GLOB UTIL_SOURCES "src/_Lib/**/*.cpp" "src/_Lib/**/*.cc"
+     "src/_Lib/**/*.hpp" "src/_Lib/**/*.h")
 add_library(helper_utils STATIC ${UTIL_SOURCES})
-target_include_directories(helper_utils PUBLIC "src/Utils")
+target_include_directories(helper_utils PUBLIC "src/_Lib")
+target_include_directories(helper_utils PUBLIC "src/_Lib/Actions")
+target_include_directories(helper_utils PUBLIC "src/_Lib/Data")
+target_include_directories(helper_utils PUBLIC "src/_Lib/Helper")
+target_include_directories(helper_utils PUBLIC "src/_Lib/Utils")
 target_link_libraries(helper_utils PUBLIC imgui gwca Stdafx)
 
 include(gwtoolboxdll_plugins)
 
 add_tb_plugin(HeroWindow)
+add_tb_plugin(SmartBip)
+add_tb_plugin(SmartHexAndCondRemove)
+add_tb_plugin(SmartMeleeBuffs)
+add_tb_plugin(SmartSkillRupts)
+add_tb_plugin(SmartSoS)
+add_tb_plugin(SmartST)
+
+add_tb_plugin(SmartCommands)
+
 add_tb_plugin(UwRanger)
 add_tb_plugin(UwMesmer)
-add_tb_plugin(SmartCommands)
 add_tb_plugin(UwDhuumBitch)
 add_tb_plugin(UwEmo)

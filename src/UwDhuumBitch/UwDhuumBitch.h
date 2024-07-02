@@ -11,7 +11,7 @@
 #include "ActionsBase.h"
 #include "ActionsMove.h"
 #include "DataLivings.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "HelperCallbacks.h"
 #include "HelperUw.h"
 #include "UtilsGui.h"
@@ -23,8 +23,7 @@
 class DbRoutine : public DbActionABC
 {
 public:
-    DbRoutine(DataPlayer *p, DbSkillbarData *s, const AgentLivingData *a)
-        : DbActionABC(p, "DbRoutine", s), livings_data(a){};
+    DbRoutine(DbSkillbarData *s, const AgentLivingData *a) : DbActionABC("DbRoutine", s), livings_data(a) {};
 
     RoutineState Routine() override;
     RoutineState DhuumRoomRoutine();
@@ -49,7 +48,7 @@ class UwDhuumBitch : public ToolboxUIPlugin
 {
 public:
     UwDhuumBitch();
-    ~UwDhuumBitch(){};
+    ~UwDhuumBitch() {};
 
     const char *Name() const override
     {
@@ -84,17 +83,17 @@ private:
     bool show_debug_map = true;
 
     bool first_frame = false;
-    DataPlayer player_data;
     AgentLivingData livings_data;
     DbSkillbarData skillbar;
     UwMetadata uw_metadata;
 
     DbRoutine db_routine;
 
-    std::function<bool()> target_reaper_fn = [&]() { return TargetReaper(player_data, livings_data.npcs); };
-    std::function<bool()> talk_reaper_fn = [&]() { return TalkReaper(player_data, livings_data.npcs); };
+    std::function<bool()> target_reaper_fn = [&]() { return TargetReaper(livings_data.npcs); };
+    std::function<bool()> talk_reaper_fn = [&]() { return TalkReaper(livings_data.npcs); };
     std::function<bool()> cast_sq = [&]() {
-        skillbar.sq.Cast(player_data.energy);
+        const auto energy = GetEnergy();
+        skillbar.sq.Cast(energy);
         return true;
     };
 

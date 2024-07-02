@@ -4,27 +4,38 @@ Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugin
 
 ## Features are
 
-- Smart Chat Commands (better useskill e.g.  for dhuum fight)
+- Smart Chat Commands (better useskill e.g. for dhuum fight)
 - UW Helper: Ranger, Mesmer, Emo and DB
+- Hero Window, Hero Smart Skills
 
-## Smart Hero Commands (This is really helpful for GWAMM'ing)
+## Smart Hero Skills (This is really helpful for GWAMM'ing)
 
-- Heros will follow the player with smart flagging and a maximal fall-back uptime, when following activated or player pings distant target
-- BiP the player regardless of the weapon when low energy (below 30% or below 15 energy)
-- ST: Use Shelter and Union when in fight if not already present
-- Use SoS when in fight if not all three spirits are already present
-- Use splinter weapon, vigorous spirit and honor of strength on the player if melee attacker
+- Hero Window:
+  - Heros will follow the player with smart flagging and a maximal fall-back uptime, when following activated or player pings distant target
+  - Set all heros behaviour with one click
+  - Spike players target with one click
+- Smart BiP
+  - The player regardless of the weapon when low energy (see the doc for the logic)
+- Smart ST
+  - Use Shelter and Union when in fight if not already present
+- Smart SoS:
+  - Use SoS whe in fight if not all three spirits are already present
+- Smart melee buffs
+  - Use splinter weapon, vigorous spirit and honor of strength on the player if melee attacker
   - For honor of strength: Disable the skill in the hero window
-- Immediatly shatter important hexes on the player
-- Immediatly remove important conditions on the player
-- Mesmer heros will rupt important enemy skills
-- For a full list of hexes,conditions and skills to rupt look into the documentation
+- Smart condition and hex removal
+  - Immediatly shatter important hexes on the player
+  - Immediatly remove important conditions on the player
+- Smart hero rupting
+  - Mesmer heros will rupt important enemy skills
 
-## New feature compared to last release (0.12.0)
+Note: For a full list of hexes, conditions and skills to rupt look into the documentation
 
-- Hero Ping Feature only works with: **ctrl+space**
-- Added more conditions and hexes to remove
-- Added vigorous spirit for melee players
+## New feature compared to last release (0.13.0)
+
+- Improved auto follow for heros a lot
+- Splitted the hero window and smart hero skills intro sperated plugins
+  - No more issues with some feature combinations
 
 ## Known Issues
 

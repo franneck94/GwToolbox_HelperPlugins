@@ -10,7 +10,7 @@
 
 #include "ActionsBase.h"
 #include "DataLivings.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "Utils.h"
 
 #include <imgui.h>
@@ -18,21 +18,21 @@
 class AutoTargetAction : public ActionABC
 {
 public:
-    AutoTargetAction(DataPlayer *p) : ActionABC(p, "Auto Target"){};
+    AutoTargetAction() : ActionABC("Auto Target") {};
 
     RoutineState Routine() override;
     void Update() override;
 
-    std::vector<const GW::AgentLiving *> *behemoth_livings = nullptr;
+    std::vector<GW::AgentLiving *> *behemoth_livings = nullptr;
 };
 
 class UwRanger : public ToolboxUIPlugin
 {
 public:
     UwRanger()
-        : player_data({}), filtered_livings({}), auto_target(&player_data), last_casted_times_ms({}),
-          livings_data({}){};
-    ~UwRanger(){};
+        : filtered_livings({}), auto_target(), last_casted_times_ms({}),
+          livings_data({}) {};
+    ~UwRanger() {};
 
     static UwRanger &Instance()
     {
@@ -66,7 +66,7 @@ public:
     void Update(float delta) override;
 
 private:
-    void DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
+    void DrawSplittedAgents(std::vector<GW::AgentLiving *> livings,
                             const ImVec4 color,
                             std::string_view label,
                             const bool draw_time = true);
@@ -74,15 +74,14 @@ private:
     // Settings
     bool attack_at_auto_target = true;
 
-    DataPlayer player_data;
     std::map<uint32_t, clock_t> last_casted_times_ms;
 
-    std::vector<const GW::AgentLiving *> filtered_livings;
-    std::vector<const GW::AgentLiving *> coldfire_livings;
-    std::vector<const GW::AgentLiving *> behemoth_livings;
-    std::vector<const GW::AgentLiving *> dryder_livings;
-    std::vector<const GW::AgentLiving *> skele_livings;
-    std::vector<const GW::AgentLiving *> horseman_livings;
+    std::vector<GW::AgentLiving *> filtered_livings;
+    std::vector<GW::AgentLiving *> coldfire_livings;
+    std::vector<GW::AgentLiving *> behemoth_livings;
+    std::vector<GW::AgentLiving *> dryder_livings;
+    std::vector<GW::AgentLiving *> skele_livings;
+    std::vector<GW::AgentLiving *> horseman_livings;
 
     AutoTargetAction auto_target;
 

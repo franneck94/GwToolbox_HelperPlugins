@@ -13,7 +13,7 @@
 #include "ActionsMove.h"
 #include "ActionsUw.h"
 #include "DataLivings.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "Helper.h"
 #include "HelperAgents.h"
 #include "HelperItems.h"
@@ -27,8 +27,7 @@
 class EmoRoutine : public EmoActionABC
 {
 public:
-    EmoRoutine(DataPlayer *_player,
-               EmoSkillbarData *_skillbar,
+    EmoRoutine(EmoSkillbarData *_skillbar,
                const uint32_t *_bag_idx,
                const uint32_t *_slot_idx,
                const AgentLivingData *a);
@@ -82,7 +81,7 @@ class UwEmo : public ToolboxUIPlugin
 {
 public:
     UwEmo();
-    ~UwEmo(){};
+    ~UwEmo() {};
 
     const char *Name() const override
     {
@@ -114,7 +113,6 @@ private:
     void UpdateUwEntry();
 
     bool first_frame = false;
-    DataPlayer player_data;
     AgentLivingData livings_data;
     EmoRoutine emo_routine;
 
@@ -128,9 +126,9 @@ private:
 
     std::function<bool()> swap_to_high_armor_fn = [&]() { return HighArmor(bag_idx, slot_idx); };
     std::function<bool()> swap_to_low_armor_fn = [&]() { return LowArmor(bag_idx, slot_idx); };
-    std::function<bool()> target_reaper_fn = [&]() { return TargetReaper(player_data, livings_data.npcs); };
-    std::function<bool()> target_lt_fn = [&]() { return TargetTrigger(player_data, TriggerRole::LT); };
-    std::function<bool()> talk_reaper_fn = [&]() { return TalkReaper(player_data, livings_data.npcs); };
+    std::function<bool()> target_reaper_fn = [&]() { return TargetReaper(livings_data.npcs); };
+    std::function<bool()> target_lt_fn = [&]() { return TargetTrigger(TriggerRole::LT); };
+    std::function<bool()> talk_reaper_fn = [&]() { return TalkReaper(livings_data.npcs); };
     std::function<bool()> take_uwg_fn = [&]() { return TakeUWG(); };
 
     static inline const auto SKILLS_START_TRIGGER = GW::GamePos{-790.53F, 9529.63F, 0};

@@ -18,7 +18,7 @@
 
 #include "ActionsBase.h"
 #include "ActionsUw.h"
-#include "DataPlayer.h"
+#include "HelperPlayer.h"
 #include "Helper.h"
 #include "HelperAgents.h"
 #include "HelperItems.h"
@@ -46,7 +46,8 @@ static const auto IDS = std::array<uint32_t, 6U>{GW::Constants::ModelID::UW::Bla
 
 bool LtRoutine::DoNeedVisage() const
 {
-    const auto closest_id = GetClosestToPosition(player_data->pos, enemies_in_aggro, 0);
+    const auto player_pos = GetPlayerPos();
+    const auto closest_id = GetClosestToPosition(player_pos, enemies_in_aggro, 0);
     const auto closest_enemy = GW::Agents::GetAgentByID(closest_id);
     if (!closest_enemy)
         return false;
@@ -68,26 +69,27 @@ bool LtRoutine::RoutineSelfEnches() const
     const auto need_mantra = (aatxes.size() || graspings.size());
     const auto need_visage = DoNeedVisage();
 
-    if (need_obsi && DoNeedEnchNow(player_data, GW::Constants::SkillID::Obsidian_Flesh, 2.0F) &&
-        (RoutineState::FINISHED == skillbar->obsi.Cast(player_data->energy)))
+    const auto player_energy = GetEnergy();
+    if (need_obsi && DoNeedEnchNow(GW::Constants::SkillID::Obsidian_Flesh, 2.0F) &&
+        (RoutineState::FINISHED == skillbar->obsi.Cast(player_energy)))
     {
         return true;
     }
 
-    if (need_stoneflesh && DoNeedEnchNow(player_data, GW::Constants::SkillID::Stoneflesh_Aura, 2.0F) &&
-        (RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_data->energy)))
+    if (need_stoneflesh && DoNeedEnchNow(GW::Constants::SkillID::Stoneflesh_Aura, 2.0F) &&
+        (RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_energy)))
     {
         return true;
     }
 
-    if (need_mantra && DoNeedEnchNow(player_data, GW::Constants::SkillID::Mantra_of_Resolve, 0.0F) &&
-        (RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_data->energy)))
+    if (need_mantra && DoNeedEnchNow(GW::Constants::SkillID::Mantra_of_Resolve, 0.0F) &&
+        (RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_energy)))
     {
         return true;
     }
 
-    if (need_visage && DoNeedEnchNow(player_data, GW::Constants::SkillID::Sympathetic_Visage, 0.0F) &&
-        (RoutineState::FINISHED == skillbar->visage.Cast(player_data->energy)))
+    if (need_visage && DoNeedEnchNow(GW::Constants::SkillID::Sympathetic_Visage, 0.0F) &&
+        (RoutineState::FINISHED == skillbar->visage.Cast(player_energy)))
     {
         return true;
     }
@@ -111,7 +113,7 @@ RoutineState LtRoutine::Routine()
 
     if (starting_active)
     {
-        const auto agent_id = GetClosestNpcbyId(*player_data, livings_data->npcs, SPAWN_SPIRIT_ID);
+        const auto agent_id = GetClosestNpcbyId(livings_data->npcs, SPAWN_SPIRIT_ID);
         if (!agent_id)
         {
             starting_active = false;
@@ -120,12 +122,14 @@ RoutineState LtRoutine::Routine()
             return RoutineState::FINISHED;
         }
 
-        if (!player_data->target)
+        const auto target = GW::Agents::GetTarget();
+        if (!target)
         {
             if (agent_id)
             {
-                player_data->ChangeTarget(agent_id);
-                if (RoutineState::FINISHED == skillbar->ebon.Cast(player_data->energy, agent_id))
+                const auto player_energy = GetEnergy();
+                ChangeTarget(agent_id);
+                if (RoutineState::FINISHED == skillbar->ebon.Cast(player_energy, agent_id))
                     return RoutineState::FINISHED;
             }
         }
@@ -148,23 +152,24 @@ RoutineState LtRoutine::Routine()
             const auto took_chamber = TakeChamber();
             Log::Info("Took chamber: %u", (int)took_chamber);
 
-            if (skillbar->stoneflesh.CanBeCasted(player_data->energy) &&
-                RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_data->energy))
+            const auto player_energy = GetEnergy();
+            if (skillbar->stoneflesh.CanBeCasted(player_energy) &&
+                RoutineState::FINISHED == skillbar->stoneflesh.Cast(player_energy))
             {
                 return RoutineState::FINISHED;
             }
-            if (skillbar->mantra_of_resolve.CanBeCasted(player_data->energy) &&
-                RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_data->energy))
+            if (skillbar->mantra_of_resolve.CanBeCasted(player_energy) &&
+                RoutineState::FINISHED == skillbar->mantra_of_resolve.Cast(player_energy))
             {
                 return RoutineState::FINISHED;
             }
-            if (skillbar->visage.CanBeCasted(player_data->energy) &&
-                RoutineState::FINISHED == skillbar->visage.Cast(player_data->energy))
+            if (skillbar->visage.CanBeCasted(player_energy) &&
+                RoutineState::FINISHED == skillbar->visage.Cast(player_energy))
             {
                 return RoutineState::FINISHED;
             }
-            if (skillbar->obsi.CanBeCasted(player_data->energy) &&
-                RoutineState::FINISHED == skillbar->obsi.Cast(player_data->energy))
+            if (skillbar->obsi.CanBeCasted(player_energy) &&
+                RoutineState::FINISHED == skillbar->obsi.Cast(player_energy))
             {
                 return RoutineState::FINISHED;
             }
@@ -199,7 +204,9 @@ void LtRoutine::Update()
     }
 
 #ifdef _DEBUG
-    if (IsOnSpawnPlateau(player_data->pos) && !TankIsFullteamLT() && !player_data->target) // && load_cb_triggered)
+    const auto target = GW::Agents::GetTarget();
+    const auto player_pos = GetPlayerPos();
+    if (IsOnSpawnPlateau(player_pos) && !TankIsFullteamLT() && !target) // && load_cb_triggered)
     {
         starting_active = true;
         action_state = ActionState::ACTIVE;
@@ -250,9 +257,7 @@ void UwMesmer::Terminate()
     GW::StoC::RemoveCallbacks(&uw_metadata.ObjectiveDone_Entry);
 }
 
-void UwMesmer::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
-                                  const ImVec4 color,
-                                  std::string_view label)
+void UwMesmer::DrawSplittedAgents(std::vector<GW::AgentLiving *> livings, const ImVec4 color, std::string_view label)
 {
     auto idx = uint32_t{0};
 
@@ -273,7 +278,8 @@ void UwMesmer::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
         else
             ImGui::PushStyleColor(ImGuiCol_Text, color);
 
-        const auto distance = GW::GetDistance(player_data.pos, living->pos);
+        const auto player_pos = GetPlayerPos();
+        const auto distance = GW::GetDistance(player_pos, living->pos);
         ImGui::TableNextColumn();
         ImGui::Text("%3.0f%%", living->hp * 100.0F);
         ImGui::TableNextColumn();
@@ -283,7 +289,7 @@ void UwMesmer::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
         const auto _label = std::format("Target##{}{}", label.data(), idx);
         ImGui::TableNextColumn();
         if (ImGui::Button(_label.data()))
-            player_data.ChangeTarget(living->agent_id);
+            ChangeTarget(living->agent_id);
 
         ++idx;
 
@@ -294,7 +300,7 @@ void UwMesmer::DrawSplittedAgents(std::vector<const GW::AgentLiving *> livings,
 
 void UwMesmer::Draw(IDirect3DDevice9 *)
 {
-    if (!player_data.ValidateData(UwHelperActivationConditions, true) || !IsUwMesmer(player_data))
+    if (!ValidateData(UwHelperActivationConditions, true) || !IsUwMesmer())
         return;
 
     ImGui::SetNextWindowSize(ImVec2(200.0F, 240.0F), ImGuiCond_FirstUseEver);
@@ -340,13 +346,12 @@ void UwMesmer::Update(float)
     horseman_livings.clear();
     keeper_livings.clear();
 
-    if (!player_data.ValidateData(UwHelperActivationConditions, true))
+    if (!ValidateData(UwHelperActivationConditions, true))
         return;
 
     livings_data.Update();
-    player_data.Update();
 
-    if (!IsSpiker(player_data) && !IsLT(player_data))
+    if (!IsSpiker() && !IsLT())
         return;
 
     if (TankIsSoloLT())
@@ -357,7 +362,8 @@ void UwMesmer::Update(float)
         skillbar.Update();
     }
 
-    const auto &pos = player_data.pos;
+    const auto player_pos = GetPlayerPos();
+    const auto &pos = player_pos;
     lt_routine.livings_data = &livings_data;
     lt_routine.load_cb_triggered = uw_metadata.load_cb_triggered;
 
@@ -369,12 +375,12 @@ void UwMesmer::Update(float)
     FilterByIdAndDistance(pos, filtered_livings, keeper_livings, GW::Constants::ModelID::UW::KeeperOfSouls);
     FilterByIdAndDistance(pos, filtered_livings, skele_livings, GW::Constants::ModelID::UW::SkeletonOfDhuum1);
     FilterByIdAndDistance(pos, filtered_livings, skele_livings, GW::Constants::ModelID::UW::SkeletonOfDhuum2);
-    SortByDistance(player_data, aatxe_livings);
-    SortByDistance(player_data, nightmare_livings);
-    SortByDistance(player_data, horseman_livings);
-    SortByDistance(player_data, keeper_livings);
-    SortByDistance(player_data, dryder_livings);
-    SortByDistance(player_data, skele_livings);
+    SortByDistance(aatxe_livings);
+    SortByDistance(nightmare_livings);
+    SortByDistance(horseman_livings);
+    SortByDistance(keeper_livings);
+    SortByDistance(dryder_livings);
+    SortByDistance(skele_livings);
 
     if (TankIsSoloLT())
         lt_routine.Update();
