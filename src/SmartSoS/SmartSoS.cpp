@@ -32,6 +32,8 @@ bool UseSosInFight()
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
+    constexpr static auto ignore_effect_agent_id = false;
+    constexpr static auto check_for_effect = false;
 
     auto player_conditions = []() {
         const auto agents_ptr = GW::Agents::GetAgentArray();
@@ -43,11 +45,6 @@ bool UseSosInFight()
         const auto num_enemies_in_aggro_of_player = AgentLivingData::NumAgentsInRange(player_pos,
                                                                                       GW::Constants::Allegiance::Enemy,
                                                                                       GW::Constants::Range::Spellcast);
-
-        const auto player_started_fight = num_enemies_in_aggro_of_player >= 3 && IsFighting();
-
-        if (!player_started_fight)
-            return false;
 
         auto spirits_in_range = std::vector<GW::AgentLiving *>{};
         for (auto *enemy : agents)
@@ -68,11 +65,18 @@ bool UseSosInFight()
             spirits_in_range.push_back(enemy_living);
         }
 
-        const auto sos_spirits_in_range = FoundSpirit(spirits_in_range, SOS1_AGENT_ID) &&
-                                          FoundSpirit(spirits_in_range, SOS2_AGENT_ID) &&
-                                          FoundSpirit(spirits_in_range, SOS3_AGENT_ID);
+        const auto num_sos_spirits_in_range = static_cast<uint32_t>(FoundSpirit(spirits_in_range, SOS1_AGENT_ID)) +
+                                              static_cast<uint32_t>(FoundSpirit(spirits_in_range, SOS2_AGENT_ID)) +
+                                              static_cast<uint32_t>(FoundSpirit(spirits_in_range, SOS3_AGENT_ID));
 
-        return player_started_fight && !sos_spirits_in_range;
+        if (num_enemies_in_aggro_of_player > 6U)
+            return (IsFighting() || CanFight()) && num_sos_spirits_in_range < 3U;
+        else if (num_enemies_in_aggro_of_player > 4U)
+            return (IsFighting() || CanFight()) && num_sos_spirits_in_range < 2U;
+        else if (num_enemies_in_aggro_of_player > 2U)
+            return (IsFighting() || CanFight()) && num_sos_spirits_in_range < 1U;
+
+        return false;
     };
 
     const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
@@ -92,7 +96,8 @@ bool UseSosInFight()
                                            hero_conditions,
                                            wait_ms,
                                            target_logic,
-                                           true);
+                                           ignore_effect_agent_id,
+                                           check_for_effect);
 }
 } // namespace
 

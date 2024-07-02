@@ -27,6 +27,8 @@ bool UseHonorOnPlayer()
     constexpr static auto skill_class = GW::Constants::Profession::Monk;
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
+    constexpr static auto ignore_effect_agent_id = true;
+    constexpr static auto check_for_effect = true;
 
     auto player_conditions = []() {
         const auto player_is_melee_attacking = HoldsMeleeWeapon();
@@ -52,7 +54,8 @@ bool UseHonorOnPlayer()
                                            hero_conditions,
                                            wait_ms,
                                            target_logic,
-                                           false);
+                                           ignore_effect_agent_id,
+                                           check_for_effect);
 }
 } // namespace
 

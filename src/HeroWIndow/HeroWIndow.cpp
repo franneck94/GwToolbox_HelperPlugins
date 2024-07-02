@@ -40,6 +40,8 @@
 
 namespace
 {
+#define GAME_MSG_SKILL_ON_ENEMY 45
+
 constexpr auto IM_COLOR_RED = ImVec4(1.0F, 0.1F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_GREEN = ImVec4(0.1F, 0.9F, 0.1F, 1.0F);
 constexpr auto IM_COLOR_BLUE = ImVec4(0.1F, 0.1F, 1.0F, 1.0F);
@@ -82,17 +84,8 @@ void OnSkillOnEnemy(const uint32_t value_id, const uint32_t caster_id)
     if (caster_id != player_id)
         return;
 
-    switch (value_id)
-    {
-    case 45:
-    {
-        break;
-    }
-    default:
-    {
+    if (value_id != GAME_MSG_SKILL_ON_ENEMY)
         return;
-    }
-    }
 
     const auto target_agent = GetTargetAsLiving();
     if (!target_agent)
@@ -301,6 +294,7 @@ void HeroWindow::StartFollowing()
         Log::Info("Heroes will follow the player!");
         current_hero_behaviour_before_follow = current_hero_behaviour;
     }
+
     following_active = true;
     current_hero_behaviour = GW::HeroBehavior::AvoidCombat;
 }
@@ -309,8 +303,10 @@ void HeroWindow::StopFollowing()
 {
     if (following_active)
         Log::Info("Heroes stopped following the player!");
+
     following_active = false;
     GW::PartyMgr::UnflagAll();
+
     if (current_hero_behaviour != current_hero_behaviour_before_follow)
     {
         current_hero_behaviour = current_hero_behaviour_before_follow;
@@ -358,7 +354,7 @@ void HeroWindow::HeroFollow_StopConditions()
         return;
     }
 
-    if (ms_with_no_pos_change >= 10'000)
+    if (ms_with_no_pos_change >= 5'000)
     {
         StopFollowing();
         ms_with_no_pos_change = 0U;
@@ -379,7 +375,7 @@ void HeroWindow::HeroFollow_StopConditions()
         {
             const auto player_pos = GetPlayerPos();
             const auto dist = GW::GetDistance(target_agent->pos, player_pos);
-            if (dist < GW::Constants::Range::Spellcast)
+            if (dist < GW::Constants::Range::Spellcast - 200.0F)
             {
                 StopFollowing();
                 ping_target_id = 0;
@@ -419,7 +415,7 @@ void HeroWindow::HeroFollow_StartWhileRunning()
     if (!IsMoving())
         move_time_ms = clock();
 
-    const auto start_follow_bc_moving = TIMER_DIFF(move_time_ms) > 5'000;
+    const auto start_follow_bc_moving = TIMER_DIFF(move_time_ms) > 3'000;
 
     const auto target_agent = GetTargetAsLiving();
     if (!target_agent)
@@ -481,7 +477,7 @@ void HeroWindow::HeroFollow_StuckCheck()
 
         if (same_position_counters.at(hero_idx) >= 1'000U)
         {
-            Log::Info("Hero at position %d might be stuck!", hero_idx + 1U);
+            Log::Info("Hero %d might be stuck!", hero_idx + 1U);
             same_position_counters.at(hero_idx) = 0U;
         }
 

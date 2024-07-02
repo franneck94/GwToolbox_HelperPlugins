@@ -30,8 +30,8 @@ bool HeroUseSkill_Main(const GW::Constants::SkillID skill_id,
                        std::function<bool(const GW::AgentLiving *hero_living)> hero_conditions,
                        const long wait_ms,
                        const TargetLogic target_logic = TargetLogic::NO_TARGET,
-                       const uint32_t current_target_id = 0U,
-                       const bool ignore_effect_agent_id = false);
+                       const bool ignore_effect_agent_id = false,
+                       const bool check_for_effect = false);
 
 bool PlayerHasHerosInParty();
 

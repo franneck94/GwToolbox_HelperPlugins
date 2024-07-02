@@ -27,8 +27,10 @@ bool UseBipOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Blood_is_Power;
     constexpr static auto skill_class = GW::Constants::Profession::Necromancer;
-    constexpr static auto wait_ms = 600UL;
+    constexpr static auto wait_ms = 1'000UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
+    constexpr static auto ignore_effect_agent_id = true;
+    constexpr static auto check_for_effect = true;
     const static auto energy_class_map = std::map<GW::Constants::Profession, std::pair<uint32_t, float>>{
         {GW::Constants::Profession::Warrior, {25U, 0.70F}},
         {GW::Constants::Profession::Ranger, {25U, 0.60F}},
@@ -47,7 +49,7 @@ bool UseBipOnPlayer()
         if (!me_living)
             return false;
 
-        if (me_living->energy_regen > 0.03F) // Dont have bip yet
+        if (me_living->energy_regen > 0.03F)
             return false;
 
         const auto primary = GetPrimaryClass();
@@ -78,7 +80,8 @@ bool UseBipOnPlayer()
                                            hero_conditions,
                                            wait_ms,
                                            target_logic,
-                                           false);
+                                           ignore_effect_agent_id,
+                                           check_for_effect);
 }
 } // namespace
 

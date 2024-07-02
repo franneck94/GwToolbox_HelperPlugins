@@ -13,10 +13,10 @@
 #include <GWCA/Managers/PartyMgr.h>
 
 #include "ActionsBase.h"
-#include "HelperPlayer.h"
 #include "DataSkillbar.h"
 #include "Helper.h"
 #include "HelperAgents.h"
+#include "HelperPlayer.h"
 #include "Utils.h"
 
 namespace
@@ -116,6 +116,11 @@ bool CanAttack()
         return false;
 
     return true;
+}
+
+bool CanFight()
+{
+    return CanCast() || CanAttack();
 }
 
 bool IsAttacking()
@@ -308,7 +313,7 @@ bool PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id)
     return false;
 }
 
-bool PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id)
+bool PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_effect_agent_id)
 {
     const auto *me_living = GW::Agents::GetPlayerAsAgentLiving();
     if (!me_living)
@@ -320,7 +325,7 @@ bool PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_i
 
     for (const auto &effect : *player_effects)
     {
-        if (effect.skill_id == effect_id && (ignore_id || effect.agent_id == me_living->agent_id))
+        if (effect.skill_id == effect_id && (ignore_effect_agent_id || effect.agent_id == me_living->agent_id))
             return true;
     }
 

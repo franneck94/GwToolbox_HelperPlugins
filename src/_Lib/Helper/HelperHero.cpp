@@ -95,8 +95,7 @@ bool HeroCastSkillIfAvailable(const GW::AgentLiving *hero_living,
                               const uint32_t hero_idx,
                               const GW::Constants::SkillID skill_id,
                               std::function<bool(const GW::AgentLiving *)> cb_fn,
-                              const Helper::Hero::TargetLogic target_logic,
-                              const uint32_t target_id)
+                              const Helper::Hero::TargetLogic target_logic)
 {
     if (!hero_living || !hero_living->agent_id)
         return false;
@@ -134,15 +133,16 @@ bool HeroCastSkillIfAvailable(const GW::AgentLiving *hero_living,
 
 bool HeroSkill_StartConditions(const GW::Constants::SkillID skill_id,
                                const long wait_ms,
-                               const bool ignore_effect_agent_id)
+                               const bool ignore_effect_agent_id,
+                               const bool check_for_effect)
 {
     if (!ActionABC::HasWaitedLongEnough(wait_ms))
         return false;
 
-    if (skill_id != GW::Constants::SkillID::No_Skill)
+    if (skill_id == GW::Constants::SkillID::No_Skill)
         return true;
 
-    if (PlayerHasEffect(skill_id, ignore_effect_agent_id))
+    if (check_for_effect && PlayerHasEffect(skill_id, ignore_effect_agent_id))
         return false;
 
     return true;
@@ -177,10 +177,10 @@ bool HeroUseSkill_Main(const GW::Constants::SkillID skill_id,
                        std::function<bool(const GW::AgentLiving *hero_living)> hero_conditions,
                        const long wait_ms,
                        const TargetLogic target_logic,
-                       const uint32_t current_target_id,
-                       const bool ignore_effect_agent_id)
+                       const bool ignore_effect_agent_id,
+                       const bool check_for_effect)
 {
-    if (!HeroSkill_StartConditions(skill_id, wait_ms, ignore_effect_agent_id))
+    if (!HeroSkill_StartConditions(skill_id, wait_ms, ignore_effect_agent_id, check_for_effect))
         return false;
 
     if (!player_conditions())
@@ -194,12 +194,7 @@ bool HeroUseSkill_Main(const GW::Constants::SkillID skill_id,
     {
         const auto hero_living = players_heros.at(hero_idx_zero_based);
 
-        if (HeroCastSkillIfAvailable(hero_living,
-                                     hero_idx_zero_based,
-                                     skill_id,
-                                     hero_conditions,
-                                     target_logic,
-                                     current_target_id))
+        if (HeroCastSkillIfAvailable(hero_living, hero_idx_zero_based, skill_id, hero_conditions, target_logic))
         {
 #ifdef _DEBUG
             Log::Info("Casted %s.", skill_name);

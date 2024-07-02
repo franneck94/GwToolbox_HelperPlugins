@@ -30,6 +30,8 @@ GW::Constants::SkillID::Clumsiness
 GW::Constants::SkillID::Faintheartedness
 // Ele
 GW::Constants::SkillID::Blurred_Vision
+// Monk
+GW::Constants::SkillID::Amity
 
 // to_remove_hexes_caster
 // Mesmer

@@ -31,13 +31,14 @@ bool IsCasting();
 bool IsAttacking();
 bool IsFighting();
 bool IsMoving();
+bool CanFight();
 
 bool HasBuff(const GW::Constants::SkillID buff_skill_id);
 bool HasEffect(const GW::Constants::SkillID effect_skill_id);
 float GetRemainingEffectDuration(const GW::Constants::SkillID effect_skill_id);
 uint32_t GetNumberOfPartyBonds();
 bool PlayerOrHeroHasEffect(const GW::Constants::SkillID effect_id);
-bool PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_id = false);
+bool PlayerHasEffect(const GW::Constants::SkillID effect_id, const bool ignore_effect_agent_id = false);
 
 uint32_t GetMaxEnergy();
 uint32_t GetEnergy();

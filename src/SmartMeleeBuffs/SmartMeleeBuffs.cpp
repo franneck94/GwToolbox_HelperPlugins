@@ -27,6 +27,8 @@ bool UseSplinterOnPlayer()
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
+    constexpr static auto ignore_effect_agent_id = true;
+    constexpr static auto check_for_effect = true;
 
     auto player_conditions = []() {
         const auto player_pos = GetPlayerPos();
@@ -57,7 +59,8 @@ bool UseSplinterOnPlayer()
                                            hero_conditions,
                                            wait_ms,
                                            target_logic,
-                                           false);
+                                           ignore_effect_agent_id,
+                                           check_for_effect);
 }
 
 bool UseVigSpiritOnPlayer()
@@ -66,6 +69,8 @@ bool UseVigSpiritOnPlayer()
     constexpr static auto skill_class = GW::Constants::Profession::Monk;
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
+    constexpr static auto ignore_effect_agent_id = true;
+    constexpr static auto check_for_effect = true;
 
     auto player_conditions = []() {
         const auto player_pos = GetPlayerPos();
@@ -96,7 +101,8 @@ bool UseVigSpiritOnPlayer()
                                            hero_conditions,
                                            wait_ms,
                                            target_logic,
-                                           false);
+                                           ignore_effect_agent_id,
+                                           check_for_effect);
 }
 } // namespace
 

@@ -33,6 +33,8 @@ void AttackTarget()
     };
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::PLAYER_TARGET;
+    constexpr static auto ignore_effect_agent_id = false;
+    constexpr static auto check_for_effect = false;
 
     auto player_conditions = []() {
         const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
@@ -70,7 +72,8 @@ void AttackTarget()
                                         hero_conditions,
                                         wait_ms,
                                         target_logic,
-                                        false);
+                                        ignore_effect_agent_id,
+                                        check_for_effect);
     }
 }
 
@@ -80,6 +83,8 @@ bool UseFallback()
     constexpr static auto skill_class = GW::Constants::Profession::Paragon;
     constexpr static auto wait_ms = 250UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
+    constexpr static auto ignore_effect_agent_id = true;
+    constexpr static auto check_for_effect = true;
 
     auto player_conditions = []() { return true; };
 
@@ -94,7 +99,8 @@ bool UseFallback()
                                            hero_conditions,
                                            wait_ms,
                                            target_logic,
-                                           true);
+                                           ignore_effect_agent_id,
+                                           check_for_effect);
 }
 
 } // namespace HeroSmartSkills

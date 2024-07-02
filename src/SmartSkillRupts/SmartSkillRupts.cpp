@@ -55,6 +55,8 @@ bool RuptEnemies()
     };
     constexpr static auto wait_ms = 200UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::SEARCH_TARGET;
+    constexpr static auto ignore_effect_agent_id = false;
+    constexpr static auto check_for_effect = false;
     static auto last_time_target_changed = clock();
 
     const auto target = GW::Agents::GetTarget();
@@ -138,7 +140,9 @@ bool RuptEnemies()
                                             player_conditions,
                                             hero_conditions,
                                             wait_ms,
-                                            target_logic))
+                                            target_logic,
+                                            ignore_effect_agent_id,
+                                            check_for_effect))
         {
             if (TIMER_DIFF(last_time_target_changed) > 10)
             {

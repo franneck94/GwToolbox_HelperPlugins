@@ -36,7 +36,7 @@ bool RemoveImportantConditions()
     constexpr static auto to_remove_conditions_all = std::array{
         GW::Constants::SkillID::Crippled,
     };
-    const static auto cond_names_map = std::map<GW::Constants::SkillID, const char*>{
+    const static auto cond_names_map = std::map<GW::Constants::SkillID, const char *>{
         {GW::Constants::SkillID::No_Skill, "Unk"},
         {GW::Constants::SkillID::Blind, "Blind"},
         {GW::Constants::SkillID::Weakness, "Weakness"},
@@ -52,6 +52,8 @@ bool RemoveImportantConditions()
     };
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
+    constexpr static auto ignore_effect_agent_id = false;
+    constexpr static auto check_for_effect = false;
 
     auto player_conditions = []() {
         const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
@@ -129,7 +131,8 @@ bool RemoveImportantConditions()
                                             hero_conditions,
                                             wait_ms,
                                             target_logic,
-                                            false))
+                                            ignore_effect_agent_id,
+                                            check_for_effect))
             return true;
     }
 
@@ -147,6 +150,8 @@ bool ShatterImportantHexes()
         GW::Constants::SkillID::Faintheartedness,
         // Ele
         GW::Constants::SkillID::Blurred_Vision,
+        // Monk
+        GW::Constants::SkillID::Amity,
     };
     constexpr static auto to_remove_hexes_caster = std::array{
         // Mesmer
@@ -170,7 +175,7 @@ bool ShatterImportantHexes()
         // Necro
         GW::Constants::SkillID::Vocal_Minority,
     };
-    const static auto hex_names_map = std::map<GW::Constants::SkillID, const char*>{
+    const static auto hex_names_map = std::map<GW::Constants::SkillID, const char *>{
         {GW::Constants::SkillID::No_Skill, "Unk"},
         {GW::Constants::SkillID::Ineptitude, "Ineptitude"},
         {GW::Constants::SkillID::Empathy, "Empathy"},
@@ -197,6 +202,8 @@ bool ShatterImportantHexes()
     };
     constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
+    constexpr static auto ignore_effect_agent_id = false;
+    constexpr static auto check_for_effect = false;
 
     auto player_conditions = []() {
         const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
@@ -286,7 +293,8 @@ bool ShatterImportantHexes()
                                             hero_conditions,
                                             wait_ms,
                                             target_logic,
-                                            false))
+                                            ignore_effect_agent_id,
+                                            check_for_effect))
             casted_skill = true;
     }
 
