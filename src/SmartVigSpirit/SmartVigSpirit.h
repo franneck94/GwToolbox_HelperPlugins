@@ -2,15 +2,15 @@
 
 #include <ToolboxUIPlugin.h>
 
-class SmartMeleeBuffs : public ToolboxUIPlugin
+class SmartVigSpirit : public ToolboxUIPlugin
 {
 public:
-    SmartMeleeBuffs() {};
-    ~SmartMeleeBuffs() {};
+    SmartVigSpirit() {};
+    ~SmartVigSpirit() {};
 
     const char *Name() const override
     {
-        return "SmartMeleeBuffs";
+        return "SmartVigSpirit";
     }
 
     const char *Icon() const override

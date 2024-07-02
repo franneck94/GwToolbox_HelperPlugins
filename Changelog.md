@@ -20,8 +20,10 @@ Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugin
   - Use Shelter and Union when in fight if not already present
 - Smart SoS:
   - Use SoS whe in fight if not all three spirits are already present
-- Smart melee buffs
-  - Use splinter weapon, vigorous spirit on the player if melee attacker
+- Smart splinter
+  - Use splinter weapon on the player if melee attacker and is attacking multiple enemies
+- Smart vigorous spirit
+  - Use vigorous spirit on the player if melee attacker and is attacking
 - Smart honor
   - IMPORTANT: Disable the skill in the hero window
 - Smart condition and hex removal
@@ -32,11 +34,10 @@ Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugin
 
 Note: For a full list of hexes, conditions and skills to rupt look into the documentation
 
-## New feature compared to last release (0.13.0)
+## New feature compared to last release (1.0.0)
 
-- Improved auto follow for heros a lot
-- Splitted the hero window and smart hero skills intro sperated plugins
-  - No more issues with some feature combinations
+- Splitted Smart splinter and Smart vigorous spirit
+- Further auto follow improvements
 
 ## Known Issues
 

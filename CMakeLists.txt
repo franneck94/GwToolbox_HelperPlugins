@@ -4,7 +4,7 @@ set(CMAKE_GENERATOR_PLATFORM win32)
 
 project(
   "GWToolbox_HelperPlugins"
-  VERSION 1.0.0
+  VERSION 1.1.0
   LANGUAGES C CXX)
 
 # Global CMake variables are set here
@@ -61,7 +61,8 @@ add_tb_plugin(HeroWindow)
 add_tb_plugin(SmartBip)
 add_tb_plugin(SmartHexAndCondRemove)
 add_tb_plugin(SmartHonor)
-add_tb_plugin(SmartMeleeBuffs)
+add_tb_plugin(SmartSplinter)
+add_tb_plugin(SmartVigSpirit)
 add_tb_plugin(SmartSkillRupts)
 add_tb_plugin(SmartSoS)
 add_tb_plugin(SmartST)

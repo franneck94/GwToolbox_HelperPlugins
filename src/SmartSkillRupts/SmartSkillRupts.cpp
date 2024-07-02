@@ -102,7 +102,9 @@ bool RuptEnemies()
                     change_target_to_id = new_target_id;
                     _last_time_target_changed = clock();
                 }
+#ifdef _DEBUG
                 Log::Info("Found skill to rupt: %s", rupt_names_map.at(*rupt_it));
+#endif
                 return true;
             }
         }
