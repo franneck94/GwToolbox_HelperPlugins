@@ -43,3 +43,4 @@ Note: For a full list of hexes, conditions and skills to rupt look into the docu
 
 - /tb close - does not work with the plugins...
 - If any plugin is unloaded, the others stop work until you restart the game or reload the other plugins
+- *Sometimes* unloaded a plugin leads to game freeze
