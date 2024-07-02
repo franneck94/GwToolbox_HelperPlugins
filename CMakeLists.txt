@@ -45,8 +45,8 @@ add_library(Stdafx STATIC "src/stdafx.h" "src/stdafx.cpp")
 target_precompile_headers(Stdafx PUBLIC "src/stdafx.h")
 target_link_libraries(Stdafx PUBLIC gwca)
 
-file(GLOB UTIL_SOURCES "src/Utils/*.cpp" "src/Utils/*.cc" "src/Utils/*.hpp"
-     "src/Utils/*.h")
+file(GLOB UTIL_SOURCES "src/Utils/**/*.cpp" "src/Utils/**/*.cc"
+     "src/Utils/**/*.hpp" "src/Utils/**/*.h")
 add_library(helper_utils STATIC ${UTIL_SOURCES})
 target_include_directories(helper_utils PUBLIC "src/Utils")
 target_link_libraries(helper_utils PUBLIC imgui gwca Stdafx)
