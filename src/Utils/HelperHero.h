@@ -10,6 +10,10 @@
 
 #include "HelperPlayer.h"
 
+namespace Helper
+{
+namespace Hero
+{
 enum class TargetLogic
 {
     NO_TARGET,
@@ -17,11 +21,7 @@ enum class TargetLogic
     SEARCH_TARGET,
 };
 
-namespace Helper
-{
-namespace Hero
-{
-void SetHerosBehaviour(const uint32_t player_login_number, const GW::HeroBehavior hero_behaviour);
+void SetHerosBehaviour(const GW::HeroBehavior hero_behaviour);
 
 bool HeroUseSkill_Main(const GW::Constants::SkillID skill_id,
                        const GW::Constants::Profession skill_class,

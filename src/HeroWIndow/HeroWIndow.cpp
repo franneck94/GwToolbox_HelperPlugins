@@ -315,11 +315,7 @@ void HeroWindow::StopFollowing()
     {
         current_hero_behaviour = current_hero_behaviour_before_follow;
 
-        const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
-        if (!me_living)
-            return;
-
-        Helper::Hero::SetHerosBehaviour(me_living->login_number, current_hero_behaviour);
+        Helper::Hero::SetHerosBehaviour(current_hero_behaviour);
     }
 }
 
@@ -567,11 +563,7 @@ void HeroWindow::ToggleHeroBehaviour()
     else
         return;
 
-    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
-    if (!me_living)
-        return;
-
-    Helper::Hero::SetHerosBehaviour(me_living->login_number, current_hero_behaviour);
+    Helper::Hero::SetHerosBehaviour(current_hero_behaviour);
 }
 
 /* INTERNAL FUNCTIONS ATTACK */

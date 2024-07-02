@@ -95,7 +95,7 @@ bool HeroCastSkillIfAvailable(const GW::AgentLiving *hero_living,
                               const uint32_t hero_idx,
                               const GW::Constants::SkillID skill_id,
                               std::function<bool(const GW::AgentLiving *)> cb_fn,
-                              const TargetLogic target_logic,
+                              const Helper::Hero::TargetLogic target_logic,
                               const uint32_t target_id)
 {
     if (!hero_living || !hero_living->agent_id)
@@ -112,8 +112,8 @@ bool HeroCastSkillIfAvailable(const GW::AgentLiving *hero_living,
     {
         switch (target_logic)
         {
-        case TargetLogic::SEARCH_TARGET:
-        case TargetLogic::PLAYER_TARGET:
+        case Helper::Hero::TargetLogic::SEARCH_TARGET:
+        case Helper::Hero::TargetLogic::PLAYER_TARGET:
         {
             const auto target = GW::Agents::GetTarget();
             if (target)
@@ -121,7 +121,7 @@ bool HeroCastSkillIfAvailable(const GW::AgentLiving *hero_living,
             else
                 return HeroUseSkill(player_id, skill_idx, hero_idx);
         }
-        case TargetLogic::NO_TARGET:
+        case Helper::Hero::TargetLogic::NO_TARGET:
         default:
         {
             return HeroUseSkill(player_id, skill_idx, hero_idx);
@@ -153,15 +153,19 @@ namespace Helper
 {
 namespace Hero
 {
-void SetHerosBehaviour(const uint32_t player_login_number, const GW::HeroBehavior hero_behaviour)
+void SetHerosBehaviour(const GW::HeroBehavior hero_behaviour)
 {
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return;
+
     const auto *const party_info = GW::PartyMgr::GetPartyInfo();
     if (!party_info || !party_info->heroes.valid())
         return;
 
     for (const auto &hero : party_info->heroes)
     {
-        if (hero.owner_player_id == player_login_number)
+        if (hero.owner_player_id == me_living->login_number)
             GW::PartyMgr::SetHeroBehavior(hero.agent_id, hero_behaviour);
     }
 }

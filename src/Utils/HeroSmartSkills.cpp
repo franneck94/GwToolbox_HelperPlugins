@@ -32,7 +32,7 @@ void AttackTarget()
         {GW::Constants::SkillID::Energy_Surge, GW::Constants::Profession::Mesmer},
     };
     constexpr static auto wait_ms = 500UL;
-    constexpr static auto target_logic = TargetLogic::PLAYER_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::PLAYER_TARGET;
 
     auto player_conditions = []() {
         const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
@@ -117,7 +117,7 @@ bool ShatterImportantHexes()
         {GW::Constants::SkillID::Smite_Hex, GW::Constants::Profession::Monk},
     };
     constexpr static auto wait_ms = 500UL;
-    constexpr static auto target_logic = TargetLogic::NO_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
 
     auto player_conditions = []() {
         const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
@@ -208,7 +208,7 @@ bool RemoveImportantConditions()
         {GW::Constants::SkillID::Purge_Conditions, GW::Constants::Profession::Monk},
     };
     constexpr static auto wait_ms = 500UL;
-    constexpr static auto target_logic = TargetLogic::NO_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
 
     auto player_conditions = []() {
         const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
@@ -299,7 +299,7 @@ bool RuptEnemies()
 
     };
     constexpr static auto wait_ms = 200UL;
-    constexpr static auto target_logic = TargetLogic::SEARCH_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::SEARCH_TARGET;
     static auto last_time_target_changed = clock();
 
     const auto target = GW::Agents::GetTarget();
@@ -401,7 +401,7 @@ bool UseSplinterOnPlayer()
     constexpr static auto skill_id = GW::Constants::SkillID::Splinter_Weapon;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
     constexpr static auto wait_ms = 500UL;
-    constexpr static auto target_logic = TargetLogic::NO_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
 
     auto player_conditions = []() {
         const auto player_pos = GetPlayerPos();
@@ -440,7 +440,7 @@ bool UseVigSpiritOnPlayer()
     constexpr static auto skill_id = GW::Constants::SkillID::Vigorous_Spirit;
     constexpr static auto skill_class = GW::Constants::Profession::Monk;
     constexpr static auto wait_ms = 500UL;
-    constexpr static auto target_logic = TargetLogic::NO_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
 
     auto player_conditions = []() {
         const auto player_is_melee_attacking = HoldsMeleeWeapon();
@@ -474,7 +474,7 @@ bool UseHonorOnPlayer()
     constexpr static auto skill_id = GW::Constants::SkillID::Strength_of_Honor;
     constexpr static auto skill_class = GW::Constants::Profession::Monk;
     constexpr static auto wait_ms = 500UL;
-    constexpr static auto target_logic = TargetLogic::NO_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
 
     auto player_conditions = []() {
         const auto player_is_melee_attacking = HoldsMeleeWeapon();
@@ -508,7 +508,7 @@ bool UseShelterInFight()
     constexpr static auto skill_id = GW::Constants::SkillID::Shelter;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
     constexpr static auto wait_ms = 500UL;
-    constexpr static auto target_logic = TargetLogic::NO_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
 
     auto player_conditions = []() {
         const auto player_pos = GetPlayerPos();
@@ -548,7 +548,7 @@ bool UseUnionInFight()
     constexpr static auto skill_id = GW::Constants::SkillID::Union;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
     constexpr static auto wait_ms = 500UL;
-    constexpr static auto target_logic = TargetLogic::NO_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
 
     auto player_conditions = []() {
         const auto player_pos = GetPlayerPos();
@@ -592,7 +592,7 @@ bool UseSosInFight()
     constexpr static auto skill_id = GW::Constants::SkillID::Signet_of_Spirits;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
     constexpr static auto wait_ms = 500UL;
-    constexpr static auto target_logic = TargetLogic::NO_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
 
     auto player_conditions = []() {
         const auto agents_ptr = GW::Agents::GetAgentArray();
@@ -661,7 +661,7 @@ bool UseFallback()
     constexpr static auto skill_id = GW::Constants::SkillID::Fall_Back;
     constexpr static auto skill_class = GW::Constants::Profession::Paragon;
     constexpr static auto wait_ms = 250UL;
-    constexpr static auto target_logic = TargetLogic::NO_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
 
     auto player_conditions = []() { return true; };
 
@@ -684,7 +684,7 @@ bool UseBipOnPlayer()
     constexpr static auto skill_id = GW::Constants::SkillID::Blood_is_Power;
     constexpr static auto skill_class = GW::Constants::Profession::Necromancer;
     constexpr static auto wait_ms = 600UL;
-    constexpr static auto target_logic = TargetLogic::NO_TARGET;
+    constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
     const static auto energy_class_map = std::map<GW::Constants::Profession, std::pair<uint32_t, float>>{
         {GW::Constants::Profession::Warrior, {25U, 0.70F}},
         {GW::Constants::Profession::Ranger, {25U, 0.60F}},
