@@ -7,7 +7,7 @@
 - Smart SoS:
   - Use SoS whe in fight if not all three spirits are already present
 - Smart melee buffs
-  - Use splinter weapon, vigorous spirit and honor of strength on the player if melee attacker
+  - Use splinter weapon, vigorous spirit on the player if melee attacker
 - Smart honor
   - IMPORTANT: Disable the skill in the hero window
 - Smart condition and hex removal
