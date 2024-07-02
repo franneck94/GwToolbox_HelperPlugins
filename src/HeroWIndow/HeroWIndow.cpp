@@ -354,7 +354,13 @@ void HeroWindow::HeroFollow_StopConditions()
         return;
     }
 
-    if (ms_with_no_pos_change >= 5'000)
+    const auto player_pos = GetPlayerPos();
+    const auto num_enemies_at_player = AgentLivingData::NumAgentsInRange(player_pos,
+                                                                         GW::Constants::Allegiance::Enemy,
+                                                                         GW::Constants::Range::Spellcast);
+    const auto no_pos_change_limit = num_enemies_at_player > 0 ? 5'000L : 2'000L;
+
+    if (ms_with_no_pos_change >= no_pos_change_limit)
     {
         StopFollowing();
         ms_with_no_pos_change = 0U;
@@ -375,7 +381,10 @@ void HeroWindow::HeroFollow_StopConditions()
         {
             const auto player_pos = GetPlayerPos();
             const auto dist = GW::GetDistance(target_agent->pos, player_pos);
-            if (dist < GW::Constants::Range::Spellcast - 200.0F)
+            const auto is_melee_player = IsMeleeClass() && HoldsMeleeWeapon();
+            const auto stop_distance =
+                is_melee_player ? GW::Constants::Range::Spellcast - 500.0F : GW::Constants::Range::Spellcast;
+            if (dist < stop_distance)
             {
                 StopFollowing();
                 ping_target_id = 0;
@@ -415,8 +424,13 @@ void HeroWindow::HeroFollow_StartWhileRunning()
     if (!IsMoving())
         move_time_ms = clock();
 
-    const auto start_follow_bc_moving = TIMER_DIFF(move_time_ms) > 3'000;
+    const auto player_pos = GetPlayerPos();
+    const auto num_enemies_at_player = AgentLivingData::NumAgentsInRange(player_pos,
+                                                                         GW::Constants::Allegiance::Enemy,
+                                                                         GW::Constants::Range::Spellcast);
+    const auto min_moving_time = num_enemies_at_player > 0 ? 5'000L : 2'000L;
 
+    auto start_follow_bc_moving = TIMER_DIFF(move_time_ms) > min_moving_time;
     const auto target_agent = GetTargetAsLiving();
     if (!target_agent)
     {
@@ -427,7 +441,6 @@ void HeroWindow::HeroFollow_StartWhileRunning()
 
     if (target_agent->allegiance == GW::Constants::Allegiance::Enemy)
     {
-        const auto player_pos = GetPlayerPos();
         const auto dist = GW::GetDistance(target_agent->pos, player_pos);
         if (dist < GW::Constants::Range::Spellcast)
         {
