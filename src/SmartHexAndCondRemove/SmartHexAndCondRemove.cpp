@@ -1,7 +1,9 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <map>
 #include <random>
+#include <string_view>
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/GWCA.h>
@@ -34,7 +36,13 @@ bool RemoveImportantConditions()
     constexpr static auto to_remove_conditions_all = std::array{
         GW::Constants::SkillID::Crippled,
     };
-
+    const static auto cond_names_map = std::map<GW::Constants::SkillID, const char*>{
+        {GW::Constants::SkillID::No_Skill, "Unk"},
+        {GW::Constants::SkillID::Blind, "Blind"},
+        {GW::Constants::SkillID::Weakness, "Weakness"},
+        {GW::Constants::SkillID::Dazed, "Dazed"},
+        {GW::Constants::SkillID::Crippled, "Crippled"},
+    };
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
         {GW::Constants::SkillID::Mend_Body_and_Soul, GW::Constants::Profession::Ritualist},
         {GW::Constants::SkillID::Dismiss_Condition, GW::Constants::Profession::Monk},
@@ -57,8 +65,11 @@ bool RemoveImportantConditions()
         if (!effects || !effects->valid())
             return false;
 
-        auto found_cond = [](const auto &cond_array, const GW::Effect &curr_cond) {
-            return std::find(cond_array.begin(), cond_array.end(), curr_cond.skill_id) != cond_array.end();
+        auto cond_lookup = [](const auto &cond_array, const GW::Effect &curr_cond) {
+            const auto cond_it = std::find(cond_array.begin(), cond_array.end(), curr_cond.skill_id);
+            const auto found_cond = cond_it != cond_array.end();
+            const auto cond = found_cond ? *cond_it : GW::Constants::SkillID::No_Skill;
+            return std::make_pair(cond, found_cond);
         };
 
         for (const auto &effect : *effects)
@@ -68,17 +79,29 @@ bool RemoveImportantConditions()
 
             if (HoldsMeleeWeapon())
             {
-                if (found_cond(to_remove_conditions_melee, effect))
+                const auto [cond, found_cond] = cond_lookup(to_remove_conditions_melee, effect);
+                if (found_cond)
+                {
+                    Log::Info("Found condition to remove: %s", cond_names_map.at(cond));
                     return true;
+                }
             }
             else
             {
-                if (found_cond(to_remove_conditions_caster, effect))
+                const auto [cond, found_cond] = cond_lookup(to_remove_conditions_caster, effect);
+                if (found_cond)
+                {
+                    Log::Info("Found condition to remove: %s", cond_names_map.at(cond));
                     return true;
+                }
             }
 
-            if (found_cond(to_remove_conditions_all, effect))
+            const auto [cond, found_cond] = cond_lookup(to_remove_conditions_all, effect);
+            if (found_cond)
+            {
+                Log::Info("Found condition to remove: %s", cond_names_map.at(cond));
                 return true;
+            }
         }
 
         return false;
@@ -122,8 +145,6 @@ bool ShatterImportantHexes()
         GW::Constants::SkillID::Crippling_Anguish,
         GW::Constants::SkillID::Clumsiness,
         GW::Constants::SkillID::Faintheartedness,
-        // Necro
-        GW::Constants::SkillID::Spiteful_Spirit,
         // Ele
         GW::Constants::SkillID::Blurred_Vision,
     };
@@ -133,8 +154,6 @@ bool ShatterImportantHexes()
         GW::Constants::SkillID::Backfire,
         GW::Constants::SkillID::Mistrust,
         GW::Constants::SkillID::Power_Leech,
-        // Necro
-        GW::Constants::SkillID::Spiteful_Spirit,
         GW::Constants::SkillID::Soul_Leech,
     };
     constexpr static auto to_remove_hexes_all = std::array{
@@ -144,12 +163,33 @@ bool ShatterImportantHexes()
         // Ele
         GW::Constants::SkillID::Deep_Freeze,
         GW::Constants::SkillID::Mind_Freeze,
+        // Necro
+        GW::Constants::SkillID::Spiteful_Spirit,
     };
     constexpr static auto to_remove_hexes_paragon = std::array{
         // Necro
         GW::Constants::SkillID::Vocal_Minority,
     };
-
+    const static auto hex_names_map = std::map<GW::Constants::SkillID, const char*>{
+        {GW::Constants::SkillID::No_Skill, "Unk"},
+        {GW::Constants::SkillID::Ineptitude, "Ineptitude"},
+        {GW::Constants::SkillID::Empathy, "Empathy"},
+        {GW::Constants::SkillID::Crippling_Anguish, "Crippling Anguish"},
+        {GW::Constants::SkillID::Clumsiness, "Clumsiness"},
+        {GW::Constants::SkillID::Faintheartedness, "Faintheartedness"},
+        {GW::Constants::SkillID::Blurred_Vision, "Blurred Vision"},
+        {GW::Constants::SkillID::Panic, "Panic"},
+        {GW::Constants::SkillID::Backfire, "Backfire"},
+        {GW::Constants::SkillID::Mistrust, "Mistrust"},
+        {GW::Constants::SkillID::Power_Leech, "Power Leech"},
+        {GW::Constants::SkillID::Soul_Leech, "Soul Leech"},
+        {GW::Constants::SkillID::Diversion, "Diversion"},
+        {GW::Constants::SkillID::Visions_of_Regret, "Visions of Regret"},
+        {GW::Constants::SkillID::Deep_Freeze, "Deep Freeze"},
+        {GW::Constants::SkillID::Mind_Freeze, "Mind Freeze"},
+        {GW::Constants::SkillID::Spiteful_Spirit, "Spiteful Spirit"},
+        {GW::Constants::SkillID::Vocal_Minority, "Vocal Minority"},
+    };
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
         {GW::Constants::SkillID::Shatter_Hex, GW::Constants::Profession::Mesmer},
         {GW::Constants::SkillID::Remove_Hex, GW::Constants::Profession::Monk},
@@ -170,27 +210,54 @@ bool ShatterImportantHexes()
         if (!effects || !effects->valid())
             return false;
 
-        auto found_hex = [](const auto &hex_array, const GW::Effect &curr_hex) {
-            return std::find(hex_array.begin(), hex_array.end(), curr_hex.skill_id) != hex_array.end();
+        auto hex_lookup = [](const auto &hex_array, const GW::Effect &curr_hex) {
+            const auto hex_it = std::find(hex_array.begin(), hex_array.end(), curr_hex.skill_id);
+            const auto found_hex = hex_it != hex_array.end();
+            const auto hex = found_hex ? *hex_it : GW::Constants::SkillID::No_Skill;
+            return std::make_pair(hex, found_hex);
         };
-
         for (const auto &effect : *effects)
         {
             if (effect.agent_id != 0)
                 continue;
 
-            if (HoldsMeleeWeapon() && found_hex(to_remove_hexes_melee, effect))
-                return true;
+            if (HoldsMeleeWeapon())
+            {
+                const auto [hex, found_hex] = hex_lookup(to_remove_hexes_melee, effect);
+                if (found_hex)
+                {
+                    Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
+                    return true;
+                }
+            }
 
-            if (!HoldsMeleeWeapon() && found_hex(to_remove_hexes_caster, effect))
-                return true;
-
-            if (found_hex(to_remove_hexes_all, effect))
-                return true;
+            if (!HoldsMeleeWeapon())
+            {
+                const auto [hex, found_hex] = hex_lookup(to_remove_hexes_caster, effect);
+                if (found_hex)
+                {
+                    Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
+                    return true;
+                }
+            }
 
             const auto primary = GetPrimaryClass();
-            if (primary == GW::Constants::Profession::Paragon && found_hex(to_remove_hexes_paragon, effect))
+            if (primary == GW::Constants::Profession::Paragon)
+            {
+                const auto [hex, found_hex] = hex_lookup(to_remove_hexes_paragon, effect);
+                if (found_hex)
+                {
+                    Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
+                    return true;
+                }
+            }
+
+            const auto [hex, found_hex] = hex_lookup(to_remove_hexes_all, effect);
+            if (found_hex)
+            {
+                Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
                 return true;
+            }
         }
 
         return false;

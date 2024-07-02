@@ -43,6 +43,16 @@ bool RuptEnemies()
         GW::Constants::SkillID::Resurrection_Signet,
 
     };
+    const static auto rupt_names_map = std::map<GW::Constants::SkillID, const char *>{
+        {GW::Constants::SkillID::No_Skill, "Unk"},
+        {GW::Constants::SkillID::Panic, "Panic"},
+        {GW::Constants::SkillID::Energy_Surge, "Energy Surge"},
+        {GW::Constants::SkillID::Chilblains, "Chilblains"},
+        {GW::Constants::SkillID::Meteor, "Meteor"},
+        {GW::Constants::SkillID::Meteor_Shower, "Meteor Shower"},
+        {GW::Constants::SkillID::Searing_Flames, "Searing Flames"},
+        {GW::Constants::SkillID::Resurrection_Signet, "Resurrection Signet"},
+    };
     constexpr static auto wait_ms = 200UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::SEARCH_TARGET;
     static auto last_time_target_changed = clock();
@@ -80,7 +90,8 @@ bool RuptEnemies()
             if (skill_id == GW::Constants::SkillID::No_Skill)
                 continue;
 
-            if (std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_id) != skills_to_rupt.end())
+            const auto rupt_it = std::find(skills_to_rupt.begin(), skills_to_rupt.end(), skill_id);
+            if (rupt_it != skills_to_rupt.end())
             {
                 const auto new_target_id = enemy->agent_id;
                 const auto target = GW::Agents::GetTarget();
@@ -89,6 +100,7 @@ bool RuptEnemies()
                     change_target_to_id = new_target_id;
                     _last_time_target_changed = clock();
                 }
+                Log::Info("Found skill to rupt: %s", rupt_names_map.at(*rupt_it));
                 return true;
             }
         }

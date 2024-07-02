@@ -22,7 +22,8 @@ Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugin
   - Use SoS whe in fight if not all three spirits are already present
 - Smart melee buffs
   - Use splinter weapon, vigorous spirit and honor of strength on the player if melee attacker
-  - For honor of strength: Disable the skill in the hero window
+- Smart honor
+  - IMPORTANT: Disable the skill in the hero window
 - Smart condition and hex removal
   - Immediatly shatter important hexes on the player
   - Immediatly remove important conditions on the player

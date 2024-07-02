@@ -2,15 +2,15 @@
 
 #include <ToolboxUIPlugin.h>
 
-class SmartHexAndCondRemove : public ToolboxUIPlugin
+class SmartHonor : public ToolboxUIPlugin
 {
 public:
-    SmartHexAndCondRemove() {};
-    ~SmartHexAndCondRemove() {};
+    SmartHonor() {};
+    ~SmartHonor() {};
 
     const char *Name() const override
     {
-        return "Smart Cond and Hex Remove";
+        return "SmartHonor";
     }
 
     const char *Icon() const override

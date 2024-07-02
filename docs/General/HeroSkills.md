@@ -1,15 +1,22 @@
 # Hero Smart Skills
 
-- Heros will follow the player with smart flagging and a maximal fall-back uptime, when following activated or player pings distant target
-- BiP the player regardless of the weapon when low energy (see the logic below)
-- ST: Use Shelter and Union when in fight if not already present
-- Use SoS when in fight if not all three spirits are already present
-- Use splinter weapon, vigorous spirit and honor of strength on the player if melee attacker
-  - For honor of strength: Disable the skill in the hero window
-- Immediatly shatter important hexes on the player
-- Immediatly remove important conditions on the player
-- Mesmer heros will rupt important enemy skills
-- For a full list of hexes,conditions and skills to rupt look into the documentation
+- Smart BiP
+  - The player regardless of the weapon when low energy (see the doc for the logic)
+- Smart ST
+  - Use Shelter and Union when in fight if not already present
+- Smart SoS:
+  - Use SoS whe in fight if not all three spirits are already present
+- Smart melee buffs
+  - Use splinter weapon, vigorous spirit and honor of strength on the player if melee attacker
+- Smart honor
+  - IMPORTANT: Disable the skill in the hero window
+- Smart condition and hex removal
+  - Immediatly shatter important hexes on the player
+  - Immediatly remove important conditions on the player
+- Smart hero rupting
+  - Mesmer heros will rupt important enemy skills
+
+Note: For a full list of hexes, conditions and skills to rupt look into the documentation
 
 ## List of Hexes to Remove
 
@@ -21,8 +28,6 @@ GW::Constants::SkillID::Empathy
 GW::Constants::SkillID::Crippling_Anguish
 GW::Constants::SkillID::Clumsiness
 GW::Constants::SkillID::Faintheartedness
-// Necro
-GW::Constants::SkillID::Spiteful_Spirit
 // Ele
 GW::Constants::SkillID::Blurred_Vision
 
@@ -33,7 +38,6 @@ GW::Constants::SkillID::Backfire
 GW::Constants::SkillID::Mistrust
 GW::Constants::SkillID::Power_Leech
 // Necro
-GW::Constants::SkillID::Spiteful_Spirit
 GW::Constants::SkillID::Soul_Leech
 
 // to_remove_hexes_all
@@ -43,6 +47,8 @@ GW::Constants::SkillID::Visions_of_Regret
 // Ele
 GW::Constants::SkillID::Deep_Freeze
 GW::Constants::SkillID::Mind_Freeze
+// Necro
+GW::Constants::SkillID::Spiteful_Spirit
 
 // to_remove_hexes_paragon
 // Necro

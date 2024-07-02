@@ -57,7 +57,7 @@ public:
 
     const char *Icon() const override
     {
-        return ICON_FA_COMMENT_DOTS;
+        return ICON_FA_CROWN;
     }
 
     void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;

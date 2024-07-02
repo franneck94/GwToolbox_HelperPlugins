@@ -68,10 +68,15 @@ bool UseVigSpiritOnPlayer()
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
 
     auto player_conditions = []() {
+        const auto player_pos = GetPlayerPos();
+        const auto num_enemies_at_player = AgentLivingData::NumAgentsInRange(player_pos,
+                                                                             GW::Constants::Allegiance::Enemy,
+                                                                             GW::Constants::Range::Nearby);
+
         const auto player_is_melee_attacking = HoldsMeleeWeapon();
         const auto player_is_melee_class = IsMeleeClass;
 
-        return player_is_melee_attacking && player_is_melee_class;
+        return num_enemies_at_player > 1 && player_is_melee_attacking && player_is_melee_class;
     };
 
     const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
@@ -86,41 +91,7 @@ bool UseVigSpiritOnPlayer()
 
     return Helper::Hero::HeroUseSkill_Main(skill_id,
                                            skill_class,
-                                           "Splinter",
-                                           player_conditions,
-                                           hero_conditions,
-                                           wait_ms,
-                                           target_logic,
-                                           false);
-}
-
-bool UseHonorOnPlayer()
-{
-    constexpr static auto skill_id = GW::Constants::SkillID::Strength_of_Honor;
-    constexpr static auto skill_class = GW::Constants::Profession::Monk;
-    constexpr static auto wait_ms = 500UL;
-    constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
-
-    auto player_conditions = []() {
-        const auto player_is_melee_attacking = HoldsMeleeWeapon();
-        const auto player_is_melee_class = IsMeleeClass;
-
-        return player_is_melee_attacking && player_is_melee_class;
-    };
-
-    const auto hero_conditions = [](const GW::AgentLiving *hero_living) {
-        if (!hero_living)
-            return false;
-
-        const auto player_pos = GetPlayerPos();
-        const auto dist = GW::GetDistance(hero_living->pos, player_pos);
-
-        return dist < GW::Constants::Range::Spellcast && hero_living->energy > 0.25F;
-    };
-
-    return Helper::Hero::HeroUseSkill_Main(skill_id,
-                                           skill_class,
-                                           "Honor",
+                                           "Vig Spirit",
                                            player_conditions,
                                            hero_conditions,
                                            wait_ms,
@@ -171,9 +142,8 @@ bool SmartMeleeBuffs::HeroSmarterSkills_Main()
     if (!IsMapReady() || !IsExplorable())
         return false;
 
-    UseSplinterOnPlayer();
+    // UseSplinterOnPlayer();
     UseVigSpiritOnPlayer();
-    UseHonorOnPlayer();
 
     return false;
 }
