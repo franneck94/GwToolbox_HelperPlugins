@@ -95,8 +95,8 @@ void OnSkillOnEnemy(const uint32_t value_id, const uint32_t caster_id)
         return;
 
     const auto player_pos = GetPlayerPos();
-    const auto dist = GW::GetDistance(target_agent->pos, player_pos);
-    if (dist < GW::Constants::Range::Spellcast)
+    const auto target_dist = GW::GetDistance(target_agent->pos, player_pos);
+    if (target_dist < GW::Constants::Range::Spellcast)
         return;
 
     PingLogic(target_agent->agent_id);
@@ -226,6 +226,10 @@ void HeroWindow::Update(float)
         return;
     }
 
+    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+    if (!party_info || party_info->heroes.size() == 0)
+        return;
+
     UpdateInternalData();
 
     HeroSmarterFollow_Main();
@@ -327,7 +331,7 @@ void HeroWindow::HeroFollow_DrawAndLogic(const ImVec2 &im_button_size)
 
     ImGui::SameLine();
 
-    if (ImGui::Button("Follow###followPlayer", im_button_size))
+    if (ImGui::Button("Follow", im_button_size))
     {
         if (IsExplorable())
         {
@@ -379,12 +383,12 @@ void HeroWindow::HeroFollow_StopConditions()
         const auto *target_agent = GW::Agents::GetAgentByID(ping_target_id);
         if (target_agent)
         {
-            const auto player_pos = GetPlayerPos();
-            const auto dist = GW::GetDistance(target_agent->pos, player_pos);
+            const auto target_dist = GW::GetDistance(target_agent->pos, player_pos);
             const auto is_melee_player = IsMeleeClass() && HoldsMeleeWeapon();
             const auto stop_distance =
                 is_melee_player ? GW::Constants::Range::Spellcast - 500.0F : GW::Constants::Range::Spellcast;
-            if (dist < stop_distance)
+
+            if (target_dist < stop_distance)
             {
                 StopFollowing();
                 ping_target_id = 0;
@@ -441,8 +445,8 @@ void HeroWindow::HeroFollow_StartWhileRunning()
 
     if (target_agent->allegiance == GW::Constants::Allegiance::Enemy)
     {
-        const auto dist = GW::GetDistance(target_agent->pos, player_pos);
-        if (dist < GW::Constants::Range::Spellcast)
+        const auto target_dist = GW::GetDistance(target_agent->pos, player_pos);
+        if (target_dist < GW::Constants::Range::Spellcast)
         {
             StopFollowing();
             return;

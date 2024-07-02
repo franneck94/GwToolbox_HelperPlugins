@@ -45,5 +45,9 @@ std::map<GW::Constants::Profession, std::vector<uint32_t>> GetPlayersHerosClassM
 std::vector<uint32_t> GetPlayersHeroIdxsWithClass(
     const std::map<GW::Constants::Profession, std::vector<uint32_t>> &players_hero_class_idx_map,
     const GW::Constants::Profession skill_class);
+
+void FlagHeros(const GW::GamePos &follow_pos);
+
+void UnflagHeros();
 } // namespace Hero
 } // namespace Helper

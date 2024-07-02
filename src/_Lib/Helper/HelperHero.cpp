@@ -348,5 +348,52 @@ std::vector<uint32_t> GetPlayersHeroIdxsWithClass(
     auto hero_idxs_zero_based = players_hero_class_idx_map.at(skill_class);
     return hero_idxs_zero_based;
 }
+
+void FlagHeros(const GW::GamePos &follow_pos)
+{
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return;
+
+    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+    if (!party_info || !party_info->heroes.valid())
+        return;
+
+    for (const auto &hero : party_info->heroes)
+    {
+        if (hero.owner_player_id != me_living->login_number)
+            continue;
+
+        const auto hero_living = GW::Agents::GetAgentByID(hero.agent_id);
+        if (!hero_living)
+            continue;
+
+        const auto hero_distance = GW::GetDistance(hero_living->pos, me_living->pos);
+
+        if (!me_living->GetIsMoving() && hero_distance > GW::Constants::Range::Spellcast)
+            GW::PartyMgr::FlagHeroAgent(hero.agent_id, follow_pos);
+        else if (me_living->GetIsMoving())
+            GW::PartyMgr::FlagHeroAgent(hero.agent_id, follow_pos);
+    }
+}
+
+void UnflagHeros()
+{
+    const auto me_living = GW::Agents::GetPlayerAsAgentLiving();
+    if (!me_living)
+        return;
+
+    const auto *const party_info = GW::PartyMgr::GetPartyInfo();
+    if (!party_info || !party_info->heroes.valid())
+        return;
+
+    for (const auto &hero : party_info->heroes)
+    {
+        if (hero.owner_player_id != me_living->login_number)
+            continue;
+
+        GW::PartyMgr::FlagHeroAgent(hero.agent_id, GW::GamePos(HUGE_VALF, HUGE_VALF, 0));
+    }
+}
 } // namespace Hero
 } // namespace Helper
