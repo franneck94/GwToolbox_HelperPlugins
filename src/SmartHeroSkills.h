@@ -12,11 +12,6 @@
 #include <GWCA/GameEntities/Hero.h>
 #include <GWCA/GameEntities/Party.h>
 
-#include "ActionsBase.h"
-#include "DataLivings.h"
-#include "HelperHero.h"
-#include "HelperPlayer.h"
-
 class HeroSmartSkillBase : public ToolboxUIPlugin
 {
 public:
@@ -39,24 +34,5 @@ public:
 
     /* MAIN CYCLE FUNCTIONS */
 
-    bool HeroSmarterSkills_Main();
-};
-
-class SmartBip : public HeroSmartSkillBase
-{
-public:
-    SmartBip() {};
-    ~SmartBip() {};
-
-    const char *Name() const override
-    {
-        return "SmartBip";
-    }
-
-    void Initialize(ImGuiContext *, ImGuiAllocFns, HMODULE) override;
-    void Update(float delta) override;
-
-    /* MAIN CYCLE FUNCTIONS */
-
-    bool HeroSmarterSkills_Main();
+    virtual bool HeroSmarterSkills_Main();
 };
