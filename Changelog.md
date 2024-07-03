@@ -1,4 +1,4 @@
-# [TAS] Clown Plugins for GWToolbox
+# Plugins for GWToolbox v1.1.1
 
 Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugins/).
 
