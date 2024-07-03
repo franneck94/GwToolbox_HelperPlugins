@@ -54,7 +54,8 @@ void _PlotPoint(const ImVec2 point, const float radius = 1.0F, const ImVec4 &col
     auto *draw_list = ImGui::GetWindowDrawList();
     draw_list->AddCircleFilled(adjusted_point, radius, colorU32);
 }
-void DrawCanvas(const GW::GamePos &player_pos)
+
+void DrawCanvas(const GW::GamePos &)
 {
     constexpr static auto border_thickness = 1.5F;
 
@@ -122,7 +123,7 @@ void PlotPoint(const GW::GamePos &player_pos, const GW::GamePos &p, const ImVec4
     const auto p_ = RotatePoint(player_pos, p, angle);
 
     const auto v = ImVec2{p_.x * -1.0F - player_pos.x, p_.y - player_pos.y};
-    _PlotPoint(v, 1.0F, color);
+    _PlotPoint(v, width, color);
 }
 
 void PlotCircle(const GW::GamePos &player_pos, const ImVec4 &color)

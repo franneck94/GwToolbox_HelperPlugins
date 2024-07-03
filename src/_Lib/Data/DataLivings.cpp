@@ -61,7 +61,7 @@ size_t AgentLivingData::NumAgentsInRange(const GW::GamePos &player_pos,
         return 0;
     auto &agents = *agents_ptr;
 
-    return std::count_if(agents.begin(), agents.end(), [=](const GW::Agent *enemy) {
+    return static_cast<size_t>(std::count_if(agents.begin(), agents.end(), [=](const GW::Agent *enemy) {
         if (!enemy)
             return false;
 
@@ -74,7 +74,7 @@ size_t AgentLivingData::NumAgentsInRange(const GW::GamePos &player_pos,
 
         const auto dist = GW::GetDistance(enemy_living->pos, player_pos);
         return dist < range;
-    });
+    }));
 }
 
 std::vector<GW::AgentLiving *> AgentLivingData::AgentsInRange(const GW::GamePos &player_pos,
@@ -120,8 +120,8 @@ GW::GamePos AgentLivingData::ComputeCenterOfMass(const std::vector<GW::AgentLivi
         sum_y += agent->pos.y;
     }
 
-    float center_x = sum_x / agents.size();
-    float center_y = sum_y / agents.size();
+    float center_x = sum_x / static_cast<float>(agents.size());
+    float center_y = sum_y / static_cast<float>(agents.size());
 
     return GW::GamePos{center_x, center_y, 0U};
 }

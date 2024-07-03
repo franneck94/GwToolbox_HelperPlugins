@@ -13,9 +13,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-option(ENABLE_WARNINGS "Enable to add warnings to a target." ON)
-option(ENABLE_WARNINGS_AS_ERRORS "Enable to treat warnings as errors." ON)
-
 # Sanity Check
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   message(FATAL_ERROR "Run cmake with `-A Win32`")
@@ -31,11 +28,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/bin/")
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 include(FetchContent)
 include(ConfigSafeGuards)
-include(Warnings)
-
-if(ENABLE_WARNINGS)
-  include(Warnings)
-endif()
 
 # Third Party Libs
 include(gwtoolboxpp)
@@ -54,6 +46,20 @@ target_include_directories(helper_utils PUBLIC "src/_Lib/Data")
 target_include_directories(helper_utils PUBLIC "src/_Lib/Helper")
 target_include_directories(helper_utils PUBLIC "src/_Lib/Utils")
 target_link_libraries(helper_utils PUBLIC imgui gwca Stdafx)
+target_compile_options(
+  helper_utils
+  PRIVATE /Wall
+          /wd5246
+          /wd4626
+          /wd4627
+          /wd4626
+          /wd5045
+          /wd4820
+          /wd5027
+          /wd5259
+          /wd4625
+          /wd5026
+          /wd4623)
 
 include(gwtoolboxdll_plugins)
 

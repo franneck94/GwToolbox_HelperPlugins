@@ -23,16 +23,6 @@ uint32_t GetQuestID(const uint32_t dialog_id)
     return (dialog_id ^ 0x800000) >> 8;
 }
 
-uint32_t GetDialogIDForQuestDialogType(const uint32_t quest_id, QuestDialogType type)
-{
-    return quest_id << 8 | std::to_underlying(type);
-}
-
-QuestDialogType GetQuestDialogType(const uint32_t dialog_id)
-{
-    return static_cast<QuestDialogType>(dialog_id & 0xf0000f);
-}
-
 uint32_t QuestAcceptDialog(GW::Constants::QuestID quest)
 {
     return static_cast<int>(quest) << 8 | static_cast<int>(QuestDialogType::TAKE);
@@ -106,7 +96,7 @@ GW::Constants::QuestID IndexToQuestID(const int index)
     case 28:
         return GW::Constants::QuestID::Doa_FoundryBreakout;
     default:
-        return static_cast<GW::Constants::QuestID>(0);
+        return GW::Constants::QuestID::None;
     }
 }
 

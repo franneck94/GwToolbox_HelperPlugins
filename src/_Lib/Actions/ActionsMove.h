@@ -15,9 +15,9 @@
 
 #include "ActionsBase.h"
 #include "DataLivings.h"
-#include "HelperPlayer.h"
 #include "DataSkillbar.h"
 #include "Helper.h"
+#include "HelperPlayer.h"
 #include "Logger.h"
 #include "Utils.h"
 #include "UtilsMath.h"
@@ -37,7 +37,7 @@ public:
             std::string_view _name,
             const bool _is_proceeding_move,
             std::optional<std::function<bool()>> _cb_fn = std::nullopt)
-        : x(_x), y(_y), pos({x, y, 0}), name(_name), cb_fn(_cb_fn), TriggerABC(_is_proceeding_move) {};
+        : TriggerABC(_is_proceeding_move), x(_x), y(_y), pos({x, y, 0}), name(_name), cb_fn(_cb_fn) {};
     virtual ~MoveABC() noexcept {};
 
     const char *Name() const noexcept

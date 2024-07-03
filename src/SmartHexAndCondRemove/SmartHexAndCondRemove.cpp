@@ -23,6 +23,8 @@
 
 #include <imgui.h>
 
+// #define _DEBUG_REMOVAL
+
 namespace
 {
 bool RemoveImportantConditions()
@@ -85,7 +87,7 @@ bool RemoveImportantConditions()
                 const auto [cond, found_cond] = cond_lookup(to_remove_conditions_melee, effect);
                 if (found_cond)
                 {
-#ifdef _DEBUG
+#ifdef _DEBUG_REMOVAL
                     Log::Info("Found condition to remove: %s", cond_names_map.at(cond));
 #endif
                     return true;
@@ -96,7 +98,7 @@ bool RemoveImportantConditions()
                 const auto [cond, found_cond] = cond_lookup(to_remove_conditions_caster, effect);
                 if (found_cond)
                 {
-#ifdef _DEBUG
+#ifdef _DEBUG_REMOVAL
                     Log::Info("Found condition to remove: %s", cond_names_map.at(cond));
 #endif
                     return true;
@@ -106,7 +108,7 @@ bool RemoveImportantConditions()
             const auto [cond, found_cond] = cond_lookup(to_remove_conditions_all, effect);
             if (found_cond)
             {
-#ifdef _DEBUG
+#ifdef _DEBUG_REMOVAL
                 Log::Info("Found condition to remove: %s", cond_names_map.at(cond));
 #endif
                 return true;
@@ -240,7 +242,7 @@ bool ShatterImportantHexes()
                 const auto [hex, found_hex] = hex_lookup(to_remove_hexes_melee, effect);
                 if (found_hex)
                 {
-#ifdef _DEBUG
+#ifdef _DEBUG_REMOVAL
                     Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
 #endif
                     return true;
@@ -252,7 +254,7 @@ bool ShatterImportantHexes()
                 const auto [hex, found_hex] = hex_lookup(to_remove_hexes_caster, effect);
                 if (found_hex)
                 {
-#ifdef _DEBUG
+#ifdef _DEBUG_REMOVAL
                     Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
 #endif
                     return true;
@@ -265,7 +267,7 @@ bool ShatterImportantHexes()
                 const auto [hex, found_hex] = hex_lookup(to_remove_hexes_paragon, effect);
                 if (found_hex)
                 {
-#ifdef _DEBUG
+#ifdef _DEBUG_REMOVAL
                     Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
 #endif
                     return true;
@@ -275,7 +277,7 @@ bool ShatterImportantHexes()
             const auto [hex, found_hex] = hex_lookup(to_remove_hexes_all, effect);
             if (found_hex)
             {
-#ifdef _DEBUG
+#ifdef _DEBUG_REMOVAL
                 Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
 #endif
                 return true;

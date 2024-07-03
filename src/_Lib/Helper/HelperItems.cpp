@@ -28,17 +28,11 @@ bool IsMeleeWeapon(const GW::Item *item)
     if (!item)
         return false;
 
-    switch (static_cast<GW::Constants::ItemType>(item->type))
-    {
-    case GW::Constants::ItemType::Axe:
-    case GW::Constants::ItemType::Sword:
-    case GW::Constants::ItemType::Scythe:
-    case GW::Constants::ItemType::Daggers:
-    case GW::Constants::ItemType::Hammer:
-        return true;
-    default:
-        return false;
-    }
+    const auto item_type = static_cast<GW::Constants::ItemType>(item->type);
+
+    return item_type == GW::Constants::ItemType::Axe || item_type == GW::Constants::ItemType::Sword ||
+           item_type == GW::Constants::ItemType::Scythe || item_type == GW::Constants::ItemType::Daggers ||
+           item_type == GW::Constants::ItemType::Hammer;
 }
 
 bool IsOffhandWeapon(const GW::Item *item)
@@ -46,14 +40,9 @@ bool IsOffhandWeapon(const GW::Item *item)
     if (!item)
         return false;
 
-    switch (static_cast<GW::Constants::ItemType>(item->type))
-    {
-    case GW::Constants::ItemType::Shield:
-    case GW::Constants::ItemType::Offhand:
-        return true;
-    default:
-        return false;
-    }
+    const auto item_type = static_cast<GW::Constants::ItemType>(item->type);
+
+    return item_type == GW::Constants::ItemType::Shield || item_type == GW::Constants::ItemType::Offhand;
 }
 
 bool IsRangeWeapon(const GW::Item *item)
@@ -61,16 +50,10 @@ bool IsRangeWeapon(const GW::Item *item)
     if (!item)
         return false;
 
-    switch (static_cast<GW::Constants::ItemType>(item->type))
-    {
-    case GW::Constants::ItemType::Bow:
-    case GW::Constants::ItemType::Wand:
-    case GW::Constants::ItemType::Staff:
-    case GW::Constants::ItemType::Spear:
-        return true;
-    default:
-        return false;
-    }
+    const auto item_type = static_cast<GW::Constants::ItemType>(item->type);
+
+    return item_type == GW::Constants::ItemType::Bow || item_type == GW::Constants::ItemType::Wand ||
+           item_type == GW::Constants::ItemType::Staff || item_type == GW::Constants::ItemType::Spear;
 }
 
 bool IsArmor(const GW::Item *item)
@@ -78,17 +61,11 @@ bool IsArmor(const GW::Item *item)
     if (!item)
         return false;
 
-    switch (static_cast<GW::Constants::ItemType>(item->type))
-    {
-    case GW::Constants::ItemType::Headpiece:
-    case GW::Constants::ItemType::Chestpiece:
-    case GW::Constants::ItemType::Leggings:
-    case GW::Constants::ItemType::Boots:
-    case GW::Constants::ItemType::Gloves:
-        return true;
-    default:
-        return false;
-    }
+    const auto item_type = static_cast<GW::Constants::ItemType>(item->type);
+
+    return item_type == GW::Constants::ItemType::Headpiece || item_type == GW::Constants::ItemType::Chestpiece ||
+           item_type == GW::Constants::ItemType::Leggings || item_type == GW::Constants::ItemType::Boots ||
+           item_type == GW::Constants::ItemType::Gloves;
 }
 
 bool IsEquippable(const GW::Item *item)

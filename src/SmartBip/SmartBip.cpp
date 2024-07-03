@@ -69,7 +69,7 @@ bool UseBipOnPlayer()
 
         const auto player_pos = GetPlayerPos();
         const auto dist = GW::GetDistance(hero_living->pos, player_pos);
-        const auto is_close_enough = dist < GW::Constants::Range::Spellcast + 300.0F;
+        const auto is_close_enough = dist < GW::Constants::Range::Spellcast + 200.0F;
         const auto hero_has_enough_hp = hero_living->hp > 0.50F;
 
         return is_close_enough && hero_has_enough_hp;

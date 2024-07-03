@@ -148,9 +148,8 @@ std::pair<float, float> ComputeLine(const GW::GamePos &pos1, const GW::GamePos &
     return {slope, y_intercept};
 }
 
-std::pair<float, float> ComputePerpendicularLineAtPos(float orig_slope, float orig_y_intercept, const GW::GamePos &pos)
+std::pair<float, float> ComputePerpendicularLineAtPos(float, float orig_y_intercept, const GW::GamePos &pos)
 {
-    const auto original_slope = orig_slope;
     const auto perpendicular_slope = -1.0F / orig_y_intercept;
     const auto y_intercept = pos.y - perpendicular_slope * pos.x;
 

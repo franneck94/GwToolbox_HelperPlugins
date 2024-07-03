@@ -25,7 +25,7 @@ macro(add_tb_plugin PLUGIN)
            imgui::fonts
            helper_utils)
 
-  target_compile_options(${PLUGIN} PRIVATE /Wall /Wx /Gy)
+  target_compile_options(${PLUGIN} PRIVATE /W4 /Gy)
   target_compile_options(${PLUGIN} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/GL>)
   target_compile_options(${PLUGIN} PRIVATE $<$<CONFIG:Debug>:/ZI /Od /RTCs>)
   target_compile_options(${PLUGIN} PRIVATE $<$<CONFIG:RelWithDebInfo>:/Zi>)
