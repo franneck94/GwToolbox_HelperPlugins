@@ -25,7 +25,7 @@ macro(add_tb_plugin PLUGIN)
            imgui::fonts
            helper_utils)
 
-  target_compile_options(${PLUGIN} PRIVATE /W4 /Gy)
+  target_compile_options(${PLUGIN} PRIVATE /Wall /Wx /Gy)
   target_compile_options(${PLUGIN} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/GL>)
   target_compile_options(${PLUGIN} PRIVATE $<$<CONFIG:Debug>:/ZI /Od /RTCs>)
   target_compile_options(${PLUGIN} PRIVATE $<$<CONFIG:RelWithDebInfo>:/Zi>)
@@ -59,9 +59,4 @@ macro(add_tb_plugin PLUGIN)
                       "WIN32_LEAN_AND_MEAN" "VC_EXTRALEAN" "BUILD_DLL")
 
   set_target_properties(${PLUGIN} PROPERTIES FOLDER "src")
-
-  if(${ENABLE_WARNINGS})
-    target_set_warnings(TARGET ${PLUGIN} ENABLE ${ENABLE_WARNINGS} AS_ERRORS
-                        ${ENABLE_WARNINGS_AS_ERRORS})
-  endif()
 endmacro()
