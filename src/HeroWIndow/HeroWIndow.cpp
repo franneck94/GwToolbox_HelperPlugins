@@ -133,7 +133,7 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
 
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::GenericValue>(
         &GenericValueTarget_Entry,
-        [this](const GW::HookStatus *, const GW::Packet::StoC::GenericValue *packet) -> void {
+        [](const GW::HookStatus *, const GW::Packet::StoC::GenericValue *packet) -> void {
             const uint32_t value_id = packet->value_id;
             const uint32_t caster_id = packet->agent_id;
             OnSkillOnEnemy(value_id, caster_id);

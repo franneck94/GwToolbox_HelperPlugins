@@ -13,11 +13,10 @@ macro(add_tb_plugin PLUGIN)
 
   target_include_directories(
     ${PLUGIN} PRIVATE ${gwtoolboxpp_SOURCE_DIR}/plugins/Base
-                      ${gwtoolboxpp_SOURCE_DIR}/GWToolboxdll
-                      src/${PLUGIN})
+                      ${gwtoolboxpp_SOURCE_DIR}/GWToolboxdll src/${PLUGIN})
   target_link_libraries(
     ${PLUGIN}
-    PUBLIC RestClient
+    PRIVATE RestClient
            directxtex
            easywsclient
            nlohmann_json::nlohmann_json
@@ -25,7 +24,24 @@ macro(add_tb_plugin PLUGIN)
            imgui::fonts
            helper_utils)
 
-  target_compile_options(${PLUGIN} PRIVATE /W4 /Gy)
+  target_compile_options(
+    ${PLUGIN}
+    PRIVATE /Wall
+            /wd5246
+            /wd4626
+            /wd4627
+            /wd4626
+            /wd5045
+            /wd4820
+            /wd5027
+            /wd5259
+            /wd4625
+            /wd5026
+            /wd4623
+            /wd4668
+            /wd5039
+            /wd5204)
+  target_compile_options(${PLUGIN} PRIVATE /Gy)
   target_compile_options(${PLUGIN} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/GL>)
   target_compile_options(${PLUGIN} PRIVATE $<$<CONFIG:Debug>:/ZI /Od /RTCs>)
   target_compile_options(${PLUGIN} PRIVATE $<$<CONFIG:RelWithDebInfo>:/Zi>)

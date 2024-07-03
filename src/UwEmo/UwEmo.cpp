@@ -21,10 +21,10 @@
 
 #include "ActionsBase.h"
 #include "ActionsUw.h"
-#include "HelperPlayer.h"
 #include "DataSkillbar.h"
 #include "Helper.h"
 #include "HelperAgents.h"
+#include "HelperPlayer.h"
 #include "HelperUw.h"
 #include "HelperUwPos.h"
 #include "Logger.h"
@@ -52,10 +52,14 @@ constexpr auto ESCORT_IDS = std::array<uint32_t, 6>{GW::Constants::ModelID::UW::
                                                     GW::Constants::ModelID::UW::Escort6};
 constexpr auto CANTHA_STONE_ID = uint32_t{30210};
 constexpr auto COOKIE_ID = uint32_t{28433};
-constexpr auto SEVEN_MINS_IN_MS = 7LL * 60LL * 1000LL;
 constexpr auto EIGHT_MINS_IN_MS = 8LL * 60LL * 1000LL;
 
-const auto reaper_moves = std::map<std::string, uint32_t>{{"Lab", 32}, {"Pits", 45}, {"Planes", 48}, {"Wastes", 50}};
+const auto reaper_moves = std::map<std::string, uint32_t>{
+    {"Lab", 32},
+    {"Pits", 45},
+    {"Planes", 48},
+    {"Wastes", 50},
+};
 
 const auto full_team_moves = std::array<uint32_t, 9>{31, 32, 33, 34, 52, 53, 54, 55};
 }; // namespace
@@ -102,8 +106,8 @@ void UwEmo::LoadSettings(const wchar_t *folder)
     ToolboxUIPlugin::LoadSettings(folder);
     ini.LoadFile(GetSettingFile(folder).c_str());
     show_debug_map = ini.GetBoolValue(Name(), VAR_NAME(show_debug_map), show_debug_map);
-    bag_idx = ini.GetLongValue(Name(), VAR_NAME(bag_idx), bag_idx);
-    slot_idx = ini.GetLongValue(Name(), VAR_NAME(slot_idx), slot_idx);
+    bag_idx = static_cast<uint32_t>(ini.GetLongValue(Name(), VAR_NAME(bag_idx), bag_idx));
+    slot_idx = static_cast<uint32_t>(ini.GetLongValue(Name(), VAR_NAME(slot_idx), slot_idx));
 }
 
 void UwEmo::SaveSettings(const wchar_t *folder)
@@ -130,14 +134,14 @@ void UwEmo::DrawSettings()
     ImGui::PushItemWidth(width * 0.5F);
     ImGui::InputInt("###inputBagIdx", &_bag_idx, 1, 1);
     ImGui::PopItemWidth();
-    bag_idx = _bag_idx;
+    bag_idx = static_cast<uint32_t>(_bag_idx);
 
     ImGui::Text("First Armor Piece Idx (starts at 1):");
     ImGui::SameLine(width * 0.5F);
     ImGui::PushItemWidth(width * 0.5F);
     ImGui::InputInt("###inputStartSlot", &_slot_idx, 1, 1);
     ImGui::PopItemWidth();
-    slot_idx = _slot_idx;
+    slot_idx = static_cast<uint32_t>(_slot_idx);
 
     ImGui::Text("Show Debug Map:");
     ImGui::SameLine(width * 0.5F);

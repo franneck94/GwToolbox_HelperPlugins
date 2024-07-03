@@ -109,7 +109,7 @@ void SmartCommands::BaseUseSkill::CastSelectedSkill(const uint32_t current_energ
 
 void SmartCommands::UseSkill::Update()
 {
-    if (slot == 0 || ((clock() - skill_timer) / 1000.0f < skill_usage_delay))
+    if (slot == 0 || (static_cast<float>((clock() - skill_timer)) / 1000.0f < skill_usage_delay))
         return;
 
     const auto *skillbar = GW::SkillbarMgr::GetPlayerSkillbar();

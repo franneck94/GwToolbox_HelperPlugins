@@ -39,6 +39,7 @@ bool RemoveImportantConditions()
     constexpr static auto to_remove_conditions_all = std::array{
         GW::Constants::SkillID::Crippled,
     };
+#ifdef _DEBUG_REMOVAL
     const static auto cond_names_map = std::map<GW::Constants::SkillID, const char *>{
         {GW::Constants::SkillID::No_Skill, "Unk"},
         {GW::Constants::SkillID::Blind, "Blind"},
@@ -46,6 +47,7 @@ bool RemoveImportantConditions()
         {GW::Constants::SkillID::Dazed, "Dazed"},
         {GW::Constants::SkillID::Crippled, "Crippled"},
     };
+#endif
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
         {GW::Constants::SkillID::Mend_Body_and_Soul, GW::Constants::Profession::Ritualist},
         {GW::Constants::SkillID::Dismiss_Condition, GW::Constants::Profession::Monk},
@@ -184,6 +186,7 @@ bool ShatterImportantHexes()
         // Necro
         GW::Constants::SkillID::Vocal_Minority,
     };
+#ifdef _DEBUG_REMOVAL
     const static auto hex_names_map = std::map<GW::Constants::SkillID, const char *>{
         {GW::Constants::SkillID::No_Skill, "Unk"},
         {GW::Constants::SkillID::Ineptitude, "Ineptitude"},
@@ -204,6 +207,7 @@ bool ShatterImportantHexes()
         {GW::Constants::SkillID::Spiteful_Spirit, "Spiteful Spirit"},
         {GW::Constants::SkillID::Vocal_Minority, "Vocal Minority"},
     };
+#endif
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
         {GW::Constants::SkillID::Shatter_Hex, GW::Constants::Profession::Mesmer},
         {GW::Constants::SkillID::Remove_Hex, GW::Constants::Profession::Monk},

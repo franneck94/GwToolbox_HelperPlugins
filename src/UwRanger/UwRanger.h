@@ -30,7 +30,7 @@ class UwRanger : public ToolboxUIPlugin
 {
 public:
     UwRanger()
-        : filtered_livings({}), auto_target(), last_casted_times_ms({}),
+        : filtered_livings({}), last_casted_times_ms({}), auto_target(),
           livings_data({}) {};
     ~UwRanger() {};
 

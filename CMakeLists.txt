@@ -59,7 +59,8 @@ target_compile_options(
           /wd5259
           /wd4625
           /wd5026
-          /wd4623)
+          /wd4623
+          /wd4668)
 
 include(gwtoolboxdll_plugins)
 
