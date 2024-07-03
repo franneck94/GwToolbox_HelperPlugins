@@ -8,6 +8,7 @@
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/GWCA.h>
 #include <GWCA/GameEntities/Agent.h>
+#include <GWCA/GameEntities/Party.h>
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/EffectMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
@@ -348,6 +349,10 @@ void SmartHexAndCondRemove::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fn
 void SmartHexAndCondRemove::Update(float)
 {
     if (!ValidateData(HelperActivationConditions, true))
+        return;
+
+    const auto *party_info = GW::PartyMgr::GetPartyInfo();
+    if (!party_info || party_info->heroes.size() == 0)
         return;
 
     HeroSmarterSkills_Main();

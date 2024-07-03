@@ -6,6 +6,7 @@
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/GWCA.h>
 #include <GWCA/GameEntities/Agent.h>
+#include <GWCA/GameEntities/Party.h>
 #include <GWCA/Managers/AgentMgr.h>
 #include <GWCA/Managers/PartyMgr.h>
 #include <GWCA/Utilities/Hooker.h>
@@ -96,6 +97,10 @@ void SmartVigSpirit::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, cons
 void SmartVigSpirit::Update(float)
 {
     if (!ValidateData(HelperActivationConditions, true))
+        return;
+
+    const auto *party_info = GW::PartyMgr::GetPartyInfo();
+    if (!party_info || party_info->heroes.size() == 0)
         return;
 
     HeroSmarterSkills_Main();

@@ -34,13 +34,12 @@ Refer to the [documentation](https://franneck94.github.io/GwToolbox_HelperPlugin
 
 Note: For a full list of hexes, conditions and skills to rupt look into the documentation
 
-## New feature compared to last release (1.0.0)
+## New feature compared to last release (1.1.0)
 
-- Splitted Smart splinter and Smart vigorous spirit
-- Further auto follow improvements
+- Dont run the Update function of the hero helpers, if no heros are in the party
 
 ## Known Issues
 
 - /tb close - does not work with the plugins...
-- If any plugin is unloaded, the others stop work until you restart the game or reload the other plugins
+- If any plugin is unloaded, the others might stop work until you restart the game or reload the other plugins
 - *Sometimes* unloaded a plugin leads to game freeze
