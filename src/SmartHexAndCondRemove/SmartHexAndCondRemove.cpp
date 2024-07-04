@@ -39,15 +39,6 @@ bool RemoveImportantConditions()
     constexpr static auto to_remove_conditions_all = std::array{
         GW::Constants::SkillID::Crippled,
     };
-#ifdef _DEBUG_REMOVAL
-    const static auto cond_names_map = std::map<GW::Constants::SkillID, const char *>{
-        {GW::Constants::SkillID::No_Skill, "Unk"},
-        {GW::Constants::SkillID::Blind, "Blind"},
-        {GW::Constants::SkillID::Weakness, "Weakness"},
-        {GW::Constants::SkillID::Dazed, "Dazed"},
-        {GW::Constants::SkillID::Crippled, "Crippled"},
-    };
-#endif
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
         {GW::Constants::SkillID::Mend_Body_and_Soul, GW::Constants::Profession::Ritualist},
         {GW::Constants::SkillID::Dismiss_Condition, GW::Constants::Profession::Monk},
@@ -55,7 +46,7 @@ bool RemoveImportantConditions()
         {GW::Constants::SkillID::Smite_Condition, GW::Constants::Profession::Monk},
         {GW::Constants::SkillID::Purge_Conditions, GW::Constants::Profession::Monk},
     };
-    constexpr static auto wait_ms = 500UL;
+    constexpr static auto wait_ms = 300UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
     constexpr static auto ignore_effect_agent_id = false;
     constexpr static auto check_for_effect = false;
@@ -88,33 +79,18 @@ bool RemoveImportantConditions()
             {
                 const auto [cond, found_cond] = cond_lookup(to_remove_conditions_melee, effect);
                 if (found_cond)
-                {
-#ifdef _DEBUG_REMOVAL
-                    Log::Info("Found condition to remove: %s", cond_names_map.at(cond));
-#endif
                     return true;
-                }
             }
             else
             {
                 const auto [cond, found_cond] = cond_lookup(to_remove_conditions_caster, effect);
                 if (found_cond)
-                {
-#ifdef _DEBUG_REMOVAL
-                    Log::Info("Found condition to remove: %s", cond_names_map.at(cond));
-#endif
                     return true;
-                }
             }
 
             const auto [cond, found_cond] = cond_lookup(to_remove_conditions_all, effect);
             if (found_cond)
-            {
-#ifdef _DEBUG_REMOVAL
-                Log::Info("Found condition to remove: %s", cond_names_map.at(cond));
-#endif
                 return true;
-            }
         }
 
         return false;
@@ -179,6 +155,7 @@ bool ShatterImportantHexes()
         // Ele
         GW::Constants::SkillID::Deep_Freeze,
         GW::Constants::SkillID::Mind_Freeze,
+        GW::Constants::SkillID::Icy_Shackles,
         // Necro
         GW::Constants::SkillID::Spiteful_Spirit,
     };
@@ -186,34 +163,12 @@ bool ShatterImportantHexes()
         // Necro
         GW::Constants::SkillID::Vocal_Minority,
     };
-#ifdef _DEBUG_REMOVAL
-    const static auto hex_names_map = std::map<GW::Constants::SkillID, const char *>{
-        {GW::Constants::SkillID::No_Skill, "Unk"},
-        {GW::Constants::SkillID::Ineptitude, "Ineptitude"},
-        {GW::Constants::SkillID::Empathy, "Empathy"},
-        {GW::Constants::SkillID::Crippling_Anguish, "Crippling Anguish"},
-        {GW::Constants::SkillID::Clumsiness, "Clumsiness"},
-        {GW::Constants::SkillID::Faintheartedness, "Faintheartedness"},
-        {GW::Constants::SkillID::Blurred_Vision, "Blurred Vision"},
-        {GW::Constants::SkillID::Panic, "Panic"},
-        {GW::Constants::SkillID::Backfire, "Backfire"},
-        {GW::Constants::SkillID::Mistrust, "Mistrust"},
-        {GW::Constants::SkillID::Power_Leech, "Power Leech"},
-        {GW::Constants::SkillID::Soul_Leech, "Soul Leech"},
-        {GW::Constants::SkillID::Diversion, "Diversion"},
-        {GW::Constants::SkillID::Visions_of_Regret, "Visions of Regret"},
-        {GW::Constants::SkillID::Deep_Freeze, "Deep Freeze"},
-        {GW::Constants::SkillID::Mind_Freeze, "Mind Freeze"},
-        {GW::Constants::SkillID::Spiteful_Spirit, "Spiteful Spirit"},
-        {GW::Constants::SkillID::Vocal_Minority, "Vocal Minority"},
-    };
-#endif
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
         {GW::Constants::SkillID::Shatter_Hex, GW::Constants::Profession::Mesmer},
         {GW::Constants::SkillID::Remove_Hex, GW::Constants::Profession::Monk},
         {GW::Constants::SkillID::Smite_Hex, GW::Constants::Profession::Monk},
     };
-    constexpr static auto wait_ms = 500UL;
+    constexpr static auto wait_ms = 300UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
     constexpr static auto ignore_effect_agent_id = false;
     constexpr static auto check_for_effect = false;
@@ -245,24 +200,14 @@ bool ShatterImportantHexes()
             {
                 const auto [hex, found_hex] = hex_lookup(to_remove_hexes_melee, effect);
                 if (found_hex)
-                {
-#ifdef _DEBUG_REMOVAL
-                    Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
-#endif
                     return true;
-                }
             }
 
             if (!HoldsMeleeWeapon())
             {
                 const auto [hex, found_hex] = hex_lookup(to_remove_hexes_caster, effect);
                 if (found_hex)
-                {
-#ifdef _DEBUG_REMOVAL
-                    Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
-#endif
                     return true;
-                }
             }
 
             const auto primary = GetPrimaryClass();
@@ -270,22 +215,12 @@ bool ShatterImportantHexes()
             {
                 const auto [hex, found_hex] = hex_lookup(to_remove_hexes_paragon, effect);
                 if (found_hex)
-                {
-#ifdef _DEBUG_REMOVAL
-                    Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
-#endif
                     return true;
-                }
             }
 
             const auto [hex, found_hex] = hex_lookup(to_remove_hexes_all, effect);
             if (found_hex)
-            {
-#ifdef _DEBUG_REMOVAL
-                Log::Info("Found hex to remove: %s", hex_names_map.at(hex));
-#endif
                 return true;
-            }
         }
 
         return false;
