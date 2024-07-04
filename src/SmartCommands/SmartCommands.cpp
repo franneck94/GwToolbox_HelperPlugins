@@ -149,7 +149,7 @@ void SmartCommands::DhuumUseSkill::Update()
     if (target && target->allegiance == GW::Constants::Allegiance::Enemy && me_living && !me_living->GetIsAttacking())
         AttackAgent(target);
 
-    if ((clock() - skill_timer) / 1000.0f < skill_usage_delay)
+    if (static_cast<float>((clock() - skill_timer)) / 1000.0f < skill_usage_delay)
         return;
 
     const auto skillbar = GW::SkillbarMgr::GetPlayerSkillbar();

@@ -17,6 +17,8 @@
 #include "HelperPlayer.h"
 #include "HelperSkill.h"
 
+// #define _DEBUG_SKILLS
+
 namespace
 {
 std::tuple<uint32_t, bool> SkillIdxOfHero(const GW::AgentLiving *hero_living, const GW::Constants::SkillID skill_id)
@@ -196,7 +198,7 @@ bool HeroUseSkill_Main(const GW::Constants::SkillID skill_id,
 
         if (HeroCastSkillIfAvailable(hero_living, hero_idx_zero_based, skill_id, hero_conditions, target_logic))
         {
-#ifdef _DEBUG
+#ifdef _DEBUG_SKILLS
             Log::Info("Casted %s.", skill_name);
 #else
             (void)skill_name;

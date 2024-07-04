@@ -26,7 +26,7 @@ bool UseShelterInFight()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Shelter;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
-    constexpr static auto wait_ms = 500UL;
+    constexpr static auto wait_ms = 1000UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
     constexpr static auto ignore_effect_agent_id = false;
     constexpr static auto check_for_effect = false;
@@ -69,7 +69,7 @@ bool UseUnionInFight()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Union;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
-    constexpr static auto wait_ms = 500UL;
+    constexpr static auto wait_ms = 1000UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
     constexpr static auto ignore_effect_agent_id = false;
     constexpr static auto check_for_effect = false;

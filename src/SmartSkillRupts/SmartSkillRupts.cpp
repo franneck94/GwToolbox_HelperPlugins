@@ -55,7 +55,7 @@ bool RuptEnemies()
         {GW::Constants::SkillID::Searing_Flames, "Searing Flames"},
         {GW::Constants::SkillID::Resurrection_Signet, "Resurrection Signet"},
     };
-    constexpr static auto wait_ms = 200UL;
+    constexpr static auto wait_ms = 300UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::SEARCH_TARGET;
     constexpr static auto ignore_effect_agent_id = false;
     constexpr static auto check_for_effect = false;
@@ -104,9 +104,7 @@ bool RuptEnemies()
                     change_target_to_id = new_target_id;
                     _last_time_target_changed = clock();
                 }
-#ifdef _DEBUG
-                Log::Info("Found skill to rupt: %s", rupt_names_map.at(*rupt_it));
-#endif
+
                 return true;
             }
         }

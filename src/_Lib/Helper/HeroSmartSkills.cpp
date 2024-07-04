@@ -31,7 +31,7 @@ void AttackTarget()
     const static auto skill_class_pairs = std::vector<std::tuple<GW::Constants::SkillID, GW::Constants::Profession>>{
         {GW::Constants::SkillID::Energy_Surge, GW::Constants::Profession::Mesmer},
     };
-    constexpr static auto wait_ms = 500UL;
+    constexpr static auto wait_ms =750UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::PLAYER_TARGET;
     constexpr static auto ignore_effect_agent_id = false;
     constexpr static auto check_for_effect = false;
@@ -81,7 +81,7 @@ bool UseFallback()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Fall_Back;
     constexpr static auto skill_class = GW::Constants::Profession::Paragon;
-    constexpr static auto wait_ms = 250UL;
+    constexpr static auto wait_ms = 500UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
     constexpr static auto ignore_effect_agent_id = true;
     constexpr static auto check_for_effect = true;

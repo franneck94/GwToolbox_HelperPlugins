@@ -26,7 +26,7 @@ bool UseSplinterOnPlayer()
 {
     constexpr static auto skill_id = GW::Constants::SkillID::Splinter_Weapon;
     constexpr static auto skill_class = GW::Constants::Profession::Ritualist;
-    constexpr static auto wait_ms = 500UL;
+    constexpr static auto wait_ms = 1000UL;
     constexpr static auto target_logic = Helper::Hero::TargetLogic::NO_TARGET;
     constexpr static auto ignore_effect_agent_id = true;
     constexpr static auto check_for_effect = true;
