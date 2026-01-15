@@ -98,6 +98,7 @@ add_tb_plugin(UwDhuumBitch)
 add_tb_plugin(UwEmo)
 add_tb_plugin(UwMesmer)
 add_tb_plugin(UwRanger)
+add_tb_plugin(SmartCommands)
 
 # Copy plugins to GWToolboxpp directory
 add_custom_target(copy_plugins ALL

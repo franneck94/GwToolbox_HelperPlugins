@@ -42,8 +42,8 @@ void SmartCommands::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const
         return;
     }
 
-    GW::Chat::CreateCommand(L"use", SmartCommands::CmdUseSkill);
-    GW::Chat::CreateCommand(L"dhuum", SmartCommands::CmdDhuumUseSkill);
+    // GW::Chat::CreateCommand(L"use", SmartCommands::CmdUseSkill);
+    // GW::Chat::CreateCommand(L"dhuum", SmartCommands::CmdDhuumUseSkill);
     uw_metadata.Initialize();
 
     WriteChat(GW::Chat::CHANNEL_GWCA1, L"Initialized", L"SmartCommands");
@@ -63,8 +63,8 @@ bool SmartCommands::CanTerminate()
 void SmartCommands::Terminate()
 {
     ToolboxPlugin::Terminate();
-    GW::Chat::DeleteCommand(L"use");
-    GW::Chat::DeleteCommand(L"dhuum");
+    // GW::Chat::DeleteCommand(L"use");
+    // GW::Chat::DeleteCommand(L"dhuum");
 }
 
 void SmartCommands::Update(float)
