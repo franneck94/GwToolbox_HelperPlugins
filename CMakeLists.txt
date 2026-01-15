@@ -76,6 +76,7 @@ target_compile_options(
           /wd5259
           /wd4625
           /wd5026
+          /wd5219
           /wd4623
           /wd4668
           /wd4464
@@ -84,83 +85,25 @@ target_compile_options(
           /wd4505
           /wd4061)
 
-MACRO(SUBDIRLIST result curdir)
-  FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
-  SET(dirlist "")
-  FOREACH(child ${children})
-    IF(IS_DIRECTORY ${curdir}/${child})
-      LIST(APPEND dirlist ${child})
-    ENDIF()
-  ENDFOREACH()
-  SET(${result} ${dirlist})
-ENDMACRO()
-SUBDIRLIST(SUBDIRS ${PROJECT_SOURCE_DIR}/src/plugins)
+add_tb_plugin(HeroWIndow)
+add_tb_plugin(SmartBip)
+add_tb_plugin(SmartHexAndCondRemove)
+add_tb_plugin(SmartHonor)
+add_tb_plugin(SmartSkillRupts)
+add_tb_plugin(SmartSoS)
+add_tb_plugin(SmartSplinter)
+add_tb_plugin(SmartST)
+add_tb_plugin(SmartVigSpirit)
+add_tb_plugin(UwDhuumBitch)
+add_tb_plugin(UwEmo)
+add_tb_plugin(UwMesmer)
+add_tb_plugin(UwRanger)
 
-FOREACH(subdir ${SUBDIRS})
-	add_library(${subdir} SHARED)
-
-	file(GLOB SOURCES
-		"src/plugins/${subdir}/*.h"
-		"src/plugins/${subdir}/*.cpp"
-		${gwtoolboxpp_SOURCE_DIR}/plugins/Base/*.h
-		${gwtoolboxpp_SOURCE_DIR}/plugins/Base/*.cpp
-		)
-
-	target_include_directories(${subdir} PRIVATE
-		${gwtoolboxpp_SOURCE_DIR}/plugins/Base
-		${gwtoolboxpp_SOURCE_DIR}/GWToolboxdll
-		${gwtoolboxpp_SOURCE_DIR}/Dependencies/GWCA/include
-		${SIMPLEINI_INCLUDE_DIRS}
-		)
-	target_link_libraries(${subdir} PRIVATE
-		RestClient
-		imgui
-		directxtex
-		gwca
-		easywsclient
-		nlohmann_json::nlohmann_json
-		wolfssl::wolfssl
-	    minhook::minhook
-	    ctre::ctre
-		imgui::fonts
-		IconFontCppHeaders
-		nativefiledialog
-		wintoast
-        helper_utils
-    )
-    target_compile_options(
-        ${subdir} PRIVATE
-        /Wall
-        /wd5246
-        /wd4626
-        /wd4627
-        /wd4626
-        /wd5045
-        /wd4820
-        /wd5027
-        /wd5259
-        /wd4625
-        /wd5026
-        /wd4623
-        /wd4668
-        /wd4464
-        /wd4514
-        /wd4201
-        /wd4505
-        /wd4061)
-
-	target_link_options(${subdir} PRIVATE
-		"$<$<CONFIG:DEBUG>:/NODEFAULTLIB:LIBCMT>"
-    )
-	source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCES})
-	target_sources(${subdir} PRIVATE ${SOURCES})
-	target_compile_definitions(${subdir} PRIVATE
-		"NOMINMAX"
-		"_WIN32_WINNT=_WIN32_WINNT_WIN7"
-		"WIN32_LEAN_AND_MEAN"
-		"VC_EXTRALEAN"
-		"BUILD_DLL"
-    )
-
-	set_target_properties(${subdir} PROPERTIES FOLDER "plugins")
-ENDFOREACH()
+# Copy plugins to GWToolboxpp directory
+add_custom_target(copy_plugins ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${PROJECT_SOURCE_DIR}/bin/Debug"
+        "C:/Users/schaf.JANPC/Documents/GWToolboxpp/JANPC/plugins"
+    DEPENDS HeroWIndow SmartBip SmartHexAndCondRemove SmartHonor SmartSkillRupts SmartSoS SmartSplinter SmartST SmartVigSpirit
+    COMMENT "Copying plugin files to GWToolboxpp directory"
+)

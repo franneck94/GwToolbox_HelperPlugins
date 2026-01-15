@@ -1,11 +1,9 @@
 #pragma once
 
-#include <array>
-#include <cstdint>
-#include <functional>
-#include <map>
+#include "stl_includes.h"
 
 #include <ToolboxUIPlugin.h>
+#include <IconsFontAwesome5.h>
 
 #include <GWCA/GameContainers/Array.h>
 #include <GWCA/GameEntities/Agent.h>

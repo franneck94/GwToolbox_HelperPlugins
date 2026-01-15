@@ -404,8 +404,8 @@ public:
                      const float _trigger_threshold,
                      const TriggerRole _role,
                      std::optional<std::function<bool()>> _cb_fn = std::nullopt)
-        : MoveABC(_x, _y, _name, _is_proceeding_move, _cb_fn), trigger_pos(_trigger_pos),
-          trigger_threshold(_trigger_threshold), role(_role)
+        : MoveABC(_x, _y, _name, _is_proceeding_move, _cb_fn), trigger_pos(_trigger_pos), role(_role),
+          trigger_threshold(_trigger_threshold)
     {
         is_distance_based = true;
     };

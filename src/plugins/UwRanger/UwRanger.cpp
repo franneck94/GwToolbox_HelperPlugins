@@ -1,7 +1,4 @@
-#include <array>
-#include <cstdint>
-#include <string_view>
-#include <vector>
+#include "stl_includes.h"
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/Constants/Maps.h>
@@ -66,7 +63,7 @@ void UwRanger::SignalTerminate()
 
 bool UwRanger::CanTerminate()
 {
-    return GW::HookBase::GetInHookCount() == 0;
+    return true;
 }
 
 void UwRanger::Terminate()

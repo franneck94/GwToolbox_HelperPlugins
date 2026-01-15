@@ -1,8 +1,4 @@
-#include <array>
-#include <cstdint>
-#include <ranges>
-#include <string_view>
-#include <vector>
+#include "stl_includes.h"
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/Constants/Maps.h>
@@ -246,7 +242,7 @@ void UwMesmer::SignalTerminate()
 
 bool UwMesmer::CanTerminate()
 {
-    return GW::HookBase::GetInHookCount() == 0;
+    return true;
 }
 
 void UwMesmer::Terminate()

@@ -1,10 +1,9 @@
 #pragma once
 
-#include <cstdint>
-#include <map>
-#include <vector>
+#include "stl_includes.h"
 
 #include <ToolboxUIPlugin.h>
+#include <IconsFontAwesome5.h>
 
 #include <GWCA/GameEntities/Agent.h>
 

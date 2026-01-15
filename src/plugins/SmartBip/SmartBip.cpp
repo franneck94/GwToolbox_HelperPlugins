@@ -101,7 +101,7 @@ void SmartBip::SignalTerminate()
 
 bool SmartBip::CanTerminate()
 {
-    return GW::HookBase::GetInHookCount() == 0;
+    return true;
 }
 
 void SmartBip::Terminate()

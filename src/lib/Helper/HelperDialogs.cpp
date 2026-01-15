@@ -27,12 +27,12 @@ uint32_t GetQuestID(const uint32_t dialog_id)
 
 uint32_t QuestAcceptDialog(GW::Constants::QuestID quest)
 {
-    return static_cast<int>(quest) << 8 | static_cast<int>(QuestDialogType::TAKE);
+    return static_cast<uint32_t>(quest) << 8 | static_cast<uint32_t>(QuestDialogType::TAKE);
 }
 
 uint32_t QuestRewardDialog(GW::Constants::QuestID quest)
 {
-    return static_cast<int>(quest) << 8 | static_cast<int>(QuestDialogType::REWARD);
+    return static_cast<uint32_t>(quest) << 8 | static_cast<uint32_t>(QuestDialogType::REWARD);
 }
 
 GW::Constants::QuestID IndexToQuestID(const int index)

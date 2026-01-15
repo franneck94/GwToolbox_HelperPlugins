@@ -1,9 +1,4 @@
-#include <array>
-#include <cmath>
-#include <cstdint>
-#include <map>
-#include <random>
-#include <string_view>
+#include "stl_includes.h"
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/GWCA.h>
@@ -272,7 +267,7 @@ void SmartHexAndCondRemove::SignalTerminate()
 
 bool SmartHexAndCondRemove::CanTerminate()
 {
-    return GW::HookBase::GetInHookCount() == 0;
+    return true;
 }
 
 void SmartHexAndCondRemove::Terminate()

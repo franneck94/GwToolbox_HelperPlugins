@@ -1,7 +1,4 @@
-#include <array>
-#include <cmath>
-#include <cstdint>
-#include <random>
+#include "stl_includes.h"
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/Constants/Maps.h>
@@ -18,7 +15,6 @@
 #include <GWCA/Managers/StoCMgr.h>
 #include <GWCA/Managers/UIMgr.h>
 #include <GWCA/Utilities/Hooker.h>
-#include <GWCA/Utilities/Scanner.h>
 
 #include "ActionTypes.h"
 #include "ActionsBase.h"
@@ -152,7 +148,7 @@ void HeroWindow::SignalTerminate()
 
 bool HeroWindow::CanTerminate()
 {
-    return GW::HookBase::GetInHookCount() == 0;
+    return true;
 }
 
 void HeroWindow::Terminate()

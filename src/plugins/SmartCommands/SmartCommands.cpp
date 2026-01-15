@@ -1,5 +1,4 @@
-#include <cstdlib>
-#include <string>
+#include "stl_includes.h"
 
 #include <GWCA/Context/ItemContext.h>
 #include <GWCA/Context/WorldContext.h>
@@ -58,7 +57,7 @@ void SmartCommands::SignalTerminate()
 
 bool SmartCommands::CanTerminate()
 {
-    return GW::HookBase::GetInHookCount() == 0;
+    return true;
 }
 
 void SmartCommands::Terminate()

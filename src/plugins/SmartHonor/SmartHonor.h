@@ -1,6 +1,9 @@
 #pragma once
 
+#include "stl_includes.h"
+
 #include <ToolboxUIPlugin.h>
+#include <IconsFontAwesome5.h>
 
 class SmartHonor : public ToolboxUIPlugin
 {

@@ -1,7 +1,4 @@
-#include <array>
-#include <cmath>
-#include <cstdint>
-#include <random>
+#include "stl_includes.h"
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/GWCA.h>
@@ -74,7 +71,7 @@ void SmartHonor::SignalTerminate()
 
 bool SmartHonor::CanTerminate()
 {
-    return GW::HookBase::GetInHookCount() == 0;
+    return true;
 }
 
 void SmartHonor::Terminate()

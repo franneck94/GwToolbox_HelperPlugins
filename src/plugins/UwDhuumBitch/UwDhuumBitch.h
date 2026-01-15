@@ -1,9 +1,9 @@
 #pragma once
 
-#include <array>
-#include <cstdint>
+#include "stl_includes.h"
 
 #include <ToolboxUIPlugin.h>
+#include <IconsFontAwesome5.h>
 
 #include <GWCA/Packets/StoC.h>
 #include <GWCA/Utilities/Hook.h>

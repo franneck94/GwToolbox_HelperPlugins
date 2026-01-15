@@ -1,7 +1,4 @@
-#include <array>
-#include <cmath>
-#include <cstdint>
-#include <random>
+#include "stl_includes.h"
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/GWCA.h>
@@ -79,7 +76,7 @@ void SmartVigSpirit::SignalTerminate()
 
 bool SmartVigSpirit::CanTerminate()
 {
-    return GW::HookBase::GetInHookCount() == 0;
+    return true;
 }
 
 void SmartVigSpirit::Terminate()
