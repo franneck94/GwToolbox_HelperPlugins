@@ -38,12 +38,5 @@ Note: For a full list of hexes, conditions and skills to rupt look into the docu
 
 - CMake 3.21+, Git
 - MSVC 2022 with C++23
+- VCPKG
 - Optional: Python 3.8+ for the Documentation
-
-```bash
-mkdir build
-cd build
-cmake .. -G "Visual Studio 17 2022" -A Win32 -B .
-```
-
-Then open it in VSCode or VS2022.

@@ -1,0 +1,91 @@
+#pragma once
+
+#ifndef VC_EXTRALEAN
+#define VC_EXTRALEAN
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+// Suppress Windows SDK warnings
+#pragma warning(push)
+#pragma warning(disable: 5039) // pointer or reference to potentially throwing function passed to extern C function
+#pragma warning(disable: 4464)
+
+// windows headers
+#include <Windows.h>
+
+#include <DbgHelp.h>
+#include <shellapi.h>
+#include <ShlObj.h>
+#include <Shlwapi.h>
+#include <strsafe.h>
+#include <TlHelp32.h>
+#include <windowsx.h>
+#include <winnt.h>
+#include <WinInet.h>
+#include <WinSock2.h>
+#include <WinUser.h>
+#include <WS2tcpip.h>
+
+#pragma warning(pop) // Restore warning levels
+
+// c++ style c headers
+#include <cctype>
+#include <cmath>
+#include <cstdint>
+#include <cstdio>
+#include <ctime>
+
+// c++ headers
+#include <algorithm>
+#include <array>
+#include <bitset>
+#include <chrono>
+#include <concepts>
+#include <deque>
+#include <filesystem>
+#include <format>
+#include <fstream>
+#include <functional>
+#include <initializer_list>
+#include <iomanip>
+#include <iostream>
+#include <iterator>
+#include <list>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <ranges>
+#include <regex>
+#include <set>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+#include <chrono>
+#include <random>
+
+#include <GWCA/GameContainers/Array.h>
+#include <GWCA/GameContainers/GamePos.h>
+
+#define VAR_NAME(v) (#v)
+#ifndef PLUGIN_ASSERT
+#define PLUGIN_ASSERT(expr) ((void)(!!(expr) || (std::cerr << (#expr, __FILE__, (unsigned)__LINE__), 0)))
+#endif
+
+#define PLUGIN_LOAD_BOOL(var) var = ini.GetBoolValue(Name(), #var, var);
+#define PLUGIN_SAVE_BOOL(var) ini.SetBoolValue(Name(), #var, var);
+#define PLUGIN_LOAD_FLOAT(var) var = static_cast<float>(ini.GetDoubleValue(Name(), #var, static_cast<double>(var)));
+#define PLUGIN_SAVE_FLOAT(var) ini.SetDoubleValue(Name(), #var, static_cast<double>(var));
+#define PLUGIN_LOAD_UINT(var) var = static_cast<unsigned int>(ini.GetLongValue(Name(), #var, static_cast<long>(var)));
+#define PLUGIN_SAVE_UINT(var) ini.SetLongValue(Name(), #var, static_cast<long>(var));

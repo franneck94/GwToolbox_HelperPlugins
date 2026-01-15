@@ -1,0 +1,18 @@
+{
+  "dependencies": [
+    "ctre",
+    {
+      "name": "curl",
+      "features": [
+        "wolfssl"
+      ]
+    },
+    "directxtex",
+    "minhook",
+    "nlohmann-json",
+    "simpleini",
+    "wolfssl",
+    "uwebsockets",
+    "imgui"
+  ]
+}
