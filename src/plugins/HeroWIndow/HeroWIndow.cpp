@@ -101,7 +101,7 @@ void OnSkillOnEnemy(const uint32_t value_id, const uint32_t caster_id)
 void OnEnemyInteract(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
 {
     const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
-    if (!packet || !packet->call_target)
+    if (!packet || !packet->agent_id)
         return;
 
     PingLogic(packet->agent_id);
