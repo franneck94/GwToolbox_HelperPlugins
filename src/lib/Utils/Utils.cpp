@@ -1,8 +1,6 @@
-#include <string>
+#include "stl_includes.h"
 
 #include "Utils.h"
-
-#include <string>
 
 bool ParseUInt(const wchar_t *str, unsigned int *val, const int base)
 {

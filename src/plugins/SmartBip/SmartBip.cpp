@@ -1,8 +1,4 @@
-#include <array>
-#include <cmath>
-#include <cstdint>
-#include <map>
-#include <random>
+#include "stl_includes.h"
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/GWCA.h>

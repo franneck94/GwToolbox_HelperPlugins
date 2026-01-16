@@ -1,8 +1,6 @@
 #pragma once
 
-#include <array>
-#include <cstdint>
-#include <string_view>
+#include "stl_includes.h"
 
 #include <GWCA/GameContainers/GamePos.h>
 #include <GWCA/GameEntities/Camera.h>

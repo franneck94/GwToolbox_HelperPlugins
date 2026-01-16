@@ -1,8 +1,4 @@
-#include <cstdarg>
-#include <cstdint>
-#include <cstdio>
-#include <ctime>
-#include <string>
+#include "stl_includes.h"
 
 #include <GWCA/GameContainers/Array.h>
 #include <GWCA/Managers/ChatMgr.h>

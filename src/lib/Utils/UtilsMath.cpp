@@ -1,5 +1,4 @@
-#include <cmath>
-#include <vector>
+#include "stl_includes.h"
 
 #include <GWCA/GameContainers/GamePos.h>
 #include <GWCA/GameEntities/Agent.h>

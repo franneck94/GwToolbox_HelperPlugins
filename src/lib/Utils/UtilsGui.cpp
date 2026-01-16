@@ -1,7 +1,4 @@
-#include <array>
-#include <cmath>
-#include <cstdint>
-#include <string_view>
+#include "stl_includes.h"
 
 #include <GWCA/Constants/Constants.h>
 #include <GWCA/GameContainers/GamePos.h>

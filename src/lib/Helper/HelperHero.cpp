@@ -199,7 +199,6 @@ bool HeroUseSkill_Main(const GW::Constants::SkillID skill_id,
         {
 #ifdef _DEBUG_SKILLS
             Log::Info("Casted %s.", skill_name);
-            GW::Chat::WriteChat(GW::Chat::CHANNEL_GWCA1, L"Casted %s", std::wstring(skill_name.begin(), skill_name.end()).c_str());
 #else
             (void)skill_name;
 #endif

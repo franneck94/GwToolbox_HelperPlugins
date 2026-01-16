@@ -1,8 +1,6 @@
 #pragma once
 
-#include <utility>
-#include <vector>
-#include <string_view>
+#include "stl_includes.h"
 
 #include <GWCA/GameContainers/GamePos.h>
 #include <GWCA/GameEntities/Agent.h>

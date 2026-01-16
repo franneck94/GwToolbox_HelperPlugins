@@ -1,8 +1,6 @@
 #pragma once
 
-#include <ctime>
-#include <filesystem>
-#include <string_view>
+#include "stl_includes.h"
 
 #define VAR_NAME(v) (#v)
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stl_includes.h"
+
 #include <GWCA/Managers/ChatMgr.h>
 
 namespace Log
