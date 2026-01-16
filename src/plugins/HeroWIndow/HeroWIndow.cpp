@@ -100,7 +100,7 @@ void OnSkillOnEnemy(const uint32_t value_id, const uint32_t caster_id)
 
 void OnEnemyInteract(GW::HookStatus *, GW::UI::UIMessage, void *wparam, void *)
 {
-    const auto packet = static_cast<GW::UI::UIPacket::kInteractAgent *>(wparam);
+    const auto packet = static_cast<GW::UI::UIPacket::kSendCallTarget *>(wparam);
     if (!packet || !packet->call_target)
         return;
 
@@ -125,7 +125,7 @@ void HeroWindow::Initialize(ImGuiContext *ctx, const ImGuiAllocFns fns, const HM
 {
     ToolboxUIPlugin::Initialize(ctx, fns, toolbox_dll);
 
-    // GW::UI::RegisterUIMessageCallback(&AgentCalled_Entry, GW::UI::UIMessage::kSendInteractEnemy, OnEnemyInteract); // TODO
+    GW::UI::RegisterUIMessageCallback(&AgentCalled_Entry, GW::UI::UIMessage::kSendCallTarget, OnEnemyInteract); // TODO
 
     GW::StoC::RegisterPacketCallback<GW::Packet::StoC::GenericValue>(
         &GenericValueTarget_Entry,
@@ -148,7 +148,7 @@ void HeroWindow::SignalTerminate()
 
 bool HeroWindow::CanTerminate()
 {
-    return true;
+    return GW::Hook::GetInHookCount() == 0;
 }
 
 void HeroWindow::Terminate()
